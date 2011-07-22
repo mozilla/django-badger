@@ -3,6 +3,11 @@ from django.contrib.auth.models import User
 
 from django.template.defaultfilters import slugify
 
+try:
+    from commons.urlresolvers import reverse
+except ImportError, e:
+    from django.core.urlresolvers import reverse
+
 
 def get_permissions_for(self, user):
     """Mixin method to collect permissions for a model instance"""
@@ -48,10 +53,13 @@ class Badge(models.Model):
 
     get_permissions_for = get_permissions_for
 
+    def get_absolute_url(self):
+        return reverse('badger.views.detail', args=[self.slug])
+
     def save(self, **kwargs):
         """Save the submission, updating slug and screenshot thumbnails"""
-        if not self.slug:
-            self.slug = slugify(self.title)
+        #if not self.slug:
+        self.slug = slugify(self.title)
         super(Badge, self).save(**kwargs)
 
     def allows_award_to(self, user):

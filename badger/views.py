@@ -23,6 +23,8 @@ except ImportError, e:
 
 from django.views.generic.base import View
 from django.views.generic.list_detail import object_list
+from django.views.decorators.http import (require_GET, require_POST,
+                                          require_http_methods)
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -34,19 +36,31 @@ from .models import (Badge, Award, Nomination,
         NominationAcceptNotAllowedException)
 
 
+BADGE_PAGE_SIZE = 12
+
+
 def home(request):
-    return render_to_response('badger/home.html', {
-    }, context_instance=RequestContext(request))
+    """Badger home page"""
+    queryset = Badge.objects.all()
+    return object_list(request, queryset,
+        paginate_by=BADGE_PAGE_SIZE, allow_empty=True,
+        template_object_name='badge',
+        template_name='badger/home.html')
 
 
+@require_GET
 def detail(request, slug):
-    return render_to_response('badger/badge_detail.html', {
-    }, context_instance=RequestContext(request))
+    """Badge detail view"""
+    badge = get_object_or_404(Badge, slug=slug)
+    return render_to_response('badger/badge_detail.html', dict(
+        badge=badge,
+    ), context_instance=RequestContext(request))
 
 
+@require_http_methods(['GET', 'POST'])
 @login_required
 def create(request):
-
+    """Create a new badge"""
     if request.method != "POST":
         form = BadgeNewForm()
     else:
@@ -56,10 +70,31 @@ def create(request):
             new_sub.creator = request.user
             new_sub.save()
             form.save_m2m()
-
             return HttpResponseRedirect(reverse(
                     'badger.views.detail', args=(new_sub.slug,)))
 
     return render_to_response('badger/badge_create.html', dict(
         form=form,
+    ), context_instance=RequestContext(request))
+
+
+@require_http_methods(['GET', 'POST'])
+@login_required
+def edit(request, slug):
+    """Edit an existing badge"""
+    badge = get_object_or_404(Badge, slug=slug)
+    if request.method != "POST":
+        form = BadgeEditForm(instance=badge)
+    else:
+        form = BadgeEditForm(request.POST, request.FILES, instance=badge)
+        if form.is_valid():
+            new_sub = form.save(commit=False)
+            new_sub.creator = request.user
+            new_sub.save()
+            form.save_m2m()
+            return HttpResponseRedirect(reverse(
+                    'badger.views.detail', args=(new_sub.slug,)))
+
+    return render_to_response('badger/badge_edit.html', dict(
+        badge=badge, form=form,
     ), context_instance=RequestContext(request))

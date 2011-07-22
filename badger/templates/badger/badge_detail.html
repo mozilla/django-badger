@@ -1,7 +1,17 @@
 {% extends "badger/base.html" %}
 
+{% block pageid %}badge_detail{% endblock %}
+
 {% block content %}
 
 <h2>Badge detail</h2>
+
+<dl class="badge" data-slug="{{ badge.slug }}">
+    <dt>Title:</dt><dd class="title">{{ badge.title }}</dd>
+    <dt>Description:<dt><dd class="description">{{ badge.description }}</dd>
+</dl>
+
+<a class="edit_badge" href="{{ url('badger.views.edit', badge.slug) }}">edit</a>
+
 
 {% endblock %}
