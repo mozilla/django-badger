@@ -1,5 +1,7 @@
 ## TODO
 
+* Permissions
+
 * Nomination - create, delete, update, approve, reject
 
 * Per-user award list
@@ -17,6 +19,11 @@
         * Progress counter
         * Badge set completion
 
+* Define initial badges in app/{name}/badges.py
+    * Includes signals to hook award/nomination conditions up to model activity 
+    * Register initial set of conditional nominations
+    * Should still be able to manage images, etc, in admin / database
+
 * Activity streams - JSON and Atom
 
 * REST API
@@ -30,3 +37,4 @@
     * Claim optionally triggers approval
     * Could be expressed as QR code
 
+* How much of this can be loosely-coupled through signals?
