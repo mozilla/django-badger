@@ -19,10 +19,10 @@ from django.contrib.auth.models import User
 
 from commons.urlresolvers import reverse
 
-from badger.models import ( Badge, Award, Nomination,
+from badger.models import (Badge, Award, Nomination,
         BadgeAwardNotAllowedException,
         NominationApproveNotAllowedException,
-        NominationAcceptNotAllowedException )
+        NominationAcceptNotAllowedException)
 
 
 class BadgerViewsTest(TestCase):
@@ -57,13 +57,11 @@ class BadgerViewsTest(TestCase):
         # For styling purposes, we'll allow either an input or button element
         eq_(1, form.find('input.submit,button.submit').length)
 
-
     def _get_user(self, username="tester", email="tester@example.com",
             password="trustno1"):
-        (user, created) = User.objects.get_or_create(username=username, defaults=dict(
-                email=email))
+        (user, created) = User.objects.get_or_create(username=username,
+                defaults=dict(email=email))
         if created:
             user.set_password(password)
             user.save()
         return user
-

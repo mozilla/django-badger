@@ -8,5 +8,4 @@ urlpatterns = patterns('badger.views',
     url(r'^$', 'home', name='badger_home'),
     url(r'^create$', 'create', name='badger_create_badge'),
     url(r'^badges/(?P<slug>[^/]+)/?$', 'detail', name='badger_badge_detail'),
-    
 )

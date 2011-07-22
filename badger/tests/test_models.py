@@ -12,10 +12,10 @@ from nose.plugins.attrib import attr
 from django.template.defaultfilters import slugify
 
 from django.contrib.auth.models import User
-from badger.models import ( Badge, Award, Nomination,
+from badger.models import (Badge, Award, Nomination,
         BadgeAwardNotAllowedException,
         NominationApproveNotAllowedException,
-        NominationAcceptNotAllowedException )
+        NominationAcceptNotAllowedException)
 
 
 class BadgerBadgeTest(TestCase):
@@ -29,7 +29,6 @@ class BadgerBadgeTest(TestCase):
         Award.objects.all().delete()
         Badge.objects.all().delete()
 
-
     def test_get_badge(self):
         """Can create a badge"""
         badge = self._get_badge()
@@ -40,12 +39,12 @@ class BadgerBadgeTest(TestCase):
         eq_(badge.created.year, badge.modified.year)
         eq_(badge.created.month, badge.modified.month)
         eq_(badge.created.day, badge.modified.day)
-        
+
     def test_award_badge(self):
         """Can award a badge to a user"""
         badge = self._get_badge()
         user = self._get_user()
-        
+
         ok_(not badge.is_awarded_to(user))
         badge.award_to(awarder=badge.creator, awardee=user)
         ok_(badge.is_awarded_to(user))
@@ -129,21 +128,20 @@ class BadgerBadgeTest(TestCase):
         except NominationAcceptNotAllowedException, e:
             ok_(True)
 
-
     def _get_user(self, username="tester", email="tester@example.com",
             password="trustno1"):
-        (user, created) = User.objects.get_or_create(username=username, defaults=dict(
-                email=email))
+        (user, created) = User.objects.get_or_create(username=username,
+                defaults=dict(email=email))
         if created:
             user.set_password(password)
             user.save()
         return user
 
-    def _get_badge(self, title="Test Badge", 
+    def _get_badge(self, title="Test Badge",
             description="This is a test badge", creator=None):
         creator = creator or self.user_1
-        (badge, created) = Badge.objects.get_or_create(title=title, defaults=dict(
-                description=description, creator=creator))
+        (badge, created) = Badge.objects.get_or_create(title=title,
+                defaults=dict(description=description, creator=creator))
         return badge
 
     def _create_nomination(self, badge=None, nominator=None, nominee=None):
@@ -154,4 +152,3 @@ class BadgerBadgeTest(TestCase):
                 email="nominee@example.com", password="nomnom2")
         nomination = badge.nominate_for(nominator=nominator, nominee=nominee)
         return nomination
-

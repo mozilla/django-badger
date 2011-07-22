@@ -5,27 +5,32 @@ from django.template.defaultfilters import slugify
 
 
 def get_permissions_for(self, user):
-    """Mixin method to collect permissions for a model instance""" 
+    """Mixin method to collect permissions for a model instance"""
     pre = 'allows_'
     pre_len = len(pre)
-    methods = ( m for m in dir(self) if m.startswith(pre) )
+    methods = (m for m in dir(self) if m.startswith(pre))
     perms = dict(
-        ( m[pre_len:], getattr(self, m)(user) )
+        (m[pre_len:], getattr(self, m)(user))
         for m in methods
     )
     return perms
 
-class BadgerException(Exception): 
+
+class BadgerException(Exception):
     """General Badger model exception"""
 
 
 class BadgeManager(models.Manager):
     """Manager for Badge model objects"""
 
-class BadgeException(BadgerException): 
+
+class BadgeException(BadgerException):
     """Badge model exception"""
+
+
 class BadgeAwardNotAllowedException(BadgeException):
     """Attempt to award a badge not allowed."""
+
 
 class Badge(models.Model):
     """Representation of a badge"""
@@ -39,7 +44,7 @@ class Badge(models.Model):
     modified = models.DateTimeField(auto_now=True, blank=False)
 
     class Meta:
-        unique_together = ('title','slug')
+        unique_together = ('title', 'slug')
 
     get_permissions_for = get_permissions_for
 
@@ -47,13 +52,13 @@ class Badge(models.Model):
         """Save the submission, updating slug and screenshot thumbnails"""
         if not self.slug:
             self.slug = slugify(self.title)
-        super(Badge,self).save(**kwargs)
+        super(Badge, self).save(**kwargs)
 
     def allows_award_to(self, user):
         """Is award_to() allowed for this user?"""
         if user.is_staff or user.is_superuser:
             return True
-        if user == self.creator: 
+        if user == self.creator:
             return True
         return False
 
@@ -85,10 +90,14 @@ class NominationManager(models.Manager):
     pass
 
 
-class NominationException(BadgerException): 
+class NominationException(BadgerException):
     """Nomination model exception"""
+
+
 class NominationApproveNotAllowedException(NominationException):
     """Attempt to approve a nomination was disallowed"""
+
+
 class NominationAcceptNotAllowedException(NominationException):
     """Attempt to accept a nomination was disallowed"""
 
@@ -113,7 +122,7 @@ class Nomination(models.Model):
     def allows_approve_by(self, user):
         if user.is_staff or user.is_superuser:
             return True
-        if user == self.badge.creator: 
+        if user == self.badge.creator:
             return True
         return False
 
@@ -133,7 +142,7 @@ class Nomination(models.Model):
     def allows_accept(self, user):
         if user.is_staff or user.is_superuser:
             return True
-        if user == self.nominee: 
+        if user == self.nominee:
             return True
         return False
 
