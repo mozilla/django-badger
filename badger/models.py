@@ -44,7 +44,7 @@ class Badge(models.Model):
     title = models.CharField(max_length=255, blank=False, unique=True)
     slug = models.SlugField(blank=False, unique=True)
     description = models.TextField(blank=True)
-    creator = models.ForeignKey(User, blank=False)
+    creator = models.ForeignKey(User, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, blank=False)
     modified = models.DateTimeField(auto_now=True, blank=False)
 
@@ -53,17 +53,21 @@ class Badge(models.Model):
 
     get_permissions_for = get_permissions_for
 
+    def __unicode__(self):
+        return u'<Badge %s>' % self.title
+
     def get_absolute_url(self):
         return reverse('badger.views.detail', args=[self.slug])
 
     def save(self, **kwargs):
         """Save the submission, updating slug and screenshot thumbnails"""
-        #if not self.slug:
         self.slug = slugify(self.title)
         super(Badge, self).save(**kwargs)
 
     def allows_award_to(self, user):
         """Is award_to() allowed for this user?"""
+        if None == user:
+            return True
         if user.is_staff or user.is_superuser:
             return True
         if user == self.creator:
@@ -185,7 +189,7 @@ class Award(models.Model):
     badge = models.ForeignKey(Badge)
     user = models.ForeignKey(User, related_name="award_user")
     nomination = models.ForeignKey(Nomination, blank=True, null=True)
-    creator = models.ForeignKey(User, related_name="award_creator")
+    creator = models.ForeignKey(User, related_name="award_creator", blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, blank=False)
     modified = models.DateTimeField(auto_now=True, blank=False)
 

@@ -4,6 +4,11 @@ from django.conf import settings
 from django.views.generic.list_detail import object_list
 from django.views.generic.simple import direct_to_template
 
+import badger
+
+badger.autodiscover()
+
+
 urlpatterns = patterns('badger.views',
     url(r'^$', 'home', name='badger_home'),
     url(r'^create$', 'create', name='badger_create_badge'),

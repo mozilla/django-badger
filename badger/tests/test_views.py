@@ -3,7 +3,6 @@ import logging
 from django.conf import settings
 
 from django.http import HttpRequest
-from django.test import TestCase
 from django.test.client import Client
 
 from commons import LocalizingClient
@@ -21,6 +20,8 @@ try:
     from commons.urlresolvers import reverse
 except ImportError, e:
     from django.core.urlresolvers import reverse
+
+from . import TestCase
 
 from badger.models import (Badge, Award, Nomination,
         BadgeAwardNotAllowedException,
@@ -113,13 +114,13 @@ class BadgerViewsTest(TestCase):
         eq_('badge_detail', doc.find('body').attr('id'))
         edit_url = doc.find('a.edit_badge').attr('href')
 
-        # Require login for editing
         r = self.client.get(edit_url)
         eq_(302, r.status_code)
         ok_('/accounts/login' in r['Location'])
 
         self.client.login(username="tester", password="trustno1")
         r = self.client.get(edit_url)
+        doc = pq(r.content)
         eq_('badge_edit', doc.find('body').attr('id'))
 
         badge_title = "Edited title"

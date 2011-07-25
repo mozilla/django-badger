@@ -1,0 +1,35 @@
+[
+    {
+        "pk": "1",
+        "model": "badger.badge",
+        "fields": {
+            "title": "Test #1",
+            "slug": "test-1",
+            "description": "This is the first test badge",
+            "created": "2010-12-01 00:00:00",
+            "modified": "2010-12-01 00:00:00"
+        }
+    },
+    {
+        "pk": "2",
+        "model": "badger.badge",
+        "fields": {
+            "title": "Button Clicker",
+            "slug": "button-clicker",
+            "description": "You clicked the button 10 times!",
+            "created": "2010-12-01 00:00:00",
+            "modified": "2010-12-01 00:00:00"
+        }
+    },
+    {
+        "pk": "3",
+        "model": "badger.badge",
+        "fields": {
+            "title": "First post!",
+            "slug": "first-post",
+            "description": "You made the first post!",
+            "created": "2010-12-01 00:00:00",
+            "modified": "2010-12-01 00:00:00"
+        }
+    }
+]

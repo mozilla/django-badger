@@ -2,8 +2,10 @@ import logging
 
 from django.conf import settings
 
+from django.core.management import call_command
+from django.db.models import loading
+
 from django.http import HttpRequest
-from django.test import TestCase
 from django.test.client import Client
 
 from nose.tools import assert_equal, with_setup, assert_false, eq_, ok_
@@ -12,10 +14,17 @@ from nose.plugins.attrib import attr
 from django.template.defaultfilters import slugify
 
 from django.contrib.auth.models import User
+
+from . import TestCase
+
+import badger
+
 from badger.models import (Badge, Award, Nomination,
         BadgeAwardNotAllowedException,
         NominationApproveNotAllowedException,
         NominationAcceptNotAllowedException)
+
+from badger_test.models import GuestbookEntry
 
 
 class BadgerBadgeTest(TestCase):
