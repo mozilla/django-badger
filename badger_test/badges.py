@@ -5,11 +5,20 @@ from django.db.models import signals
 
 from .models import GuestbookEntry
 
+from badger import utils
 from badger.models import Badge, Nomination, Award
 
 
-def update_badges():
-    pass
+def update_badges(overwrite=False):
+    badge_data = [
+        dict(title="Test #2",
+             description="Second badge"),
+        dict(title="100 Words",
+             description="You've written 100 words"),
+        dict(title="Master Badger",
+             description="You've collected all badges"),
+    ]
+    return utils.update_badges(badge_data, overwrite)
 
 
 def award_on_first_post(sender, **kwargs):

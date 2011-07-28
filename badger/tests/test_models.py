@@ -15,7 +15,7 @@ from django.template.defaultfilters import slugify
 
 from django.contrib.auth.models import User
 
-from . import TestCase
+from . import BadgerTestCase
 
 import badger
 
@@ -27,7 +27,7 @@ from badger.models import (Badge, Award, Nomination,
 from badger_test.models import GuestbookEntry
 
 
-class BadgerBadgeTest(TestCase):
+class BadgerBadgeTest(BadgerTestCase):
 
     def setUp(self):
         self.user_1 = self._get_user(username="user_1",

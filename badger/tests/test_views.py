@@ -21,7 +21,7 @@ try:
 except ImportError, e:
     from django.core.urlresolvers import reverse
 
-from . import TestCase
+from . import BadgerTestCase
 
 from badger.models import (Badge, Award, Nomination,
         BadgeAwardNotAllowedException,
@@ -29,19 +29,21 @@ from badger.models import (Badge, Award, Nomination,
         NominationAcceptNotAllowedException)
 
 
-class BadgerViewsTest(TestCase):
+class BadgerViewsTest(BadgerTestCase):
 
     def setUp(self):
         self.testuser = self._get_user()
         self.client = LocalizingClient()
 
     def tearDown(self):
-        pass
+        Nomination.objects.all().delete()
+        Award.objects.all().delete()
+        Badge.objects.all().delete()
 
     def test_detail(self):
         """Can view badge detail"""
         user = self._get_user()
-        badge = Badge(creator=user, title="Test #2",
+        badge = Badge(creator=user, title="Test II",
                       description="Another test")
         badge.save()
 
@@ -103,7 +105,7 @@ class BadgerViewsTest(TestCase):
     def test_edit(self):
         """Can edit badge detail"""
         user = self._get_user()
-        badge = Badge(creator=user, title="Test #2",
+        badge = Badge(creator=user, title="Test II",
                       description="Another test")
         badge.save()
 

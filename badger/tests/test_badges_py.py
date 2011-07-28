@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 from nose.tools import assert_equal, with_setup, assert_false, eq_, ok_
 from nose.plugins.attrib import attr
 
-from . import TestCase
+from . import BadgerTestCase
 
 import badger
 import badger_test
@@ -22,7 +22,7 @@ from badger.models import (Badge, Award, Nomination,
 from badger_test.models import GuestbookEntry
 
 
-class BadgesPyTest(TestCase):
+class BadgesPyTest(BadgerTestCase):
 
     def setUp(self):
         self.user_1 = self._get_user(username="user_1",
@@ -34,13 +34,23 @@ class BadgesPyTest(TestCase):
         Badge.objects.all().delete()
 
     def test_badges_from_fixture(self):
-        """Badges should be created from fixture"""
+        """Badges can be created via fixture"""
         b1 = Badge.objects.get(slug="test-1")
         eq_("Test #1", b1.title)
         b2 = Badge.objects.get(slug="button-clicker")
         eq_("Button Clicker", b2.title)
         b3 = Badge.objects.get(slug="first-post")
         eq_("First post!", b3.title)
+
+    @attr('from_code')
+    def test_badges_from_code(self):
+        """Badges can be created in code"""
+        b1 = Badge.objects.get(slug="test-2")
+        eq_("Test #2", b1.title)
+        b2 = Badge.objects.get(slug="100-words")
+        eq_("100 Words", b2.title)
+        b3 = Badge.objects.get(slug="master-badger")
+        eq_("Master Badger", b3.title)
 
     def test_badge_awarded_on_model_create(self):
         """A badge should be awarded on first guestbook post"""

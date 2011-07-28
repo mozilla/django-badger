@@ -61,7 +61,8 @@ class Badge(models.Model):
 
     def save(self, **kwargs):
         """Save the submission, updating slug and screenshot thumbnails"""
-        self.slug = slugify(self.title)
+        if not self.slug:
+            self.slug = slugify(self.title)
         super(Badge, self).save(**kwargs)
 
     def allows_award_to(self, user):
@@ -189,7 +190,8 @@ class Award(models.Model):
     badge = models.ForeignKey(Badge)
     user = models.ForeignKey(User, related_name="award_user")
     nomination = models.ForeignKey(Nomination, blank=True, null=True)
-    creator = models.ForeignKey(User, related_name="award_creator", blank=True, null=True)
+    creator = models.ForeignKey(User, related_name="award_creator",
+                                blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, blank=False)
     modified = models.DateTimeField(auto_now=True, blank=False)
 
