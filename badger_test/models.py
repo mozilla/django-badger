@@ -3,11 +3,6 @@ from django.contrib.auth.models import User
 
 from django.template.defaultfilters import slugify
 
-try:
-    from commons.urlresolvers import reverse
-except ImportError, e:
-    from django.core.urlresolvers import reverse
-
 
 class GuestbookEntry(models.Model):
     """Representation of a badge"""

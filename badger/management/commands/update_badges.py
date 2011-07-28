@@ -7,19 +7,11 @@ from django.db.models import get_apps, get_models, signals
 from django.utils.importlib import import_module
 
 from badger.models import Badge, Nomination, Award
+from badger.management import update_badges
 
 class Command(BaseCommand):
     args = ''
     help = 'Update badges from apps'
 
     def handle(self, *args, **options):
-
-        from django.utils.importlib import import_module
-
-        for app in settings.INSTALLED_APPS:
-            try:
-                badges_mod = import_module('%s.badges' % app)
-            except ImportError:
-                continue
-            call_command('loaddata', '%s_badges' % app, verbosity=0) 
-            badges_mod.update_badges()
+        update_badges()
