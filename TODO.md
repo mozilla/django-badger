@@ -24,6 +24,8 @@
 
 * Permissions
 
+* Option in update_badges management command to overwrite existing.
+
 * Nomination - create, delete, update, approve, reject
 
 * Per-user award list
@@ -44,8 +46,6 @@
 * Nomination with claim code
     * Claim optionally triggers approval
     * Could be expressed as QR code
-
-* How much of this can be loosely-coupled through signals?
 
 * Localization of badges in DB?
     * django-modeltranslation - http://code.google.com/p/django-modeltranslation/
