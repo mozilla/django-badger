@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, AnonymousUser
 
 from django.template.defaultfilters import slugify
 
@@ -75,7 +75,7 @@ class Badge(models.Model):
             return True
         return False
 
-    def award_to(self, awarder, awardee, nomination=None):
+    def award_to(self, awardee, awarder=None, nomination=None):
         """Award this badge to the awardee on the awarder's behalf, with an
         optional nomination involved"""
         if not self.allows_award_to(awarder):
@@ -176,7 +176,7 @@ class Nomination(models.Model):
         """If approved and accepted, award the badge to nominee on behalf of
         approver."""
         if self.is_approved() and self.is_accepted():
-            self.badge.award_to(self.approver, self.nominee, self)
+            self.badge.award_to(self.nominee, self.approver, self)
 
 
 class AwardManager(models.Manager):

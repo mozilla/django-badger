@@ -55,7 +55,7 @@ class BadgerBadgeTest(BadgerTestCase):
         user = self._get_user()
 
         ok_(not badge.is_awarded_to(user))
-        badge.award_to(awarder=badge.creator, awardee=user)
+        badge.award_to(awardee=user, awarder=badge.creator)
         ok_(badge.is_awarded_to(user))
 
     def test_nominate_badge(self):
@@ -106,7 +106,7 @@ class BadgerBadgeTest(BadgerTestCase):
         other_user = self._get_user(username="other")
 
         try:
-            award = badge.award_to(other_user, self.user_1)
+            award = badge.award_to(self.user_1, other_user)
             ok_(False, "Award should not have succeeded")
         except BadgeAwardNotAllowedException, e:
             ok_(True)

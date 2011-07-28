@@ -42,7 +42,6 @@ class BadgesPyTest(BadgerTestCase):
         b3 = Badge.objects.get(slug="first-post")
         eq_("First post!", b3.title)
 
-    @attr('from_code')
     def test_badges_from_code(self):
         """Badges can be created in code"""
         b1 = Badge.objects.get(slug="test-2")
@@ -58,6 +57,36 @@ class BadgesPyTest(BadgerTestCase):
         post = GuestbookEntry(message="This is my first post", creator=user)
         post.save()
         b = Badge.objects.get(slug='first-post')
+        ok_(b.is_awarded_to(user))
+
+    @attr('content')
+    def test_badge_awarded_on_content(self):
+        """(TODO) A badge should be awarded upon 100 words worth of guestbook posts
+        created"""
+        user = self._get_user()
+        
+        b = Badge.objects.get(slug="100-words")
+
+        GuestbookEntry.objects.create(creator=user,
+            message="A few words to start")
+        ok_(not b.is_awarded_to(user))
+
+        GuestbookEntry.objects.create(creator=user,
+            message="A few more words posted")
+        ok_(not b.is_awarded_to(user))
+
+        msg = ' '.join('lots of words that repeat' for x in range(18))
+        GuestbookEntry.objects.create(creator=user, message=msg)
+        ok_(b.is_awarded_to(user))
+
+    def test_metabadge_awarded(self):
+        """(TODO) Upon completing collection of badges, award a meta-badge"""
+        user = self._get_user()
+        Badge.objects.get(slug='test-1').award_to(user)
+        Badge.objects.get(slug='test-2').award_to(user)
+        Badge.objects.get(slug='button-clicker').award_to(user)
+
+        b = Badge.objects.get(slug='master-badger')
         ok_(b.is_awarded_to(user))
 
     def _get_user(self, username="tester", email="tester@example.com",

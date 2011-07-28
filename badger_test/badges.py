@@ -1,7 +1,7 @@
 import logging
 
 from django.conf import settings
-from django.db.models import signals
+from django.db.models.signals import post_save
 
 from .models import GuestbookEntry
 
@@ -25,8 +25,14 @@ def award_on_first_post(sender, **kwargs):
     b = Badge.objects.get(slug='first-post')
     if kwargs['created']:
         o = kwargs['instance']
-        b.award_to(None, o.creator)
+        b.award_to(o.creator)
+
+
+def track_guestbook_word_count(sender, **kwargs):
+    b = Badge.objects.get(slug='100-words')
+    post = kwargs['instance']
 
 
 def register_signals():
-    signals.post_save.connect(award_on_first_post, sender=GuestbookEntry)
+    post_save.connect(track_guestbook_word_count, sender=GuestbookEntry)
+    post_save.connect(award_on_first_post, sender=GuestbookEntry)

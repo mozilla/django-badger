@@ -10,3 +10,7 @@ class GuestbookEntry(models.Model):
     creator = models.ForeignKey(User, blank=False)
     created = models.DateTimeField(auto_now_add=True, blank=False)
     modified = models.DateTimeField(auto_now=True, blank=False)
+
+    @property
+    def word_count(self):
+        return len(self.message.split(' '))
