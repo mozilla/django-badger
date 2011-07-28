@@ -7,11 +7,6 @@
 * Define initial badges in app/{name}/badges.py
     * Includes signals to hook award/nomination conditions up to model activity 
     * Register initial set of conditional nominations
-    * Should still be able to manage images, etc, in admin / database
-
-* Badge images by upload or URL
-    * URL accomodates badges in code
-    * Restrict base URL of images?
 
 * Conditional nominations
     * Auto-approved when a condition met
@@ -22,9 +17,13 @@
         * Progress counter
         * Badge set completion
 
-* Permissions
+* Badge images by upload or URL
+    * URL accomodates badges in code
+    * Restrict base URL of images?
 
 * Option in update_badges management command to overwrite existing.
+
+* Permissions
 
 * Nomination - create, delete, update, approve, reject
 
