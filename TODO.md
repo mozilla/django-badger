@@ -21,7 +21,6 @@
 
 * Badge properties
     * Approve all nominations
-    * Unique
     * Expires after x time
 
 * User badge preferences
