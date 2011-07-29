@@ -61,6 +61,11 @@ class BadgesPyTest(BadgerTestCase):
         b = Badge.objects.get(slug='first-post')
         ok_(b.is_awarded_to(user))
 
+        # "first-post" badge should be unique
+        post = GuestbookEntry(message="This is my first post", creator=user)
+        post.save()
+        eq_(1, Award.objects.filter(user=user, badge=b).count())
+
     def test_badge_awarded_on_content(self):
         """A badge should be awarded upon 250 words worth of guestbook posts
         created"""

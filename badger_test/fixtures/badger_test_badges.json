@@ -27,6 +27,7 @@
         "fields": {
             "title": "First post!",
             "slug": "first-post",
+            "unique": true,
             "description": "You made the first post!",
             "created": "2010-12-01 00:00:00",
             "modified": "2010-12-01 00:00:00"

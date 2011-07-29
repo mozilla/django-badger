@@ -91,6 +91,7 @@ class Badge(models.Model):
     title = models.CharField(max_length=255, blank=False, unique=True)
     slug = models.SlugField(blank=False, unique=True)
     description = models.TextField(blank=True)
+    unique = models.BooleanField(default=False)
     creator = models.ForeignKey(User, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, blank=False)
     modified = models.DateTimeField(auto_now=True, blank=False)
@@ -127,6 +128,12 @@ class Badge(models.Model):
         optional nomination involved"""
         if not self.allows_award_to(awarder):
             raise BadgeAwardNotAllowedException()
+
+        if self.unique and self.is_awarded_to(awardee):
+            # Attempt to double-award a unique badge just results in the
+            # existing award being returned. But, no signal fires.
+            return Award.objects.filter(user=awardee, badge=self)[0]
+
         award = Award(user=awardee, badge=self, creator=awarder,
                 nomination=nomination)
         badge_will_be_awarded.send(sender=self.__class__, award=award)
