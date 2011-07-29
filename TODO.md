@@ -4,18 +4,10 @@
 
 ## TODO
 
-* Define initial badges in app/{name}/badges.py
-    * Includes signals to hook award/nomination conditions up to model activity 
-    * Register initial set of conditional nominations
-
 * Conditional nominations
-    * Auto-approved when a condition met
     * Models
         * Condition definition
-        * Per-user status tracking
-    * Examples
-        * Progress counter
-        * Badge set completion
+        * Uplift more logic into progress model
 
 * Badge images by upload or URL
     * URL accomodates badges in code
@@ -27,7 +19,16 @@
 
 * Nomination - create, delete, update, approve, reject
 
-* Per-user award list
+* Badge properties
+    * Approve all nominations
+    * Unique
+    * Expires after x time
+
+* User badge preferences
+    * User requires nominations first instead of auto-awards, so she has a
+      change to approve/disapprove the award.
+
+* Per-user award list / trophy case
 
 * Badge image upload
     * validate, scale, thumbnail, date-based filename
