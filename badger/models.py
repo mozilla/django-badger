@@ -10,6 +10,11 @@ try:
 except ImportError, e:
     from django.core.urlresolvers import reverse
 
+from .signals import (user_will_be_nominated, user_was_nominated,
+                      nomination_will_be_approved, nomination_was_approved,
+                      nomination_will_be_accepted, nomination_was_accepted,
+                      badge_will_be_awarded, badge_was_awarded)
+
 
 def get_permissions_for(self, user):
     """Mixin method to collect permissions for a model instance"""
@@ -44,13 +49,15 @@ class JSONField(models.TextField):
             return dict()
         return value
 
-    def get_db_prep_save(self, value):
+    def get_db_prep_save(self, value, connection):
         """Convert our JSON object to a string before we save"""
         if not value:
             return '{}'
         if isinstance(value, dict):
             value = json.dumps(value, cls=DjangoJSONEncoder)
-        return super(JSONField, self).get_db_prep_save(value)
+        if isinstance(value, basestring) or value is None:
+            return value
+        return smart_unicode(value)
 
 
 # Tell South that this field isn't all that special
@@ -122,7 +129,9 @@ class Badge(models.Model):
             raise BadgeAwardNotAllowedException()
         award = Award(user=awardee, badge=self, creator=awarder,
                 nomination=nomination)
+        badge_will_be_awarded.send(sender=self.__class__, award=award)
         award.save()
+        badge_was_awarded.send(sender=self.__class__, award=award)
         return award
 
     def is_awarded_to(self, user):
@@ -132,11 +141,24 @@ class Badge(models.Model):
     def nominate_for(self, nominator, nominee):
         """Nominate a nominee for this badge on the nominator's behalf"""
         nomination = Nomination(badge=self, creator=nominator, nominee=nominee)
+        user_will_be_nominated.send(sender=self.__class__,
+                                    nomination=nomination)
         nomination.save()
+        user_was_nominated.send(sender=self.__class__, nomination=nomination)
         return nomination
 
     def is_nominated_for(self, user):
         return Nomination.objects.filter(nominee=user, badge=self).count() > 0
+
+    def progress_for(self, user):
+        """Get or create (but not save) a progress record for a user"""
+        try:
+            # Look for an existing progress record...
+            p = Progress.objects.get(user=user, badge=self)
+        except Progress.DoesNotExist:
+            # If none found, create a new one but don't save it yet.
+            p = Progress(user=user, badge=self)
+        return p
 
 
 class NominationException(BadgerException):
@@ -185,8 +207,12 @@ class Nomination(models.Model):
         if not self.allows_approve_by(approver):
             raise NominationApproveNotAllowedException()
         self.approver = approver
+        nomination_will_be_approved.send(sender=self.__class__,
+                                         nomination=self)
         self.save()
         self._award_if_ready()
+        nomination_was_approved.send(sender=self.__class__,
+                                     nomination=self)
         return self
 
     def is_approved(self):
@@ -206,8 +232,12 @@ class Nomination(models.Model):
         if not self.allows_accept(user):
             raise NominationAcceptNotAllowedException()
         self.accepted = True
+        nomination_will_be_accepted.send(sender=self.__class__,
+                                         nomination=self)
         self.save()
         self._award_if_ready()
+        nomination_was_accepted.send(sender=self.__class__,
+                                     nomination=self)
         return self
 
     def is_accepted(self):
@@ -215,7 +245,7 @@ class Nomination(models.Model):
         return self.accepted
 
     def _award_if_ready(self):
-        """If approved and accepted, award the badge to nominee on 
+        """If approved and accepted, award the badge to nominee on
         behalf of approver."""
         if self.is_approved() and self.is_accepted():
             self.badge.award_to(self.nominee, self.approver, self)
@@ -244,6 +274,7 @@ class Award(models.Model):
         # Reset any progress for this user & badge upon award.
         Progress.objects.filter(user=self.user, badge=self.badge).delete()
 
+
 class ProgressManager(models.Manager):
     pass
 
@@ -252,6 +283,7 @@ class Progress(models.Model):
     """Record tracking progress toward auto-award of a badge"""
     badge = models.ForeignKey(Badge)
     user = models.ForeignKey(User, related_name="progress_user")
+    percent = models.FloatField(default=0)
     counter = models.FloatField(default=0)
     notes = JSONField(blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, blank=False)
@@ -261,6 +293,23 @@ class Progress(models.Model):
         unique_together = ('badge', 'user')
 
     get_permissions_for = get_permissions_for
+
+    def save(self, *args, **kwargs):
+        """Save the progress record, with before and after signals"""
+        super(Progress, self).save(*args, **kwargs)
+
+        # If the percent is over/equal to 1.0, auto-award on save.
+        if self.percent >= 100:
+            self.badge.award_to(self.user)
+
+    def update_percent(self, current, total=None):
+        """Update the percent completion value."""
+        if total is None:
+            value = current
+        else:
+            value = (float(current) / float(total)) * 100.0
+        self.percent = value
+        self.save()
 
     def increment_by(self, amount):
         # TODO: Do this with an UPDATE counter+amount in DB

@@ -17,7 +17,7 @@ def autodiscover():
         badges_mod.register_signals()
 
 
-def find_badge(slug_or_badge):
+def badge(slug_or_badge):
     """Find a badge by slug or by instance"""
     if isinstance(slug_or_badge, Badge):
         b = slug_or_badge
@@ -28,17 +28,11 @@ def find_badge(slug_or_badge):
 
 def award(slug_or_badge, awardee, awarder=None):
     """Award a badge to an awardee, with optional awarder"""
-    b = find_badge(slug_or_badge)
+    b = badge(slug_or_badge)
     return b.award_to(awardee, awarder)
 
 
-def progress(slug_or_badge, awardee):
+def progress(slug_or_badge, user):
     """Get a progress record for a badge and awardee"""
-    b = find_badge(slug_or_badge)
-    try:
-        # Look for an existing progress record...
-        p = Progress.objects.get(user=awardee, badge=b)
-    except Progress.DoesNotExist:
-        # If none found, create a new one but don't save it yet.
-        p = Progress(user=awardee, badge=b)
-    return p
+    b = badge(slug_or_badge)
+    return b.progress_for(user)

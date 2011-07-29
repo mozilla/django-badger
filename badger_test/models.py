@@ -5,12 +5,13 @@ from django.template.defaultfilters import slugify
 
 
 class GuestbookEntry(models.Model):
-    """Representation of a badge"""
+    """Representation of a guestbook entry"""
     message = models.TextField(blank=True)
     creator = models.ForeignKey(User, blank=False)
     created = models.DateTimeField(auto_now_add=True, blank=False)
     modified = models.DateTimeField(auto_now=True, blank=False)
+    word_count = models.IntegerField(default=0, blank=True)
 
-    @property
-    def word_count(self):
-        return len(self.message.split(' '))
+    def save(self, *args, **kwargs):
+        self.word_count = len(self.message.split(' '))
+        super(GuestbookEntry, self).save(*args, **kwargs)

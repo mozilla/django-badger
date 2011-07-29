@@ -35,21 +35,23 @@ class BadgesPyTest(BadgerTestCase):
 
     def test_badges_from_fixture(self):
         """Badges can be created via fixture"""
-        b1 = Badge.objects.get(slug="test-1")
-        eq_("Test #1", b1.title)
-        b2 = Badge.objects.get(slug="button-clicker")
-        eq_("Button Clicker", b2.title)
-        b3 = Badge.objects.get(slug="first-post")
-        eq_("First post!", b3.title)
+        b = Badge.objects.get(slug="test-1")
+        eq_("Test #1", b.title)
+        b = Badge.objects.get(slug="button-clicker")
+        eq_("Button Clicker", b.title)
+        b = Badge.objects.get(slug="first-post")
+        eq_("First post!", b.title)
 
     def test_badges_from_code(self):
         """Badges can be created in code"""
-        b1 = Badge.objects.get(slug="test-2")
-        eq_("Test #2", b1.title)
-        b2 = Badge.objects.get(slug="100-words")
-        eq_("100 Words", b2.title)
-        b3 = Badge.objects.get(slug="master-badger")
-        eq_("Master Badger", b3.title)
+        b = Badge.objects.get(slug="test-2")
+        eq_("Test #2", b.title)
+        b = Badge.objects.get(slug="awesomeness")
+        eq_("Awesomeness (you have it)", b.title)
+        b = Badge.objects.get(slug="250-words")
+        eq_("250 Words", b.title)
+        b = Badge.objects.get(slug="master-badger")
+        eq_("Master Badger", b.title)
 
     def test_badge_awarded_on_model_create(self):
         """A badge should be awarded on first guestbook post"""
@@ -59,46 +61,87 @@ class BadgesPyTest(BadgerTestCase):
         b = Badge.objects.get(slug='first-post')
         ok_(b.is_awarded_to(user))
 
-    @attr('content')
     def test_badge_awarded_on_content(self):
-        """A badge should be awarded upon 100 words worth of guestbook posts
+        """A badge should be awarded upon 250 words worth of guestbook posts
         created"""
         user = self._get_user()
-        
-        b = Badge.objects.get(slug="100-words")
+
+        b = badger.badge('250-words')
 
         # Post 5 words in progress...
         GuestbookEntry.objects.create(creator=user,
             message="A few words to start")
         ok_(not b.is_awarded_to(user))
-        eq_(5, badger.progress('100-words', user).counter)
+        eq_(5, b.progress_for(user).counter)
 
         # Post 5 more words in progress...
         GuestbookEntry.objects.create(creator=user,
             message="A few more words posted")
         ok_(not b.is_awarded_to(user))
-        eq_(10, badger.progress('100-words', user).counter)
+        eq_(10, b.progress_for(user).counter)
 
-        # Post the other 90 in one burst...
+        # Post 90 more...
         msg = ' '.join('lots of words that repeat' for x in range(18))
+        GuestbookEntry.objects.create(creator=user, message=msg)
+        ok_(not b.is_awarded_to(user))
+        eq_(100, b.progress_for(user).counter)
+
+        # And 150 more for the finale...
+        msg = ' '.join('lots of words that repeat' for x in range(30))
         GuestbookEntry.objects.create(creator=user, message=msg)
 
         # Should result in a badge award and reset progress.
         ok_(b.is_awarded_to(user))
-        eq_(0, badger.progress('100-words', user).counter)
+        eq_(0, b.progress_for(user).counter)
 
         # But, just checking the reset counter shouldn't create a new DB row.
+        eq_(0, Progress.objects.filter(user=user, badge=b).count())
+
+    @attr('current')
+    def test_badge_awarded_on_content_percent(self):
+        """A badge should be awarded upon 250 words worth of guestbook posts
+        created, but the tracking is done via percentage"""
+        user = self._get_user()
+
+        b = badger.badge('250-words-by-percent')
+
+        # Post 5 words in progress...
+        GuestbookEntry.objects.create(creator=user,
+            message="A few words to start")
+        ok_(not b.is_awarded_to(user))
+        eq_((5.0 / 250.0) * 100.0, b.progress_for(user).percent)
+
+        # Post 5 more words in progress...
+        GuestbookEntry.objects.create(creator=user,
+            message="A few more words posted")
+        ok_(not b.is_awarded_to(user))
+        eq_((10.0 / 250.0) * 100.0, b.progress_for(user).percent)
+
+        # Post 90 more...
+        msg = ' '.join('lots of words that repeat' for x in range(18))
+        GuestbookEntry.objects.create(creator=user, message=msg)
+        ok_(not b.is_awarded_to(user))
+        eq_((100.0 / 250.0) * 100.0, b.progress_for(user).percent)
+
+        # And 150 more for the finale...
+        msg = ' '.join('lots of words that repeat' for x in range(30))
+        GuestbookEntry.objects.create(creator=user, message=msg)
+
+        # Should result in a badge award and reset progress.
+        ok_(b.is_awarded_to(user))
+        eq_(0, b.progress_for(user).percent)
+
+        # But, just checking the reset percent shouldn't create a new DB row.
         eq_(0, Progress.objects.filter(user=user, badge=b).count())
 
     def test_metabadge_awarded(self):
         """(TODO) Upon completing collection of badges, award a meta-badge"""
         user = self._get_user()
-        Badge.objects.get(slug='test-1').award_to(user)
-        Badge.objects.get(slug='test-2').award_to(user)
-        Badge.objects.get(slug='button-clicker').award_to(user)
-
-        b = Badge.objects.get(slug='master-badger')
-        ok_(b.is_awarded_to(user))
+        badger.award('test-1', user)
+        badger.award('test-2', user)
+        badger.award('awesomeness', user)
+        badger.award('button-clicker', user)
+        ok_(badger.badge('master-badger').is_awarded_to(user))
 
     def _get_user(self, username="tester", email="tester@example.com",
             password="trustno1"):
