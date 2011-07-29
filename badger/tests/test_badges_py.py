@@ -14,7 +14,7 @@ import badger
 import badger_test
 import badger_test.badges
 
-from badger.models import (Badge, Award, Nomination,
+from badger.models import (Badge, Award, Nomination, Progress,
         BadgeAwardNotAllowedException,
         NominationApproveNotAllowedException,
         NominationAcceptNotAllowedException)
@@ -61,23 +61,34 @@ class BadgesPyTest(BadgerTestCase):
 
     @attr('content')
     def test_badge_awarded_on_content(self):
-        """(TODO) A badge should be awarded upon 100 words worth of guestbook posts
+        """A badge should be awarded upon 100 words worth of guestbook posts
         created"""
         user = self._get_user()
         
         b = Badge.objects.get(slug="100-words")
 
+        # Post 5 words in progress...
         GuestbookEntry.objects.create(creator=user,
             message="A few words to start")
         ok_(not b.is_awarded_to(user))
+        eq_(5, badger.progress('100-words', user).counter)
 
+        # Post 5 more words in progress...
         GuestbookEntry.objects.create(creator=user,
             message="A few more words posted")
         ok_(not b.is_awarded_to(user))
+        eq_(10, badger.progress('100-words', user).counter)
 
+        # Post the other 90 in one burst...
         msg = ' '.join('lots of words that repeat' for x in range(18))
         GuestbookEntry.objects.create(creator=user, message=msg)
+
+        # Should result in a badge award and reset progress.
         ok_(b.is_awarded_to(user))
+        eq_(0, badger.progress('100-words', user).counter)
+
+        # But, just checking the reset counter shouldn't create a new DB row.
+        eq_(0, Progress.objects.filter(user=user, badge=b).count())
 
     def test_metabadge_awarded(self):
         """(TODO) Upon completing collection of badges, award a meta-badge"""

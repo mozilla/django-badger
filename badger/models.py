@@ -239,6 +239,10 @@ class Award(models.Model):
 
     get_permissions_for = get_permissions_for
 
+    def save(self, *args, **kwargs):
+        super(Award, self).save(*args, **kwargs)
+        # Reset any progress for this user & badge upon award.
+        Progress.objects.filter(user=self.user, badge=self.badge).delete()
 
 class ProgressManager(models.Manager):
     pass
