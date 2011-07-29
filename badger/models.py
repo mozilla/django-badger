@@ -1,4 +1,6 @@
 from django.db import models
+from django.core.serializers.json import DjangoJSONEncoder
+from django.utils import simplejson as json
 from django.contrib.auth.models import User, AnonymousUser
 
 from django.template.defaultfilters import slugify
@@ -21,12 +23,46 @@ def get_permissions_for(self, user):
     return perms
 
 
+class JSONField(models.TextField):
+    """JSONField is a generic textfield that neatly serializes/unserializes
+    JSON objects seamlessly
+    see: http://djangosnippets.org/snippets/1478/
+    """
+
+    # Used so to_python() is called
+    __metaclass__ = models.SubfieldBase
+
+    def to_python(self, value):
+        """Convert our string value to JSON after we load it from the DB"""
+        if not value:
+            return dict()
+        try:
+            if (isinstance(value, basestring) or
+                    type(value) is unicode):
+                return json.loads(value)
+        except ValueError:
+            return dict()
+        return value
+
+    def get_db_prep_save(self, value):
+        """Convert our JSON object to a string before we save"""
+        if not value:
+            return '{}'
+        if isinstance(value, dict):
+            value = json.dumps(value, cls=DjangoJSONEncoder)
+        return super(JSONField, self).get_db_prep_save(value)
+
+
+# Tell South that this field isn't all that special
+try:
+    from south.modelsinspector import add_introspection_rules
+    add_introspection_rules([], ["^badger.model.JSONField"])
+except ImportError, e:
+    pass
+
+
 class BadgerException(Exception):
     """General Badger model exception"""
-
-
-class BadgeManager(models.Manager):
-    """Manager for Badge model objects"""
 
 
 class BadgeException(BadgerException):
@@ -35,6 +71,10 @@ class BadgeException(BadgerException):
 
 class BadgeAwardNotAllowedException(BadgeException):
     """Attempt to award a badge not allowed."""
+
+
+class BadgeManager(models.Manager):
+    """Manager for Badge model objects"""
 
 
 class Badge(models.Model):
@@ -99,10 +139,6 @@ class Badge(models.Model):
         return Nomination.objects.filter(nominee=user, badge=self).count() > 0
 
 
-class NominationManager(models.Manager):
-    pass
-
-
 class NominationException(BadgerException):
     """Nomination model exception"""
 
@@ -113,6 +149,10 @@ class NominationApproveNotAllowedException(NominationException):
 
 class NominationAcceptNotAllowedException(NominationException):
     """Attempt to accept a nomination was disallowed"""
+
+
+class NominationManager(models.Manager):
+    pass
 
 
 class Nomination(models.Model):
@@ -147,6 +187,7 @@ class Nomination(models.Model):
         self.approver = approver
         self.save()
         self._award_if_ready()
+        return self
 
     def is_approved(self):
         """Has this nomination been approved?"""
@@ -167,14 +208,15 @@ class Nomination(models.Model):
         self.accepted = True
         self.save()
         self._award_if_ready()
+        return self
 
     def is_accepted(self):
         """Has this nomination been accepted?"""
         return self.accepted
 
     def _award_if_ready(self):
-        """If approved and accepted, award the badge to nominee on behalf of
-        approver."""
+        """If approved and accepted, award the badge to nominee on 
+        behalf of approver."""
         if self.is_approved() and self.is_accepted():
             self.badge.award_to(self.nominee, self.approver, self)
 
@@ -196,3 +238,34 @@ class Award(models.Model):
     modified = models.DateTimeField(auto_now=True, blank=False)
 
     get_permissions_for = get_permissions_for
+
+
+class ProgressManager(models.Manager):
+    pass
+
+
+class Progress(models.Model):
+    """Record tracking progress toward auto-award of a badge"""
+    badge = models.ForeignKey(Badge)
+    user = models.ForeignKey(User, related_name="progress_user")
+    counter = models.FloatField(default=0)
+    notes = JSONField(blank=True, null=True)
+    created = models.DateTimeField(auto_now_add=True, blank=False)
+    modified = models.DateTimeField(auto_now=True, blank=False)
+
+    class Meta:
+        unique_together = ('badge', 'user')
+
+    get_permissions_for = get_permissions_for
+
+    def increment_by(self, amount):
+        # TODO: Do this with an UPDATE counter+amount in DB
+        self.counter += amount
+        self.save()
+        return self
+
+    def decrement_by(self, amount):
+        # TODO: Do this with an UPDATE counter-amount in DB
+        self.counter -= amount
+        self.save()
+        return self

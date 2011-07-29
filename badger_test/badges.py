@@ -5,8 +5,9 @@ from django.db.models.signals import post_save
 
 from .models import GuestbookEntry
 
+import badger
 from badger import utils
-from badger.models import Badge, Nomination, Award
+from badger.models import Badge, Nomination, Award, Progress
 
 
 def update_badges(overwrite=False):
@@ -21,18 +22,16 @@ def update_badges(overwrite=False):
     return utils.update_badges(badge_data, overwrite)
 
 
-def award_on_first_post(sender, **kwargs):
-    b = Badge.objects.get(slug='first-post')
+def on_guestbook_post(sender, **kwargs):
+    o = kwargs['instance']
+
     if kwargs['created']:
-        o = kwargs['instance']
-        b.award_to(o.creator)
+        badger.award('first-post', o.creator)
 
-
-def track_guestbook_word_count(sender, **kwargs):
-    b = Badge.objects.get(slug='100-words')
-    post = kwargs['instance']
+    p = badger.progress('100-words', o.creator).increment_by(o.word_count)
+    if p.counter >= 100:
+        badger.award('100-words', o.creator)
 
 
 def register_signals():
-    post_save.connect(track_guestbook_word_count, sender=GuestbookEntry)
-    post_save.connect(award_on_first_post, sender=GuestbookEntry)
+    post_save.connect(on_guestbook_post, sender=GuestbookEntry)
