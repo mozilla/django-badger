@@ -91,6 +91,8 @@ class Badge(models.Model):
     title = models.CharField(max_length=255, blank=False, unique=True)
     slug = models.SlugField(blank=False, unique=True)
     description = models.TextField(blank=True)
+    prerequisites = models.ManyToManyField('self', symmetrical=False,
+                                            blank=True, null=True)
     unique = models.BooleanField(default=False)
     creator = models.ForeignKey(User, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, blank=False)
@@ -136,10 +138,26 @@ class Badge(models.Model):
 
         award = Award(user=awardee, badge=self, creator=awarder,
                 nomination=nomination)
+
         badge_will_be_awarded.send(sender=self.__class__, award=award)
         award.save()
         badge_was_awarded.send(sender=self.__class__, award=award)
+
+        # Since this badge was just awarded, check the prerequisites on all
+        # badges that count this as one.
+        for dep_badge in self.badge_set.all():
+            dep_badge.check_prerequisites(awardee, self, award)
+
         return award
+
+    def check_prerequisites(self, awardee, dep_badge, award):
+        """Check the prerequisites for this badge. If they're all met, award
+        this badge to the user."""
+        for badge in self.prerequisites.all():
+            if not badge.is_awarded_to(awardee):
+                # Bail on the first unmet prerequisites
+                return None
+        return self.award_to(awardee)
 
     def is_awarded_to(self, user):
         """Has this badge been awarded to the user?"""
