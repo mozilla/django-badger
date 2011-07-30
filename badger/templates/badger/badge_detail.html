@@ -11,7 +11,8 @@
     <dt>Description:<dt><dd class="description">{{ badge.description }}</dd>
 </dl>
 
-<a class="edit_badge" href="{{ url('badger.views.edit', badge.slug) }}">edit</a>
-
+{% if badge.allows_edit_by(request.user) %}
+    <a class="edit_badge" href="{{ url('badger.views.edit', badge.slug) }}">edit</a>
+{% endif %}
 
 {% endblock %}

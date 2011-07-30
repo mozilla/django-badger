@@ -115,6 +115,13 @@ class Badge(models.Model):
             self.slug = slugify(self.title)
         super(Badge, self).save(**kwargs)
 
+    def allows_edit_by(self, user):
+        if user.is_staff or user.is_superuser:
+            return True
+        if user == self.creator:
+            return True
+        return False
+
     def allows_award_to(self, user):
         """Is award_to() allowed for this user?"""
         if None == user:

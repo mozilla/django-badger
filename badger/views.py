@@ -83,6 +83,9 @@ def create(request):
 def edit(request, slug):
     """Edit an existing badge"""
     badge = get_object_or_404(Badge, slug=slug)
+    if not badge.allows_edit_by(request.user):
+        return HttpResponseForbidden()
+    
     if request.method != "POST":
         form = BadgeEditForm(instance=badge)
     else:
