@@ -19,8 +19,10 @@
 
 * Nomination - create, delete, update, approve, reject
 
+* Pagination on home badge list
+
 * Badge properties
-    * Approve all nominations
+    * Auto-approve all nominations
     * Expires after x time
 
 * User badge preferences
@@ -38,13 +40,14 @@
 * REST API
     * Might be better as a separate package?
 
-* Notifications? (not central to django-badger)
-
-* Pagination on home badge list
-
 * Nomination with claim code
     * Claim optionally triggers approval
     * Could be expressed as QR code
+
+* Notifications? 
+    * not central to django-badger
+    * badge awards can be caught with signal subscriptions
+    * but, should it still be up to a project to handle that?
 
 * Localization of badges in DB?
     * django-modeltranslation - http://code.google.com/p/django-modeltranslation/
