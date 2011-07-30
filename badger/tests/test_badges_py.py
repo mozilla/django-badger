@@ -140,7 +140,7 @@ class BadgesPyTest(BadgerTestCase):
         eq_(0, Progress.objects.filter(user=user, badge=b).count())
 
     def test_metabadge_awarded(self):
-        """(TODO) Upon completing collection of badges, award a meta-badge"""
+        """Upon completing collection of badges, award a meta-badge"""
         user = self._get_user()
         badger.award('test-1', user)
         badger.award('test-2', user)
