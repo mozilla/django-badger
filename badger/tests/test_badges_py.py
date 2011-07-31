@@ -11,6 +11,7 @@ from nose.plugins.attrib import attr
 from . import BadgerTestCase
 
 import badger
+from badger.utils import get_badge, award_badge
 import badger_test
 import badger_test.badges
 
@@ -35,22 +36,22 @@ class BadgesPyTest(BadgerTestCase):
 
     def test_badges_from_fixture(self):
         """Badges can be created via fixture"""
-        b = Badge.objects.get(slug="test-1")
+        b = get_badge("test-1")
         eq_("Test #1", b.title)
-        b = Badge.objects.get(slug="button-clicker")
+        b = get_badge("button-clicker")
         eq_("Button Clicker", b.title)
-        b = Badge.objects.get(slug="first-post")
+        b = get_badge("first-post")
         eq_("First post!", b.title)
 
     def test_badges_from_code(self):
         """Badges can be created in code"""
-        b = Badge.objects.get(slug="test-2")
+        b = get_badge("test-2")
         eq_("Test #2", b.title)
-        b = Badge.objects.get(slug="awesomeness")
+        b = get_badge("awesomeness")
         eq_("Awesomeness (you have it)", b.title)
-        b = Badge.objects.get(slug="250-words")
+        b = get_badge("250-words")
         eq_("250 Words", b.title)
-        b = Badge.objects.get(slug="master-badger")
+        b = get_badge("master-badger")
         eq_("Master Badger", b.title)
 
     def test_badge_awarded_on_model_create(self):
@@ -58,7 +59,7 @@ class BadgesPyTest(BadgerTestCase):
         user = self._get_user()
         post = GuestbookEntry(message="This is my first post", creator=user)
         post.save()
-        b = Badge.objects.get(slug='first-post')
+        b = get_badge('first-post')
         ok_(b.is_awarded_to(user))
 
         # "first-post" badge should be unique
@@ -71,7 +72,7 @@ class BadgesPyTest(BadgerTestCase):
         created"""
         user = self._get_user()
 
-        b = badger.badge('250-words')
+        b = get_badge('250-words')
 
         # Post 5 words in progress...
         GuestbookEntry.objects.create(creator=user,
@@ -108,7 +109,7 @@ class BadgesPyTest(BadgerTestCase):
         created, but the tracking is done via percentage"""
         user = self._get_user()
 
-        b = badger.badge('250-words-by-percent')
+        b = get_badge('250-words-by-percent')
 
         # Post 5 words in progress...
         GuestbookEntry.objects.create(creator=user,
@@ -142,11 +143,11 @@ class BadgesPyTest(BadgerTestCase):
     def test_metabadge_awarded(self):
         """Upon completing collection of badges, award a meta-badge"""
         user = self._get_user()
-        badger.award('test-1', user)
-        badger.award('test-2', user)
-        badger.award('awesomeness', user)
-        badger.award('button-clicker', user)
-        ok_(badger.badge('master-badger').is_awarded_to(user))
+        award_badge('test-1', user)
+        award_badge('test-2', user)
+        award_badge('awesomeness', user)
+        award_badge('button-clicker', user)
+        ok_(get_badge('master-badger').is_awarded_to(user))
 
     def _get_user(self, username="tester", email="tester@example.com",
             password="trustno1"):

@@ -5,7 +5,8 @@ from django.db.models.signals import post_save
 from .models import GuestbookEntry
 
 import badger
-from badger import utils
+import badger.utils
+from badger.utils import get_badge, award_badge, get_progress
 from badger.models import Badge, Nomination, Award, Progress
 from badger.signals import badge_was_awarded
 
@@ -36,7 +37,7 @@ def update_badges(overwrite=False):
                             'button-clicker')),
 
     ]
-    return utils.update_badges(badge_data, overwrite)
+    return badger.utils.update_badges(badge_data, overwrite)
 
 
 def on_guestbook_post(sender, **kwargs):
@@ -44,10 +45,10 @@ def on_guestbook_post(sender, **kwargs):
     created = kwargs['created']
 
     if created:
-        badger.award('first-post', o.creator)
+        award_badge('first-post', o.creator)
 
     # Increment progress counter and track the completion condition ourselves.
-    b = badger.badge('250-words')
+    b = get_badge('250-words')
     p = b.progress_for(o.creator).increment_by(o.word_count)
     if p.counter >= 250:
         b.award_to(o.creator)
@@ -55,7 +56,7 @@ def on_guestbook_post(sender, **kwargs):
     # Update percentage from total word count, and Progress will award on 100%
     total_word_count = (GuestbookEntry.objects.filter(creator=o.creator)
                         .aggregate(s=Sum('word_count'))['s'])
-    (badger.progress("250-words-by-percent", o.creator)
+    (get_progress("250-words-by-percent", o.creator)
            .update_percent(total_word_count, 250))
 
 
