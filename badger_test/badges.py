@@ -12,7 +12,7 @@ from badger.signals import badge_was_awarded
 
 
 def update_badges(overwrite=False):
-    badge_data = [
+    badges = [
 
         dict(slug="test-2",
              title="Test #2",
@@ -37,7 +37,7 @@ def update_badges(overwrite=False):
                             'button-clicker')),
 
     ]
-    return badger.utils.update_badges(badge_data, overwrite)
+    return badger.utils.update_badges(badges, overwrite)
 
 
 def on_guestbook_post(sender, **kwargs):
