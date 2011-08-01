@@ -1,0 +1,17 @@
+{% extends "badger/base.html" %}
+
+{% block pageid %}badge_create{% endblock %}
+
+{% block content %}
+
+<h2>Create a badge</h2>
+
+<form id="create_badge" method="POST" action="">
+    {{ csrf() }}
+    <ul>
+        {{ form.as_ul() }}
+        <li><input type="submit" class="submit" value="Create"></li>
+    </ul>
+</form>
+
+{% endblock %}

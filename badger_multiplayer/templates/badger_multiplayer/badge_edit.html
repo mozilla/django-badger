@@ -1,0 +1,17 @@
+{% extends "badger/base.html" %}
+
+{% block pageid %}badge_edit{% endblock %}
+
+{% block content %}
+
+<h2>Edit badge: {{ badge.title }}</h2>
+
+<form id="edit_badge" method="POST" action="">
+    {{ csrf() }}
+    <ul>
+        {{ form.as_ul() }}
+        <li><input type="submit" class="submit" value="Save"></li>
+    </ul>
+</form>
+
+{% endblock %}

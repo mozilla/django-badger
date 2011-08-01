@@ -1,0 +1,23 @@
+{% extends "badger/base.html" %}
+
+{% block content %}
+
+<h1>Badger</h1>
+<p>Welcome to the Badger home page</p>
+<nav><ul>
+    <li><a href="{{ url('badger_multiplayer.views.create') }}">Create a badge</a></li>
+</ul></nav>
+
+<h2>Badges:</h2>
+<ul class="badges">
+    {% for badge in badge_list %}
+        <li class="badge">
+            <a href="{{ badge.get_absolute_url() }}"><span class="title">{{ badge.title }}</span></a>
+            {% if badge.allows_edit_by(request.user) %}
+                - <a href="{{ url('badger_multiplayer.views.edit', badge.slug) }}">edit</a>
+            {% endif %}
+        </li>
+    {% endfor %}
+</ul>
+
+{% endblock %}
