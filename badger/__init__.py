@@ -1,4 +1,6 @@
 from django.conf import settings
+from django.utils.importlib import import_module
+from django.utils.module_loading import module_has_submodule
 
 from badger.models import Badge, Award, Progress
 
@@ -10,8 +12,10 @@ def autodiscover():
     """
     from django.utils.importlib import import_module
     for app in settings.INSTALLED_APPS:
+        mod = import_module(app)
         try:
             badges_mod = import_module('%s.badges' % app)
+            badges_mod.register_signals()
         except ImportError:
-            continue
-        badges_mod.register_signals()
+            if module_has_submodule(mod, 'badges'):
+                raise
