@@ -29,10 +29,8 @@ from django.views.decorators.http import (require_GET, require_POST,
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 
-from .models import (Badge, Award, Nomination,
-        BadgeAwardNotAllowedException,
-        NominationApproveNotAllowedException,
-        NominationAcceptNotAllowedException)
+from .models import (Badge, Award, Progress,
+        BadgeAwardNotAllowedException)
 
 
 BADGE_PAGE_SIZE = 12

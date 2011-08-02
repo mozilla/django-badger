@@ -19,10 +19,9 @@ from . import BadgerTestCase
 
 import badger
 
-from badger.models import (Badge, Award, Nomination,
+from badger.models import (Badge, Award, Progress,
         BadgeAwardNotAllowedException,
-        NominationApproveNotAllowedException,
-        NominationAcceptNotAllowedException)
+        BadgeAlreadyAwardedException)
 
 from badger_test.models import GuestbookEntry
 
@@ -34,7 +33,6 @@ class BadgerBadgeTest(BadgerTestCase):
                 email="user_1@example.com", password="user_1_pass")
 
     def tearDown(self):
-        Nomination.objects.all().delete()
         Award.objects.all().delete()
         Badge.objects.all().delete()
 
@@ -58,84 +56,43 @@ class BadgerBadgeTest(BadgerTestCase):
         badge.award_to(awardee=user, awarder=badge.creator)
         ok_(badge.is_awarded_to(user))
 
-    def test_nominate_badge(self):
-        """Can nominate a user for a badge"""
-        badge = self._get_badge()
-        nominator = self._get_user(username="nominator",
-                email="nominator@example.com", password="nomnom1")
-        nominee = self._get_user(username="nominee",
-                email="nominee@example.com", password="nomnom2")
+    def test_award_unique_duplication(self):
+        """Only one award for a unique badge can be created"""
+        user = self._get_user()
+        b = Badge.objects.create(slug='one-and-only', title='One and Only',
+                unique=True, creator=user)
+        a = Award.objects.create(badge=b, user=user)
 
-        ok_(not badge.is_nominated_for(nominee))
-        nomination = badge.nominate_for(nominator=nominator, nominee=nominee)
-        ok_(badge.is_nominated_for(nominee))
-
-    def test_approve_nomination(self):
-        """A nomination can be approved"""
-        nomination = self._create_nomination()
-
-        ok_(not nomination.is_approved())
-        nomination.approve_by(nomination.badge.creator)
-        ok_(nomination.is_approved())
-
-    def test_accept_nomination(self):
-        """A nomination can be accepted"""
-        nomination = self._create_nomination()
-
-        ok_(not nomination.is_accepted())
-        nomination.accept(nomination.nominee)
-        ok_(nomination.is_accepted())
-
-    def test_accept_nomination(self):
-        """A nomination that is approved and accepted results in an award"""
-        nomination = self._create_nomination()
-
-        ok_(not nomination.badge.is_awarded_to(nomination.nominee))
-        nomination.approve_by(nomination.badge.creator)
-        nomination.accept(nomination.nominee)
-        ok_(nomination.badge.is_awarded_to(nomination.nominee))
-
-        ct = Award.objects.filter(nomination=nomination).count()
-        eq_(1, ct, "There should be an award associated with the nomination")
-
-    def test_disallowed_badge_award(self):
-        """By default, only badge creator should be allowed to award a
-        badge."""
-
-        badge = self._get_badge()
-        other_user = self._get_user(username="other")
+        # award_to should not trigger the exception
+        b.award_to(user)
 
         try:
-            award = badge.award_to(self.user_1, other_user)
-            ok_(False, "Award should not have succeeded")
-        except BadgeAwardNotAllowedException, e:
-            ok_(True)
+            a = Award.objects.create(badge=b, user=user)
+            ok_(False, 'BadgeAlreadyAwardedException should have been raised')
+        except BadgeAlreadyAwardedException, e:
+            # But, directly creating another award should trigger the exception
+            pass
 
-    def test_disallowed_nomination_approval(self):
-        """By default, only badge creator should be allowed to approve a
-        nomination."""
+        eq_(1, Award.objects.filter(badge=b, user=user).count())
 
-        nomination = self._create_nomination()
-        other_user = self._get_user(username="other")
+    @attr('current')
+    def test_progress_badge_already_awarded(self):
+        """New progress toward an awarded unique badge cannot be recorded"""
+        user = self._get_user()
+        b = Badge.objects.create(slug='one-and-only', title='One and Only',
+                unique=True, creator=user)
 
-        try:
-            nomination = nomination.approve_by(other_user)
-            ok_(False, "Nomination should not have succeeded")
-        except NominationApproveNotAllowedException, e:
-            ok_(True)
-
-    def test_disallowed_nomination_accept(self):
-        """By default, only nominee should be allowed to accept a
-        nomination."""
-
-        nomination = self._create_nomination()
-        other_user = self._get_user(username="other")
+        p = b.progress_for(user)
+        p.update_percent(100)
 
         try:
-            nomination = nomination.accept(other_user)
-            ok_(False, "Nomination should not have succeeded")
-        except NominationAcceptNotAllowedException, e:
-            ok_(True)
+            p = Progress.objects.create(badge=b, user=user)
+            ok_(False, 'BadgeAlreadyAwardedException should have been raised')
+        except BadgeAlreadyAwardedException, e:
+            pass
+
+        # None, because award deletes progress.
+        eq_(0, Progress.objects.filter(badge=b, user=user).count())
 
     def _get_user(self, username="tester", email="tester@example.com",
             password="trustno1"):
@@ -152,12 +109,3 @@ class BadgerBadgeTest(BadgerTestCase):
         (badge, created) = Badge.objects.get_or_create(title=title,
                 defaults=dict(description=description, creator=creator))
         return badge
-
-    def _create_nomination(self, badge=None, nominator=None, nominee=None):
-        badge = badge or self._get_badge()
-        nominator = nominator or self._get_user(username="nominator",
-                email="nominator@example.com", password="nomnom1")
-        nominee = nominee or self._get_user(username="nominee",
-                email="nominee@example.com", password="nomnom2")
-        nomination = badge.nominate_for(nominator=nominator, nominee=nominee)
-        return nomination

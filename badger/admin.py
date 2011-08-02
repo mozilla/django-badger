@@ -1,10 +1,21 @@
 from django.contrib import admin
 
-from .models import (Badge, Award, Nomination)
+from django import forms
+from django.db import models
+
+from .models import (Badge, Award, Progress)
 
 
 class BadgerAdmin(admin.ModelAdmin):
-    list_display = ("title",)
+    list_display = ("title", )
+
+    filter_horizontal = ('prerequisites', )
+
+    formfield_overrides = {
+        models.ManyToManyField: {
+            "widget": forms.widgets.SelectMultiple(attrs={"size": 25})
+        }
+    }
 
 
 admin.site.register(Badge, BadgerAdmin)
@@ -17,8 +28,8 @@ class AwardAdmin(admin.ModelAdmin):
 admin.site.register(Award, AwardAdmin)
 
 
-class NominationAdmin(admin.ModelAdmin):
+class ProgressAdmin(admin.ModelAdmin):
     pass
 
 
-admin.site.register(Nomination, NominationAdmin)
+admin.site.register(Progress, ProgressAdmin)

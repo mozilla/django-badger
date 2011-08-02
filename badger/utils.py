@@ -2,7 +2,7 @@ from django.conf import settings
 from django.db.models import signals
 
 import badger
-from badger.models import Badge, Nomination, Award
+from badger.models import Badge, Award, Progress
 
 
 def update_badges(badge_data, overwrite=False):

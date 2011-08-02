@@ -15,10 +15,9 @@ from badger.utils import get_badge, award_badge
 import badger_test
 import badger_test.badges
 
-from badger.models import (Badge, Award, Nomination, Progress,
+from badger.models import (Badge, Award, Progress,
         BadgeAwardNotAllowedException,
-        NominationApproveNotAllowedException,
-        NominationAcceptNotAllowedException)
+        BadgeAlreadyAwardedException)
 
 from badger_test.models import GuestbookEntry
 
@@ -28,9 +27,9 @@ class BadgesPyTest(BadgerTestCase):
     def setUp(self):
         self.user_1 = self._get_user(username="user_1",
                 email="user_1@example.com", password="user_1_pass")
+        Award.objects.all().delete()
 
     def tearDown(self):
-        Nomination.objects.all().delete()
         Award.objects.all().delete()
         Badge.objects.all().delete()
 
@@ -103,7 +102,6 @@ class BadgesPyTest(BadgerTestCase):
         # But, just checking the reset counter shouldn't create a new DB row.
         eq_(0, Progress.objects.filter(user=user, badge=b).count())
 
-    @attr('current')
     def test_badge_awarded_on_content_percent(self):
         """A badge should be awarded upon 250 words worth of guestbook posts
         created, but the tracking is done via percentage"""
@@ -140,14 +138,23 @@ class BadgesPyTest(BadgerTestCase):
         # But, just checking the reset percent shouldn't create a new DB row.
         eq_(0, Progress.objects.filter(user=user, badge=b).count())
 
+    @attr('current')
     def test_metabadge_awarded(self):
         """Upon completing collection of badges, award a meta-badge"""
         user = self._get_user()
+
+        # Cover a few bases on award creation...
         award_badge('test-1', user)
         award_badge('test-2', user)
-        award_badge('awesomeness', user)
-        award_badge('button-clicker', user)
+        a = Award(badge=get_badge('button-clicker'), user=user)
+        a.save()
+        Award.objects.create(badge=get_badge('awesomeness'), user=user)
+
         ok_(get_badge('master-badger').is_awarded_to(user))
+
+        get_badge('awesomeness').award_to(user)
+        eq_(1, Award.objects.filter(badge=get_badge("master-badger"),
+                                    user=user).count())
 
     def _get_user(self, username="tester", email="tester@example.com",
             password="trustno1"):
@@ -164,12 +171,3 @@ class BadgesPyTest(BadgerTestCase):
         (badge, created) = Badge.objects.get_or_create(title=title,
                 defaults=dict(description=description, creator=creator))
         return badge
-
-    def _create_nomination(self, badge=None, nominator=None, nominee=None):
-        badge = badge or self._get_badge()
-        nominator = nominator or self._get_user(username="nominator",
-                email="nominator@example.com", password="nomnom1")
-        nominee = nominee or self._get_user(username="nominee",
-                email="nominee@example.com", password="nomnom2")
-        nomination = badge.nominate_for(nominator=nominator, nominee=nominee)
-        return nomination

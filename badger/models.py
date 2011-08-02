@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import signals
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import simplejson as json
 from django.contrib.auth.models import User, AnonymousUser
@@ -10,10 +11,7 @@ try:
 except ImportError, e:
     from django.core.urlresolvers import reverse
 
-from .signals import (user_will_be_nominated, user_was_nominated,
-                      nomination_will_be_approved, nomination_was_approved,
-                      nomination_will_be_accepted, nomination_was_accepted,
-                      badge_will_be_awarded, badge_was_awarded)
+from .signals import (badge_will_be_awarded, badge_was_awarded)
 
 
 def get_permissions_for(self, user):
@@ -80,6 +78,10 @@ class BadgeAwardNotAllowedException(BadgeException):
     """Attempt to award a badge not allowed."""
 
 
+class BadgeAlreadyAwardedException(BadgeException):
+    """Attempt to award a unique badge twice."""
+
+
 class BadgeManager(models.Manager):
     """Manager for Badge model objects"""
 
@@ -104,7 +106,7 @@ class Badge(models.Model):
     get_permissions_for = get_permissions_for
 
     def __unicode__(self):
-        return u'<Badge %s>' % self.title
+        return u'Badge %s' % self.title
 
     def get_absolute_url(self):
         return reverse('badger.views.detail', args=[self.slug])
@@ -132,34 +134,25 @@ class Badge(models.Model):
             return True
         return False
 
-    def award_to(self, awardee, awarder=None, nomination=None):
-        """Award this badge to the awardee on the awarder's behalf, with an
-        optional nomination involved"""
+    def award_to(self, awardee, awarder=None):
+        """Award this badge to the awardee on the awarder's behalf"""
         if not self.allows_award_to(awarder):
             raise BadgeAwardNotAllowedException()
 
+        # If unique and already awarded, just return the existing award.
         if self.unique and self.is_awarded_to(awardee):
-            # Attempt to double-award a unique badge just results in the
-            # existing award being returned. But, no signal fires.
             return Award.objects.filter(user=awardee, badge=self)[0]
 
-        award = Award(user=awardee, badge=self, creator=awarder,
-                nomination=nomination)
-
-        badge_will_be_awarded.send(sender=self.__class__, award=award)
-        award.save()
-        badge_was_awarded.send(sender=self.__class__, award=award)
-
-        # Since this badge was just awarded, check the prerequisites on all
-        # badges that count this as one.
-        for dep_badge in self.badge_set.all():
-            dep_badge.check_prerequisites(awardee, self, award)
-
+        award = Award.objects.create(user=awardee, badge=self, creator=awarder)
         return award
 
     def check_prerequisites(self, awardee, dep_badge, award):
         """Check the prerequisites for this badge. If they're all met, award
         this badge to the user."""
+        if self.is_awarded_to(awardee):
+            # Not unique, but badge auto-award from prerequisites should only
+            # happen once.
+            return None
         for badge in self.prerequisites.all():
             if not badge.is_awarded_to(awardee):
                 # Bail on the first unmet prerequisites
@@ -169,18 +162,6 @@ class Badge(models.Model):
     def is_awarded_to(self, user):
         """Has this badge been awarded to the user?"""
         return Award.objects.filter(user=user, badge=self).count() > 0
-
-    def nominate_for(self, nominator, nominee):
-        """Nominate a nominee for this badge on the nominator's behalf"""
-        nomination = Nomination(badge=self, creator=nominator, nominee=nominee)
-        user_will_be_nominated.send(sender=self.__class__,
-                                    nomination=nomination)
-        nomination.save()
-        user_was_nominated.send(sender=self.__class__, nomination=nomination)
-        return nomination
-
-    def is_nominated_for(self, user):
-        return Nomination.objects.filter(nominee=user, badge=self).count() > 0
 
     def progress_for(self, user):
         """Get or create (but not save) a progress record for a user"""
@@ -193,96 +174,6 @@ class Badge(models.Model):
         return p
 
 
-class NominationException(BadgerException):
-    """Nomination model exception"""
-
-
-class NominationApproveNotAllowedException(NominationException):
-    """Attempt to approve a nomination was disallowed"""
-
-
-class NominationAcceptNotAllowedException(NominationException):
-    """Attempt to accept a nomination was disallowed"""
-
-
-class NominationManager(models.Manager):
-    pass
-
-
-class Nomination(models.Model):
-    """Representation of a user nominated by another user for a badge"""
-    objects = NominationManager()
-
-    badge = models.ForeignKey(Badge)
-    nominee = models.ForeignKey(User, related_name="nomination_nominee",
-            blank=False, null=False)
-    accepted = models.BooleanField(default=False)
-    creator = models.ForeignKey(User, related_name="nomination_creator",
-            blank=False, null=False)
-    approver = models.ForeignKey(User, related_name="nomination_approver",
-            blank=True, null=True)
-    created = models.DateTimeField(auto_now_add=True, blank=False)
-    modified = models.DateTimeField(auto_now=True, blank=False)
-
-    get_permissions_for = get_permissions_for
-
-    def allows_approve_by(self, user):
-        if user.is_staff or user.is_superuser:
-            return True
-        if user == self.badge.creator:
-            return True
-        return False
-
-    def approve_by(self, approver):
-        """Approve this nomination.
-        Also awards, if already accepted."""
-        if not self.allows_approve_by(approver):
-            raise NominationApproveNotAllowedException()
-        self.approver = approver
-        nomination_will_be_approved.send(sender=self.__class__,
-                                         nomination=self)
-        self.save()
-        self._award_if_ready()
-        nomination_was_approved.send(sender=self.__class__,
-                                     nomination=self)
-        return self
-
-    def is_approved(self):
-        """Has this nomination been approved?"""
-        return self.approver is not None
-
-    def allows_accept(self, user):
-        if user.is_staff or user.is_superuser:
-            return True
-        if user == self.nominee:
-            return True
-        return False
-
-    def accept(self, user):
-        """Accept this nomination for the nominee.
-        Also awards, if already approved."""
-        if not self.allows_accept(user):
-            raise NominationAcceptNotAllowedException()
-        self.accepted = True
-        nomination_will_be_accepted.send(sender=self.__class__,
-                                         nomination=self)
-        self.save()
-        self._award_if_ready()
-        nomination_was_accepted.send(sender=self.__class__,
-                                     nomination=self)
-        return self
-
-    def is_accepted(self):
-        """Has this nomination been accepted?"""
-        return self.accepted
-
-    def _award_if_ready(self):
-        """If approved and accepted, award the badge to nominee on
-        behalf of approver."""
-        if self.is_approved() and self.is_accepted():
-            self.badge.award_to(self.nominee, self.approver, self)
-
-
 class AwardManager(models.Manager):
     pass
 
@@ -293,7 +184,6 @@ class Award(models.Model):
 
     badge = models.ForeignKey(Badge)
     user = models.ForeignKey(User, related_name="award_user")
-    nomination = models.ForeignKey(Nomination, blank=True, null=True)
     creator = models.ForeignKey(User, related_name="award_creator",
                                 blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, blank=False)
@@ -301,10 +191,36 @@ class Award(models.Model):
 
     get_permissions_for = get_permissions_for
 
+    def __unicode__(self):
+        by = self.creator and (' by %s' % self.creator) or ''
+        return u'Award of %s to %s%s' % (self.badge, self.user, by)
+
     def save(self, *args, **kwargs):
+
+        # Signals and some bits of logic only happen on a new award.
+        is_new = not self.pk
+
+        if is_new:
+            # Bail if this is an attempt to double-award a unique badge
+            if self.badge.unique and self.badge.is_awarded_to(self.user):
+                raise BadgeAlreadyAwardedException()
+
+            # Only fire will-be-awarded signal on a new award.
+            badge_will_be_awarded.send(sender=self.__class__, award=self)
+
         super(Award, self).save(*args, **kwargs)
-        # Reset any progress for this user & badge upon award.
-        Progress.objects.filter(user=self.user, badge=self.badge).delete()
+
+        if is_new:
+            # Only fire was-awarded signal on a new award.
+            badge_was_awarded.send(sender=self.__class__, award=self)
+
+            # Since this badge was just awarded, check the prerequisites on all
+            # badges that count this as one.
+            for dep_badge in self.badge.badge_set.all():
+                dep_badge.check_prerequisites(self.user, self.badge, self)
+
+            # Reset any progress for this user & badge upon award.
+            Progress.objects.filter(user=self.user, badge=self.badge).delete()
 
 
 class ProgressManager(models.Manager):
@@ -316,18 +232,31 @@ class Progress(models.Model):
     badge = models.ForeignKey(Badge)
     user = models.ForeignKey(User, related_name="progress_user")
     percent = models.FloatField(default=0)
-    counter = models.FloatField(default=0)
+    counter = models.FloatField(default=0, blank=True, null=True)
     notes = JSONField(blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, blank=False)
     modified = models.DateTimeField(auto_now=True, blank=False)
 
     class Meta:
         unique_together = ('badge', 'user')
+        verbose_name_plural = "Progresses"
 
     get_permissions_for = get_permissions_for
 
+    def __unicode__(self):
+        perc = self.percent and (' (%s%s)' % (self.percent, '%')) or ''
+        return u'Progress toward %s by %s%s' % (self.badge, self.user, perc)
+
     def save(self, *args, **kwargs):
         """Save the progress record, with before and after signals"""
+        # Signals and some bits of logic only happen on a new award.
+        is_new = not self.pk
+
+        # Bail if this is an attempt to double-award a unique badge
+        if (is_new and self.badge.unique and
+                self.badge.is_awarded_to(self.user)):
+            raise BadgeAlreadyAwardedException()
+
         super(Progress, self).save(*args, **kwargs)
 
         # If the percent is over/equal to 1.0, auto-award on save.

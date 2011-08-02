@@ -1,6 +1,6 @@
 from django.conf import settings
 
-from badger.models import Badge, Nomination, Award, Progress
+from badger.models import Badge, Award, Progress
 
 
 def autodiscover():

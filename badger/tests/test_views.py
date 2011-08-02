@@ -23,10 +23,8 @@ except ImportError, e:
 
 from . import BadgerTestCase
 
-from badger.models import (Badge, Award, Nomination,
-        BadgeAwardNotAllowedException,
-        NominationApproveNotAllowedException,
-        NominationAcceptNotAllowedException)
+from badger.models import (Badge, Award, Progress,
+        BadgeAwardNotAllowedException)
 
 
 class BadgerViewsTest(BadgerTestCase):
@@ -36,7 +34,6 @@ class BadgerViewsTest(BadgerTestCase):
         self.client = LocalizingClient()
 
     def tearDown(self):
-        Nomination.objects.all().delete()
         Award.objects.all().delete()
         Badge.objects.all().delete()
 

@@ -17,7 +17,7 @@ def update_badges():
             badges_mod = import_module('%s.badges' % app)
         except ImportError:
             continue
-        call_command('loaddata', '%s_badges' % app, verbosity=0) 
+        call_command('loaddata', '%s_badges' % app, verbosity=0)
         badges_mod.update_badges()
 
 

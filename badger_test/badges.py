@@ -7,7 +7,7 @@ from .models import GuestbookEntry
 import badger
 import badger.utils
 from badger.utils import get_badge, award_badge, get_progress
-from badger.models import Badge, Nomination, Award, Progress
+from badger.models import Badge, Award, Progress
 from badger.signals import badge_was_awarded
 
 
