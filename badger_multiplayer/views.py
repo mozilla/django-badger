@@ -29,8 +29,10 @@ from django.views.decorators.http import (require_GET, require_POST,
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 
-from badger.models import (Badge, Award, Nomination,
-        BadgeAwardNotAllowedException,
+from badger.models import (Award, Progress,
+        BadgeAwardNotAllowedException)
+
+from badger_multiplayer.models import (Badge, Nomination,
         NominationApproveNotAllowedException,
         NominationAcceptNotAllowedException)
 
@@ -65,7 +67,7 @@ def edit(request, slug):
     badge = get_object_or_404(Badge, slug=slug)
     if not badge.allows_edit_by(request.user):
         return HttpResponseForbidden()
-    
+
     if request.method != "POST":
         form = BadgeEditForm(instance=badge)
     else:

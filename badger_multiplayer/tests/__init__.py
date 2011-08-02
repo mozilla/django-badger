@@ -28,4 +28,3 @@ class BadgerTestCase(test.TestCase):
         # Restore the settings.
         settings.INSTALLED_APPS = self._original_installed_apps
         loading.cache.loaded = False
-

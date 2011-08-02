@@ -11,7 +11,8 @@ try:
 except ImportError, e:
     from django.utils.translation import ugettext_lazy as _
 
-from badger.models import (Badge, Award, Nomination)
+from badger.models import (Award)
+from badger_multiplayer.models import (Badge, Nomination)
 
 
 class MyModelForm(forms.ModelForm):
@@ -62,4 +63,3 @@ class BadgeNewForm(BadgeEditForm):
         super(BadgeNewForm, self).__init__(*args, **kwargs)
         #if not settings.RECAPTCHA_PRIVATE_KEY:
         #    del self.fields['captcha']
-

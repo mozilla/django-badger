@@ -23,8 +23,10 @@ except ImportError, e:
 
 from . import BadgerTestCase
 
-from badger.models import (Badge, Award, Nomination,
-        BadgeAwardNotAllowedException,
+from badger.models import (Award, Progress,
+        BadgeAwardNotAllowedException)
+
+from badger_multiplayer.models import (Badge, Nomination,
         NominationApproveNotAllowedException,
         NominationAcceptNotAllowedException)
 
@@ -40,7 +42,6 @@ class BadgerViewsTest(BadgerTestCase):
         Award.objects.all().delete()
         Badge.objects.all().delete()
 
-    @attr('current')
     def test_create(self):
         """Can create badge with form"""
         # Login should be required
@@ -136,5 +137,3 @@ class BadgerViewsTest(BadgerTestCase):
             user.set_password(password)
             user.save()
         return user
-
-
