@@ -7,7 +7,6 @@
 ### Core
 
 * Paginated master badge list
-* Per-user award list / trophy case
 * Come up with some templates that aren't totally ugly
 * Badge image by URL or admin image upload
 * Activity streams - JSON and Atom
