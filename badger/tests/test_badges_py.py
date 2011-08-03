@@ -138,7 +138,6 @@ class BadgesPyTest(BadgerTestCase):
         # But, just checking the reset percent shouldn't create a new DB row.
         eq_(0, Progress.objects.filter(user=user, badge=b).count())
 
-    @attr('current')
     def test_metabadge_awarded(self):
         """Upon completing collection of badges, award a meta-badge"""
         user = self._get_user()

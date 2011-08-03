@@ -1,0 +1,8 @@
+<dl class="badge" data-slug="{{ badge.slug }}">
+    <dt>Title:</dt>
+        <dd class="title">{{ badge.title }}</dd>
+    {% if badge.description %}
+        <dt>Description:<dt>
+            <dd class="description">{{ badge.description }}</dd>
+    {% endif %}
+</dl>

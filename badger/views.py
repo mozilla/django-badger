@@ -34,21 +34,44 @@ from .models import (Badge, Award, Progress,
 
 
 BADGE_PAGE_SIZE = 12
+MAX_RECENT_AWARDS = 5
 
 
-def home(request):
-    """Badger home page"""
+def index(request):
+    """Badger index page"""
     queryset = Badge.objects.all()
     return object_list(request, queryset,
         paginate_by=BADGE_PAGE_SIZE, allow_empty=True,
         template_object_name='badge',
-        template_name='badger/home.html')
+        template_name='badger/index.html')
 
 
 @require_GET
 def detail(request, slug):
     """Badge detail view"""
     badge = get_object_or_404(Badge, slug=slug)
+    awards = (Award.objects.filter(badge=badge)
+                           .order_by('-created'))[:MAX_RECENT_AWARDS]
     return render_to_response('badger/badge_detail.html', dict(
-        badge=badge,
+        badge=badge, awards=awards,
+    ), context_instance=RequestContext(request))
+
+
+@require_GET
+def awards_by_user(request, username):
+    """Badge awards by user"""
+    user = get_object_or_404(User, username=username)
+    awards = Award.objects.filter(user=user)
+    return render_to_response('badger/awards_by_user.html', dict(
+        user=user, awards=awards,
+    ), context_instance=RequestContext(request))
+
+
+@require_GET
+def awards_by_badge(request, slug):
+    """Badge awards by badge"""
+    badge = get_object_or_404(Badge, slug=slug)
+    awards = Award.objects.filter(badge=badge)
+    return render_to_response('badger/awards_by_badge.html', dict(
+        badge=badge, awards=awards,
     ), context_instance=RequestContext(request))

@@ -75,7 +75,6 @@ class BadgerBadgeTest(BadgerTestCase):
 
         eq_(1, Award.objects.filter(badge=b, user=user).count())
 
-    @attr('current')
     def test_progress_badge_already_awarded(self):
         """New progress toward an awarded unique badge cannot be recorded"""
         user = self._get_user()

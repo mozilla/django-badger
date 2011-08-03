@@ -1,11 +1,3 @@
-{% extends "badger/base.html" %}
-
-{% block content %}
-
-<h1>Badger</h1>
-<p>Welcome to the Badger home page</p>
-
-<h2>Badges:</h2>
 <ul class="badges">
     {% for badge in badge_list %}
         <li class="badge">
@@ -13,5 +5,4 @@
         </li>
     {% endfor %}
 </ul>
-
-{% endblock %}
+{% include "badger/includes/pagination.html" %}

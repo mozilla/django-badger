@@ -5,10 +5,17 @@
 {% block content %}
 
 <h2>Badge detail</h2>
+{% include "badger/includes/badge_full.html" %}
 
-<dl class="badge" data-slug="{{ badge.slug }}">
-    <dt>Title:</dt><dd class="title">{{ badge.title }}</dd>
-    <dt>Description:<dt><dd class="description">{{ badge.description }}</dd>
-</dl>
+{% if awards %}
+    <h2>Recent awards</h2>
+    <ul class="awards">
+        {% for award in awards %}
+        <li>
+            {% include "badger/includes/award_as_user.html" %}
+        </li>
+        {% endfor %}
+    </ul>
+{% endif %}
 
 {% endblock %}

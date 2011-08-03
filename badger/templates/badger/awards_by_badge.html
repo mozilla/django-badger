@@ -1,0 +1,20 @@
+{% extends "badger/base.html" %}
+
+{% block pageid %}badge_awards_by_badge{% endblock %}
+
+{% block content %}
+
+<h2>Badge detail for {{badge.title}}</h2>
+
+{% include "badger/includes/badge_full.html" %}
+
+<h2>Awards</h2>
+
+<ul class="awards">
+    {% for award in awards %}
+    <li>
+        {% include "badger/includes/award_as_user.html" %}
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}
