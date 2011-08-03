@@ -1,0 +1,14 @@
+<dl class="badge" data-slug="{{ badge.slug }}">
+    <dt>Title:</dt>
+        <dd class="title">{{ badge.title }}</dd>
+    {% if badge.description %}
+        <dt>Description:<dt>
+            <dd class="description">{{ badge.description }}</dd>
+    {% endif %}
+    {% if badge.allows_edit_by(request.user) %}
+        <dt>Actions:</dt>
+        <dd><ul>
+            <li><a class="edit_badge" href="{{ url('badger_multiplayer.views.edit', badge.slug) }}">edit</a></li>
+        </ul></dd>
+    {% endif %}
+</dl>
