@@ -15,4 +15,5 @@ class Command(BaseCommand):
     help = 'Update badges from apps'
 
     def handle(self, *args, **options):
-        update_badges()
+        # TODO: overwrite needs to be a command option
+        update_badges(overwrite=True)

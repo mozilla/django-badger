@@ -10,7 +10,7 @@ from django.utils.module_loading import module_has_submodule
 import badger
 
 
-def update_badges():
+def update_badges(overwrite=False):
     from django.utils.importlib import import_module
 
     for app in settings.INSTALLED_APPS:
@@ -18,7 +18,7 @@ def update_badges():
         try:
             badges_mod = import_module('%s.badges' % app)
             call_command('loaddata', '%s_badges' % app, verbosity=0)
-            badges_mod.update_badges()
+            badges_mod.update_badges(overwrite)
         except ImportError, e:
             if module_has_submodule(mod, 'badges'):
                 raise
