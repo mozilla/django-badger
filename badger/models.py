@@ -175,17 +175,22 @@ class Badge(models.Model):
 
 
 class AwardManager(models.Manager):
-    pass
+
+    def get_query_set(self):
+        return super(AwardManager, self).get_query_set().exclude(hidden=True)
 
 
 class Award(models.Model):
     """Representation of a badge awarded to a user"""
+    
+    admin_objects = models.Manager()
     objects = AwardManager()
 
     badge = models.ForeignKey(Badge)
     user = models.ForeignKey(User, related_name="award_user")
     creator = models.ForeignKey(User, related_name="award_creator",
                                 blank=True, null=True)
+    hidden = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True, blank=False)
     modified = models.DateTimeField(auto_now=True, blank=False)
 
