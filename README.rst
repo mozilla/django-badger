@@ -10,8 +10,8 @@ celebrate members of your community.
 For more about the thinking behind this project, check out this essay:
 `Why does Mozilla need a Badger?  <http://decafbad.com/2010/07/badger-article/>`_
 
-The ``django-badger`` is the core Badger app. It offers (or plans to offer)
-the following:
+The ``django-badger`` package is the core Badger app. It offers (or plans to
+offer) the following:
 
 - Basic badges, managed by the site owner in code and via Django admin.
 - Badge awards, triggered in response to signal-based events with code
