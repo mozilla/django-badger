@@ -50,6 +50,13 @@ Awarding badges
 - TBD, see ``badger_test/badges.py`` for an example.
 
 
+Testing
+-------
+
+- TBD, see `badger2 <https://github.com/lmorchard/badger2>`_ for an example
+  site setup
+
+
 Other Badger apps
 -----------------
 

@@ -1,4 +1,4 @@
 {% set user = award.user %}
 <div class="award by_user">
-    <a href="{{url('badger.views.awards_by_user', user.username)}}" class="username">{{ user.username }}</a>
+    <a href="{{award.get_absolute_url()}}" class="username">{{ user.username }}</a>
 </div>

@@ -1,0 +1,22 @@
+{% extends "badger/base.html" %}
+
+{% set user = award.user %}
+
+{% block pageid %}award_detail{% endblock %}
+
+{% block content %}
+
+<h2>Award detail</h2>
+
+<section class="awarded_to">
+    <h3>Awarded to</h3>
+    <a href="{{url('badger.views.awards_by_user', user.username)}}" 
+       class="username">{{ user.username }}</a>
+</section>
+
+<section class="badge">
+    <h3>Badge</h3>
+    {% include "badger/includes/badge_full.html" %}
+</section>
+
+{% endblock %}

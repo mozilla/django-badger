@@ -1,0 +1,12 @@
+<ul class="awards">
+    {% for award in award_list %}
+        <li class="award">
+            <a href="{{ award.get_absolute_url() }}">
+                <span class="badge_title">{{ award.badge.title }}</span>
+                <span class="relation">awarded to</span>
+                <span class="user">{{ award.user }}</span>
+            </a>
+        </li>
+    {% endfor %}
+</ul>
+{% include "badger/includes/pagination.html" %}

@@ -109,7 +109,7 @@ class Badge(models.Model):
         return u'Badge %s' % self.title
 
     def get_absolute_url(self):
-        return reverse('badger.views.detail', args=[self.slug])
+        return reverse('badger.views.detail', args=(self.slug,))
 
     def save(self, **kwargs):
         """Save the submission, updating slug and screenshot thumbnails"""
@@ -199,6 +199,10 @@ class Award(models.Model):
     def __unicode__(self):
         by = self.creator and (' by %s' % self.creator) or ''
         return u'Award of %s to %s%s' % (self.badge, self.user, by)
+
+    @models.permalink
+    def get_absolute_url(self):
+        return ('badger.views.award_detail', (self.badge.slug, self.pk)) 
 
     def save(self, *args, **kwargs):
 

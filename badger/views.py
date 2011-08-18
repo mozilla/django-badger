@@ -58,6 +58,16 @@ def detail(request, slug):
 
 
 @require_GET
+def award_detail(request, slug, id):
+    """Award detail view"""
+    badge = get_object_or_404(Badge, slug=slug)
+    award = get_object_or_404(Award, badge=badge, pk=id)
+    return render_to_response('badger/award_detail.html', dict(
+        badge=badge, award=award,
+    ), context_instance=RequestContext(request))
+
+
+@require_GET
 def awards_by_user(request, username):
     """Badge awards by user"""
     user = get_object_or_404(User, username=username)

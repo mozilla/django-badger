@@ -6,10 +6,12 @@
 
 ### Core
 
+* Activity streams - JSON and Atom
+* Badge details as JSON resource
+* Award detail page and JSON resource
 * Paginated master badge list
 * Come up with some templates that aren't totally ugly
 * Badge image by URL or admin image upload
-* Activity streams - JSON and Atom
 * Templates
     * jinja helpers
     * django templatetags?

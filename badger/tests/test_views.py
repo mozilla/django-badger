@@ -54,6 +54,24 @@ class BadgerViewsTest(BadgerTestCase):
         eq_(badge.title, doc.find('.badge .title').text())
         eq_(badge.description, doc.find('.badge .description').text())
 
+
+    def test_award_detail(self):
+        """Can view award detail"""
+        user = self._get_user()
+        user2 = self._get_user(username='tester2')
+
+        b1, created = Badge.objects.get_or_create(creator=user, title="Code Badge #1")
+        award = b1.award_to(user2)
+
+        url = reverse('badger.views.award_detail', args=(b1.slug, award.pk,))
+        r = self.client.get(url, follow=True)
+        doc = pq(r.content)
+
+        eq_('award_detail', doc.find('body').attr('id'))
+        eq_(1, doc.find('.awarded_to .username:contains("%s")' % user2.username).length)
+        eq_(1, doc.find('.badge .title:contains("%s")' % b1.title).length)
+
+
     def test_awards_by_user(self):
         """Can view awards by user"""
         user = self._get_user()
