@@ -28,7 +28,7 @@ from badger_multiplayer.models import (Badge, Nomination,
         NominationApproveNotAllowedException,
         NominationAcceptNotAllowedException)
 
-from badger_test.models import GuestbookEntry
+from badger.tests.badger_example.models import GuestbookEntry
 
 
 class BadgerMultiplayerBadgeTest(BadgerTestCase):

@@ -8,7 +8,8 @@ import badger
 
 class BadgerTestCase(test.TestCase):
     """Ensure test app and models are set up before tests"""
-    apps = ('badger_test', 'badger_multiplayer_test', )
+    apps = ('badger.tests.badger_example',
+            'badger_multiplayer.tests.badger_multiplayer_example')
 
     def _pre_setup(self):
         # Add the models to the db.

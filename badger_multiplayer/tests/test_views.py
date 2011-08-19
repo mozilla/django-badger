@@ -51,7 +51,7 @@ class BadgerViewsTest(BadgerTestCase):
 
         # Should be fine after login
         self.client.login(username="tester", password="trustno1")
-        r = self.client.get(reverse('badger_create_badge'))
+        r = self.client.get(reverse('badger_multiplayer.views.create'))
         eq_(200, r.status_code)
 
         # Make a chick check for expected form elements
@@ -65,7 +65,7 @@ class BadgerViewsTest(BadgerTestCase):
         # For styling purposes, we'll allow either an input or button element
         eq_(1, form.find('input.submit,button.submit').length)
 
-        r = self.client.post(reverse('badger_create_badge'), dict(
+        r = self.client.post(reverse('badger_multiplayer.views.create'), dict(
         ), follow=True)
         doc = pq(r.content)
         eq_(1, doc.find('form .error > input[name=title]').length)
