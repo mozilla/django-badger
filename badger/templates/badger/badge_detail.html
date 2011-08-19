@@ -2,6 +2,12 @@
 
 {% block pageid %}badge_detail{% endblock %}
 
+{% block extrahead %}
+    <link rel="alternate" type="application/atom+xml"
+        title="{{ _('Recent awards') }}"
+        href="{{ url('badger.feeds.awards_by_badge', 'atom', badge.slug) }}" />
+{% endblock %}
+
 {% block content %}
 
 <h2>Badge detail</h2>
