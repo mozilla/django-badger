@@ -272,23 +272,30 @@ class Progress(models.Model):
         if self.percent >= 100:
             self.badge.award_to(self.user)
 
-    def update_percent(self, current, total=None):
+    def _quiet_save(self, raise_exception=False):
+        try:
+            self.save()
+        except BadgeAlreadyAwardedException, e:
+            if raise_exception:
+                raise e
+
+    def update_percent(self, current, total=None, raise_exception=False):
         """Update the percent completion value."""
         if total is None:
             value = current
         else:
             value = (float(current) / float(total)) * 100.0
         self.percent = value
-        self.save()
+        self._quiet_save(raise_exception)
 
-    def increment_by(self, amount):
+    def increment_by(self, amount, raise_exception=False):
         # TODO: Do this with an UPDATE counter+amount in DB
         self.counter += amount
-        self.save()
+        self._quiet_save(raise_exception)
         return self
 
-    def decrement_by(self, amount):
+    def decrement_by(self, amount, raise_exception=False):
         # TODO: Do this with an UPDATE counter-amount in DB
         self.counter -= amount
-        self.save()
+        self._quiet_save(raise_exception)
         return self

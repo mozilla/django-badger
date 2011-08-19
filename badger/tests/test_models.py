@@ -23,7 +23,7 @@ from badger.models import (Badge, Award, Progress,
         BadgeAwardNotAllowedException,
         BadgeAlreadyAwardedException)
 
-from badger_test.models import GuestbookEntry
+from badger.tests.badger_example.models import GuestbookEntry
 
 
 class BadgerBadgeTest(BadgerTestCase):

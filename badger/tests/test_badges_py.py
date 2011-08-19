@@ -12,14 +12,12 @@ from . import BadgerTestCase
 
 import badger
 from badger.utils import get_badge, award_badge
-import badger_test
-import badger_test.badges
 
 from badger.models import (Badge, Award, Progress,
         BadgeAwardNotAllowedException,
         BadgeAlreadyAwardedException)
 
-from badger_test.models import GuestbookEntry
+from badger.tests.badger_example.models import GuestbookEntry
 
 
 class BadgesPyTest(BadgerTestCase):
@@ -154,6 +152,35 @@ class BadgesPyTest(BadgerTestCase):
         get_badge('awesomeness').award_to(user)
         eq_(1, Award.objects.filter(badge=get_badge("master-badger"),
                                     user=user).count())
+
+    def test_progress_quiet_save(self):
+        """Progress will not raise a BadgeAlreadyAwardedException unless told"""
+        b = self._get_badge('imunique')
+        b.unique = True
+        b.save()
+
+        user = self._get_user()
+
+        b.progress_for(user).update_percent(50)
+        b.progress_for(user).update_percent(75)
+        b.progress_for(user).update_percent(100)
+
+        ok_(b.is_awarded_to(user))
+
+        try:
+            b.progress_for(user).update_percent(50)
+            b.progress_for(user).update_percent(75)
+            b.progress_for(user).update_percent(100)
+        except BadgeAlreadyAwardedException, e:
+            ok_(False, "Exception should not have been raised")
+
+        try:
+            b.progress_for(user).update_percent(50, raise_exception=True)
+            b.progress_for(user).update_percent(75, raise_exception=True)
+            b.progress_for(user).update_percent(100, raise_exception=True)
+            ok_(False, "Exception should have been raised")
+        except BadgeAlreadyAwardedException, e:
+            pass
 
     def _get_user(self, username="tester", email="tester@example.com",
             password="trustno1"):

@@ -35,19 +35,19 @@ Settings
 
 - TBD, see `badger2 <https://github.com/lmorchard/badger2>`_ for an example
   site setup
-- TBD, see ``badger_test/badges.py`` for an example.
+- TBD, see ``badger/tests/badger_example/badges.py`` for an example.
 
 
 Creating badges
 ---------------
 
-- TBD, see ``badger_test/badges.py`` for an example.
+- TBD, see ``badger/tests/badger_example/badges.py`` for an example.
 
 
 Awarding badges
 ---------------
 
-- TBD, see ``badger_test/badges.py`` for an example.
+- TBD, see ``badger/tests/badger_example/badges.py`` for an example.
 
 
 Testing

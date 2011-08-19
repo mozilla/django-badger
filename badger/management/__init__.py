@@ -17,7 +17,8 @@ def update_badges(overwrite=False):
         mod = import_module(app)
         try:
             badges_mod = import_module('%s.badges' % app)
-            call_command('loaddata', '%s_badges' % app, verbosity=0)
+            fixture_label = '%s_badges' % app.replace('.','_')
+            call_command('loaddata', fixture_label, verbosity=1)
             badges_mod.update_badges(overwrite)
         except ImportError, e:
             if module_has_submodule(mod, 'badges'):
