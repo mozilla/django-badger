@@ -6,15 +6,20 @@
 
 ### Core
 
-* Badge details as JSON resource
-* Award details JSON resource
 * Badge image by URL or admin image upload
+* Badge expiration dateime
 * Templates
     * jinja helpers
     * django templatetags?
 * Activity streams - JSON and Atom
     * Re-work feeds to be AS compliant
 * Come up with some templates that aren't totally ugly
+
+### Open Badge Infrastructure
+
+* Badge baker
+    * Bake crypto assertion into PNG metadata
+    * https://github.com/brianlovesdata/openbadges
 
 ### Multiplayer
 

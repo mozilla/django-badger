@@ -6,6 +6,9 @@
     <link rel="alternate" type="application/atom+xml"
         title="{{ _('Recent awards') }}"
         href="{{ url('badger.feeds.awards_by_badge', 'atom', badge.slug) }}" />
+    <link rel="alternate" type="application/json"
+        title="{{ _('{title} (JSON)') | f(title=badge) }}"
+        href="{{ url('badger.detail_json', badge.slug) }}" />
 {% endblock %}
 
 {% block content %}

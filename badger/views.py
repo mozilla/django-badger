@@ -7,6 +7,8 @@ from django.conf import settings
 from django.http import (HttpResponseRedirect, HttpResponse,
         HttpResponseForbidden, HttpResponseNotFound)
 
+from django.utils import simplejson
+
 from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
 from django.template.defaultfilters import slugify
@@ -47,24 +49,45 @@ def index(request):
 
 
 @require_GET
-def detail(request, slug):
+def detail(request, slug, format="html"):
     """Badge detail view"""
     badge = get_object_or_404(Badge, slug=slug)
     awards = (Award.objects.filter(badge=badge)
                            .order_by('-created'))[:MAX_RECENT_AWARDS]
-    return render_to_response('badger/badge_detail.html', dict(
-        badge=badge, awards=awards,
-    ), context_instance=RequestContext(request))
+
+    if format == 'json':
+        resp = HttpResponse(simplejson.dumps(badge.as_obi_serialization()))
+        resp['Content-Type'] = 'application/json'
+        return resp
+    else:
+        return render_to_response('badger/badge_detail.html', dict(
+            badge=badge, awards=awards,
+        ), context_instance=RequestContext(request))
 
 
 @require_GET
-def award_detail(request, slug, id):
+def awards_list(request):
+    queryset = Award.objects.all()
+    return object_list(request, queryset,
+        paginate_by=BADGE_PAGE_SIZE, allow_empty=True,
+        template_object_name='award',
+        template_name='badger/awards_list.html')
+
+
+@require_GET
+def award_detail(request, slug, id, format="html"):
     """Award detail view"""
     badge = get_object_or_404(Badge, slug=slug)
     award = get_object_or_404(Award, badge=badge, pk=id)
-    return render_to_response('badger/award_detail.html', dict(
-        badge=badge, award=award,
-    ), context_instance=RequestContext(request))
+
+    if format == 'json':
+        resp = HttpResponse(simplejson.dumps(award.as_obi_assertion()))
+        resp['Content-Type'] = 'application/json'
+        return resp
+    else:
+        return render_to_response('badger/award_detail.html', dict(
+            badge=badge, award=award,
+        ), context_instance=RequestContext(request))
 
 
 @require_GET

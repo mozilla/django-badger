@@ -1,3 +1,5 @@
+from django.conf import settings
+
 from django.db import models
 from django.db.models import signals
 from django.core.serializers.json import DjangoJSONEncoder
@@ -12,6 +14,14 @@ except ImportError, e:
     from django.core.urlresolvers import reverse
 
 from .signals import (badge_will_be_awarded, badge_was_awarded)
+
+OBI_VERSION = "0.5.0"
+SITE_ISSUER = getattr(settings, 'BADGER_SITE_ISSUER', {
+    "origin": "http://mozilla.org",
+    "name": "Badger",
+    "org": "Mozilla",
+    "contact": "lorchard@mozilla.com"
+})
 
 
 def get_permissions_for(self, user):
@@ -106,7 +116,7 @@ class Badge(models.Model):
     get_permissions_for = get_permissions_for
 
     def __unicode__(self):
-        return u'Badge %s' % self.title
+        return self.title
 
     def get_absolute_url(self):
         return reverse('badger.views.detail', args=(self.slug,))
@@ -173,6 +183,32 @@ class Badge(models.Model):
             p = Progress(user=user, badge=self)
         return p
 
+    def as_obi_serialization(self):
+        """Produce an Open Badge Infrastructure serialization of this badge"""
+        # see: https://github.com/brianlovesdata/openbadges/wiki/Assertions
+        if not self.creator:
+            issuer = SITE_ISSUER
+        else:
+            issuer = {
+                # TODO: Get from user profile instead?
+                "origin": self.creator.get_absolute_url(),
+                "name": self.creator.username,
+                "contact": self.creator.email
+            }
+
+        data = {
+            # The version of the spec/hub this manifest is compatible with. Use "0.5.0" for the beta.
+            "version": OBI_VERSION,
+            # TODO: truncate more intelligently
+            "name": self.title[:128],
+            "image": "/img/html5-basic.png",
+            # TODO: truncate more intelligently
+            "description": self.description[:128],
+            "criteria": self.get_absolute_url(),
+            "issuer": issuer
+        }
+        return data
+
 
 class AwardManager(models.Manager):
 
@@ -230,6 +266,18 @@ class Award(models.Model):
 
             # Reset any progress for this user & badge upon award.
             Progress.objects.filter(user=self.user, badge=self.badge).delete()
+
+    def as_obi_assertion(self):
+        # see: https://github.com/brianlovesdata/openbadges/wiki/Assertions
+        assertion = {
+            # TODO: Get email from profile? alternate identifier?
+            "recipient": self.user.email,
+            "evidence": self.get_absolute_url(),
+            # "expires": "2013-06-01",
+            "issued_on": self.created.isoformat(),
+            "badge": self.badge.as_obi_serialization()
+        }
+        return assertion
 
 
 class ProgressManager(models.Manager):

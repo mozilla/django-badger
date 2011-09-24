@@ -4,6 +4,12 @@
 
 {% block pageid %}award_detail{% endblock %}
 
+{% block extrahead %}
+    <link rel="alternate" type="application/json"
+        title="{{ _('{title} (JSON)') | f(title=award) }}"
+        href="{{ url('badger.award_detail_json', badge.slug, award.pk) }}" />
+{% endblock %}
+
 {% block content %}
 
 <h2>Award detail</h2>

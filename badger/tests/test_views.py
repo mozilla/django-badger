@@ -5,6 +5,8 @@ from django.conf import settings
 from django.http import HttpRequest
 from django.test.client import Client
 
+from django.utils import simplejson
+
 from commons import LocalizingClient
 
 from pyquery import PyQuery as pq
@@ -39,6 +41,7 @@ class BadgerViewsTest(BadgerTestCase):
         Award.objects.all().delete()
         Badge.objects.all().delete()
 
+    @attr('json')
     def test_badge_detail(self):
         """Can view badge detail"""
         user = self._get_user()
@@ -54,6 +57,16 @@ class BadgerViewsTest(BadgerTestCase):
         eq_(badge.title, doc.find('.badge .title').text())
         eq_(badge.description, doc.find('.badge .description').text())
 
+        # Now, take a look at the JSON format
+        url = reverse('badger.detail_json', args=(badge.slug, ))
+        r = self.client.get(url, follow=True)
+
+        data = simplejson.loads(r.content)
+        eq_(badge.title, data['name'])
+        eq_(badge.description, data['description'])
+        eq_(badge.get_absolute_url(), data['criteria'])
+
+    @attr('json')
     def test_award_detail(self):
         """Can view award detail"""
         user = self._get_user()
@@ -69,6 +82,18 @@ class BadgerViewsTest(BadgerTestCase):
         eq_('award_detail', doc.find('body').attr('id'))
         eq_(1, doc.find('.awarded_to .username:contains("%s")' % user2.username).length)
         eq_(1, doc.find('.badge .title:contains("%s")' % b1.title).length)
+
+        # Now, take a look at the JSON format
+        url = reverse('badger.award_detail_json', args=(b1.slug, award.pk,))
+        r = self.client.get(url, follow=True)
+
+        data = simplejson.loads(r.content)
+        eq_(award.user.email, data['recipient'])
+        eq_(award.get_absolute_url(), data['evidence'])
+        eq_(award.badge.title, data['badge']['name'])
+        eq_(award.badge.description, data['badge']['description'])
+        eq_(award.badge.get_absolute_url(), data['badge']['criteria'])
+
 
     def test_awards_by_user(self):
         """Can view awards by user"""
