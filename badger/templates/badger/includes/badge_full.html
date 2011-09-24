@@ -1,4 +1,8 @@
 <dl class="badge" data-slug="{{ badge.slug }}">
+    {% if badge.image %}
+        <dt>Image:</dt>
+            <dd class="image"><img src="{{ badge.image.url }}" width="256" height="256" /></dd>
+    {% endif %}
     <dt>Title:</dt>
         <dd class="title">{{ badge.title }}</dd>
     {% if badge.description %}

@@ -1,7 +1,14 @@
+from datetime import datetime
+from time import time, gmtime, strftime
+
 from django.conf import settings
 
 from django.db import models
 from django.db.models import signals
+from django.db.models.fields.files import FieldFile, ImageFieldFile
+from django.core.exceptions import ValidationError
+from django.core.files.storage import FileSystemStorage
+from django.core.files.base import ContentFile
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import simplejson as json
 from django.contrib.auth.models import User, AnonymousUser
@@ -13,15 +20,74 @@ try:
 except ImportError, e:
     from django.core.urlresolvers import reverse
 
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from StringIO import StringIO
+
+try:
+    from PIL import Image
+except ImportError:
+    import Image
+
 from .signals import (badge_will_be_awarded, badge_was_awarded)
 
+
 OBI_VERSION = "0.5.0"
+
+IMG_MAX_SIZE = getattr(settings, "BADGER_IMG_MAX_SIZE", (256, 256))
+
 SITE_ISSUER = getattr(settings, 'BADGER_SITE_ISSUER', {
     "origin": "http://mozilla.org",
     "name": "Badger",
     "org": "Mozilla",
     "contact": "lorchard@mozilla.com"
 })
+
+# Set up a file system for badge uploads that can be kept separate from the
+# rest of /media if necessary. Lots of hackery to ensure sensible defaults.
+UPLOADS_ROOT = getattr(settings, 'BADGER_UPLOADS_ROOT',
+    '%suploads/' % getattr(settings, 'MEDIA_ROOT', 'media/'))
+UPLOADS_URL = getattr(settings, 'BADGER_UPLOADS_URL',
+    '%suploads/' % getattr(settings, 'MEDIA_URL', '/media/'))
+badge_uploads_fs = FileSystemStorage(location=UPLOADS_ROOT,
+                                     base_url=UPLOADS_URL)
+
+
+def scale_image(img_upload, img_max_size):
+    """Crop and scale an image file."""
+    try:
+        img = Image.open(img_upload)
+    except IOError:
+        return None
+
+    src_width, src_height = img.size
+    src_ratio = float(src_width) / float(src_height)
+    dst_width, dst_height = img_max_size
+    dst_ratio = float(dst_width) / float(dst_height)
+
+    if dst_ratio < src_ratio:
+        crop_height = src_height
+        crop_width = crop_height * dst_ratio
+        x_offset = int(float(src_width - crop_width) / 2)
+        y_offset = 0
+    else:
+        crop_width = src_width
+        crop_height = crop_width / dst_ratio
+        x_offset = 0
+        y_offset = int(float(src_height - crop_height) / 2)
+
+    img = img.crop((x_offset, y_offset, 
+        x_offset+int(crop_width), y_offset+int(crop_height)))
+    img = img.resize((dst_width, dst_height), Image.ANTIALIAS)
+
+    if img.mode != "RGB":
+        img = img.convert("RGB")
+    new_img = StringIO()
+    img.save(new_img, "PNG")
+    img_data = new_img.getvalue()
+
+    return ContentFile(img_data)
 
 
 def get_permissions_for(self, user):
@@ -36,6 +102,19 @@ def get_permissions_for(self, user):
     return perms
 
 
+def mk_upload_to(field_fn):
+    """upload_to builder for file upload fields"""
+    def upload_to(instance, filename):
+        if hasattr(instance, 'get_upload_root'):
+            base = instance.get_upload_root()
+        else:
+            base = 'misc'
+        time_now = int(time())
+        return '%(base)s/%(pk)s_%(time_now)s_%(field_fn)s' % dict( 
+            time_now=time_now, pk=instance.pk, base=base, field_fn=field_fn)
+    return upload_to
+
+ 
 class JSONField(models.TextField):
     """JSONField is a generic textfield that neatly serializes/unserializes
     JSON objects seamlessly
@@ -103,6 +182,9 @@ class Badge(models.Model):
     title = models.CharField(max_length=255, blank=False, unique=True)
     slug = models.SlugField(blank=False, unique=True)
     description = models.TextField(blank=True)
+    image = models.ImageField(blank=True, null=True,
+                              storage=badge_uploads_fs, 
+                              upload_to=mk_upload_to('badge_image.png'))
     prerequisites = models.ManyToManyField('self', symmetrical=False,
                                             blank=True, null=True)
     unique = models.BooleanField(default=False)
@@ -120,6 +202,16 @@ class Badge(models.Model):
 
     def get_absolute_url(self):
         return reverse('badger.views.detail', args=(self.slug,))
+
+    def get_upload_root(self):
+        return "badge"
+
+    def clean(self):
+        if self.image:
+            scaled_file = scale_image(self.image.file, IMG_MAX_SIZE)
+            if not scaled_file:
+                raise ValidationError(_('Cannot process image'))
+            self.image.file = scaled_file
 
     def save(self, **kwargs):
         """Save the submission, updating slug and screenshot thumbnails"""
@@ -242,6 +334,9 @@ class Award(models.Model):
     @models.permalink
     def get_absolute_url(self):
         return ('badger.views.award_detail', (self.badge.slug, self.pk)) 
+
+    def get_upload_root(self):
+        return "badge"
 
     def save(self, *args, **kwargs):
 
