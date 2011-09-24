@@ -183,7 +183,7 @@ class Badge(models.Model):
             p = Progress(user=user, badge=self)
         return p
 
-    def as_obi_serialization(self):
+    def as_obi_serialization(self, request):
         """Produce an Open Badge Infrastructure serialization of this badge"""
         # see: https://github.com/brianlovesdata/openbadges/wiki/Assertions
         if not self.creator:
@@ -191,7 +191,8 @@ class Badge(models.Model):
         else:
             issuer = {
                 # TODO: Get from user profile instead?
-                "origin": self.creator.get_absolute_url(),
+                "origin": request.build_absolute_uri(
+                    self.creator.get_absolute_url()),
                 "name": self.creator.username,
                 "contact": self.creator.email
             }
@@ -201,10 +202,12 @@ class Badge(models.Model):
             "version": OBI_VERSION,
             # TODO: truncate more intelligently
             "name": self.title[:128],
-            "image": "/img/html5-basic.png",
+            "image": request.build_absolute_uri(
+                "/img/html5-basic.png"),
             # TODO: truncate more intelligently
             "description": self.description[:128],
-            "criteria": self.get_absolute_url(),
+            "criteria": request.build_absolute_uri(
+                self.get_absolute_url()),
             "issuer": issuer
         }
         return data
@@ -267,7 +270,7 @@ class Award(models.Model):
             # Reset any progress for this user & badge upon award.
             Progress.objects.filter(user=self.user, badge=self.badge).delete()
 
-    def as_obi_assertion(self):
+    def as_obi_assertion(self, request):
         # see: https://github.com/brianlovesdata/openbadges/wiki/Assertions
         assertion = {
             # TODO: Get email from profile? alternate identifier?

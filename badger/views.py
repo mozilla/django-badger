@@ -56,7 +56,8 @@ def detail(request, slug, format="html"):
                            .order_by('-created'))[:MAX_RECENT_AWARDS]
 
     if format == 'json':
-        resp = HttpResponse(simplejson.dumps(badge.as_obi_serialization()))
+        data = badge.as_obi_serialization(request)
+        resp = HttpResponse(simplejson.dumps(data))
         resp['Content-Type'] = 'application/json'
         return resp
     else:
@@ -81,7 +82,8 @@ def award_detail(request, slug, id, format="html"):
     award = get_object_or_404(Award, badge=badge, pk=id)
 
     if format == 'json':
-        resp = HttpResponse(simplejson.dumps(award.as_obi_assertion()))
+        data = simplejson.dumps(award.as_obi_assertion(request))
+        resp = HttpResponse(data)
         resp['Content-Type'] = 'application/json'
         return resp
     else:
