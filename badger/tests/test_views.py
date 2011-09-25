@@ -64,7 +64,8 @@ class BadgerViewsTest(BadgerTestCase):
         data = simplejson.loads(r.content)
         eq_(badge.title, data['name'])
         eq_(badge.description, data['description'])
-        eq_(badge.get_absolute_url(), data['criteria'])
+        eq_('http://testserver%s' % badge.get_absolute_url(), 
+            data['criteria'])
 
     @attr('json')
     def test_award_detail(self):
@@ -89,10 +90,12 @@ class BadgerViewsTest(BadgerTestCase):
 
         data = simplejson.loads(r.content)
         eq_(award.user.email, data['recipient'])
-        eq_(award.get_absolute_url(), data['evidence'])
+        eq_('http://testserver%s' % award.get_absolute_url(), 
+            data['evidence'])
         eq_(award.badge.title, data['badge']['name'])
         eq_(award.badge.description, data['badge']['description'])
-        eq_(award.badge.get_absolute_url(), data['badge']['criteria'])
+        eq_('http://testserver%s' % award.badge.get_absolute_url(), 
+            data['badge']['criteria'])
 
 
     def test_awards_by_user(self):

@@ -6,31 +6,18 @@
 
 ### Core
 
-* Badge image by URL or admin image upload
-* Badge expiration dateime
+* Badge expiration datetime
 * Templates
     * jinja helpers
     * django templatetags?
 * Activity streams - JSON and Atom
     * Re-work feeds to be AS compliant
 * Come up with some templates that aren't totally ugly
-
-### Open Badge Infrastructure
-
-* Badge baker
-    * Bake crypto assertion into PNG metadata
-    * https://github.com/brianlovesdata/openbadges
+* Option in update_badges management command to overwrite existing.
 
 ### Multiplayer
 
 * Nomination - create, delete, update, approve, reject
-* Badge images by upload or URL
-    * URL accomodates badges in code
-    * Restrict base URL of images?
-* Badge image upload
-    * validate, scale, thumbnail, date-based filename
-    * steal Demo Studio code for this?
-* Option in update_badges management command to overwrite existing.
 * Conditional nominations
     * Models
         * Condition definition

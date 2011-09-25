@@ -1,6 +1,15 @@
 <ul class="awards">
     {% for award in award_list %}
+        {% if award.image %}
+            {% set img_url = award.image.url %}
+        {% elif award.badge.image %}
+            {% set img_url = award.badge.image.url %}
+        {% else %}
+            {% set img_url = "/media/img/default-badge.png" %}
+        {% endif %}
         <li class="award">
+            <a href="{{ award.get_absolute_url() }}"><img src="{{ img_url }}"
+                alt="{{ award.badge.title }}" width="64" height="64" /></a>
             <a href="{{ award.get_absolute_url() }}">
                 <span class="badge_title">{{ award.badge.title }}</span>
                 <span class="relation">awarded to</span>

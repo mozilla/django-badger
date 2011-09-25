@@ -1,5 +1,9 @@
+import logging
+
 from datetime import datetime
 from time import time, gmtime, strftime
+
+from urlparse import urljoin
 
 from django.conf import settings
 
@@ -12,6 +16,7 @@ from django.core.files.base import ContentFile
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import simplejson as json
 from django.contrib.auth.models import User, AnonymousUser
+from django.contrib.sites.models import Site
 
 from django.template.defaultfilters import slugify
 
@@ -184,7 +189,7 @@ class Badge(models.Model):
     description = models.TextField(blank=True)
     image = models.ImageField(blank=True, null=True,
                               storage=badge_uploads_fs, 
-                              upload_to=mk_upload_to('badge_image.png'))
+                              upload_to=mk_upload_to('image.png'))
     prerequisites = models.ManyToManyField('self', symmetrical=False,
                                             blank=True, null=True)
     unique = models.BooleanField(default=False)
@@ -275,16 +280,20 @@ class Badge(models.Model):
             p = Progress(user=user, badge=self)
         return p
 
-    def as_obi_serialization(self, request):
+    def as_obi_serialization(self, request=None):
         """Produce an Open Badge Infrastructure serialization of this badge"""
+        if request:
+            base_url = request.build_absolute_uri('/')
+        else:
+            base_url = 'http://%s' % (Site.objects.get_current().domain,)
+
         # see: https://github.com/brianlovesdata/openbadges/wiki/Assertions
         if not self.creator:
             issuer = SITE_ISSUER
         else:
             issuer = {
                 # TODO: Get from user profile instead?
-                "origin": request.build_absolute_uri(
-                    self.creator.get_absolute_url()),
+                "origin": urljoin(base_url, self.creator.get_absolute_url()),
                 "name": self.creator.username,
                 "contact": self.creator.email
             }
@@ -294,14 +303,13 @@ class Badge(models.Model):
             "version": OBI_VERSION,
             # TODO: truncate more intelligently
             "name": self.title[:128],
-            "image": request.build_absolute_uri(
-                "/img/html5-basic.png"),
             # TODO: truncate more intelligently
             "description": self.description[:128],
-            "criteria": request.build_absolute_uri(
-                self.get_absolute_url()),
+            "criteria": urljoin(base_url, self.get_absolute_url()),
             "issuer": issuer
         }
+        if self.image:
+            data['image'] = urljoin(base_url, self.image.url)
         return data
 
 
@@ -318,6 +326,9 @@ class Award(models.Model):
     objects = AwardManager()
 
     badge = models.ForeignKey(Badge)
+    image = models.ImageField(blank=True, null=True,
+                              storage=badge_uploads_fs, 
+                              upload_to=mk_upload_to('image.png'))
     user = models.ForeignKey(User, related_name="award_user")
     creator = models.ForeignKey(User, related_name="award_creator",
                                 blank=True, null=True)
@@ -336,7 +347,7 @@ class Award(models.Model):
         return ('badger.views.award_detail', (self.badge.slug, self.pk)) 
 
     def get_upload_root(self):
-        return "badge"
+        return "award"
 
     def save(self, *args, **kwargs):
 
@@ -352,6 +363,7 @@ class Award(models.Model):
             badge_will_be_awarded.send(sender=self.__class__, award=self)
 
         super(Award, self).save(*args, **kwargs)
+        self.bake_assertion_into_image(save=False)
 
         if is_new:
             # Only fire was-awarded signal on a new award.
@@ -365,17 +377,74 @@ class Award(models.Model):
             # Reset any progress for this user & badge upon award.
             Progress.objects.filter(user=self.user, badge=self.badge).delete()
 
-    def as_obi_assertion(self, request):
+    def as_obi_assertion(self, request=None, use_baked_image=True):
+        badge_data = self.badge.as_obi_serialization(request)
+
+        if request:
+            base_url = request.build_absolute_uri('/')
+        else:
+            base_url = 'http://%s' % (Site.objects.get_current().domain,)
+
+        # TODO: Award should have separate, assertion-baked image
+        if self.image and use_baked_image:
+            badge_data['image'] = urljoin(base_url, self.image.url)
+
+        # If this award has a creator (ie. not system-issued), tweak the issuer
+        # data to reflect award creator.
+        if self.creator:
+            badge_data['issuer'] = {
+                # TODO: Get from user profile instead?
+                "origin": urljoin(base_url, self.creator.get_absolute_url()),
+                "name": self.creator.username,
+                "contact": self.creator.email
+            }
+
         # see: https://github.com/brianlovesdata/openbadges/wiki/Assertions
         assertion = {
             # TODO: Get email from profile? alternate identifier?
             "recipient": self.user.email,
-            "evidence": self.get_absolute_url(),
+            "evidence": urljoin(base_url, self.get_absolute_url()),
             # "expires": "2013-06-01",
             "issued_on": self.created.isoformat(),
-            "badge": self.badge.as_obi_serialization()
+            "badge": badge_data
         }
         return assertion
+
+    def bake_assertion_into_image(self, request=None, save=True):
+        """Bake the OBI JSON badge award assertion into a copy of the original
+        badge's image, if one exists."""
+
+        if not self.badge.image:
+            # If there's no image to bake, bail.
+            # TODO: Bake a copy of a default badge image
+            return False
+        
+        # Make a duplicate of the badge image
+        self.badge.image.open()
+        img_copy_fh = StringIO(self.badge.image.file.read())
+
+        try:
+            # Try processing the image copy, bail if the image is bad.
+            img = Image.open(img_copy_fh)
+        except IOError, e:
+            return False
+
+        # Here's where the baking gets done. JSON representation of the OBI
+        # assertion gets written into the "openbadges" metadata field
+        # see: http://blog.client9.com/2007/08/python-pil-and-png-metadata-take-2.html
+        # see: https://github.com/brianlovesdata/openbadges/blob/master/lib/baker.js
+        # see: https://github.com/brianlovesdata/openbadges/blob/master/controllers/baker.js
+        from PIL import PngImagePlugin
+        meta = PngImagePlugin.PngInfo()
+        assertion = self.as_obi_assertion(request, use_baked_image=False)
+        meta.add_text('openbadges', json.dumps(assertion))
+
+        # And, finally save out the baked image.
+        new_img = StringIO()
+        img.save(new_img, "PNG", pnginfo=meta)
+        img_data = new_img.getvalue()
+        self.image.save('', ContentFile(img_data), save)
+        return True
 
 
 class ProgressManager(models.Manager):
