@@ -41,7 +41,7 @@ MAX_RECENT_AWARDS = 5
 
 def index(request):
     """Badger index page"""
-    queryset = Badge.objects.all()
+    queryset = Badge.objects.order_by('-modified').all()
     return object_list(request, queryset,
         paginate_by=BADGE_PAGE_SIZE, allow_empty=True,
         template_object_name='badge',
@@ -68,7 +68,7 @@ def detail(request, slug, format="html"):
 
 @require_GET
 def awards_list(request):
-    queryset = Award.objects.all()
+    queryset = Award.objects.order_by('-modified').all()
     return object_list(request, queryset,
         paginate_by=BADGE_PAGE_SIZE, allow_empty=True,
         template_object_name='award',
