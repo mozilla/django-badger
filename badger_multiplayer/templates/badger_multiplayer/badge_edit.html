@@ -6,7 +6,7 @@
 
 <h2>Edit badge: {{ badge.title }}</h2>
 
-<form id="edit_badge" method="POST" action="">
+<form id="edit_badge" method="POST" action="" enctype="multipart/form-data">
     {{ csrf() }}
     <ul>
         {{ form.as_ul() }}

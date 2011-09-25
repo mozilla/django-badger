@@ -43,7 +43,7 @@ class BadgeEditForm(MyModelForm):
 
     class Meta:
         model = Badge
-        fields = ('title', 'description',)
+        fields = ('title', 'image', 'description',)
 
     required_css_class = "required"
     error_css_class = "error"
