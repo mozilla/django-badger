@@ -97,7 +97,6 @@ class BadgerViewsTest(BadgerTestCase):
         eq_('http://testserver%s' % award.badge.get_absolute_url(), 
             data['badge']['criteria'])
 
-
     def test_awards_by_user(self):
         """Can view awards by user"""
         user = self._get_user()

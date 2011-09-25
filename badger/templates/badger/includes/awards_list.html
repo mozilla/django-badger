@@ -8,9 +8,9 @@
             {% set img_url = "/media/img/default-badge.png" %}
         {% endif %}
         <li class="award">
-            <a href="{{ award.get_absolute_url() }}"><img src="{{ img_url }}"
-                alt="{{ award.badge.title }}" width="64" height="64" /></a>
-            <a href="{{ award.get_absolute_url() }}">
+            <a href="{{ award.get_absolute_url() }}" class="image"><img src="{{ img_url }}"
+                alt="{{ award.badge.title }}" width="128" height="128" /></a>
+            <a href="{{ award.get_absolute_url() }}" class="label">
                 <span class="badge_title">{{ award.badge.title }}</span>
                 <span class="relation">awarded to</span>
                 <span class="user">{{ award.user }}</span>

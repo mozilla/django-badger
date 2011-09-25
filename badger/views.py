@@ -35,8 +35,8 @@ from .models import (Badge, Award, Progress,
         BadgeAwardNotAllowedException)
 
 
-BADGE_PAGE_SIZE = 12
-MAX_RECENT_AWARDS = 5
+BADGE_PAGE_SIZE = 15
+MAX_RECENT_AWARDS = 9
 
 
 def index(request):
