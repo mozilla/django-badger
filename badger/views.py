@@ -35,7 +35,7 @@ from .models import (Badge, Award, Progress,
         BadgeAwardNotAllowedException)
 
 
-BADGE_PAGE_SIZE = 15
+BADGE_PAGE_SIZE = 14
 MAX_RECENT_AWARDS = 9
 
 
