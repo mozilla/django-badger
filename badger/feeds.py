@@ -109,7 +109,7 @@ class BaseFeed(Feed):
         return obj.created
 
     def item_author_link(self, obj):
-        if not obj.creator or not hasattr('get_absolute_url', obj.creator):
+        if not obj.creator or not hasattr(obj.creator, 'get_absolute_url'):
             return None
         else:
             return self.request.build_absolute_uri(
