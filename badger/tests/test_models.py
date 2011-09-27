@@ -75,7 +75,7 @@ class BadgerBadgeTest(BadgerTestCase):
 
         # Make a badge with a creator
         user_creator = self._get_user(username="creator")
-        badge = self._get_badge(title="Badge with Creator", 
+        badge = self._get_badge(title="Badge with Creator",
                                 creator=user_creator)
         badge.image.save('', ContentFile(img_data), True)
 
@@ -95,7 +95,7 @@ class BadgerBadgeTest(BadgerTestCase):
 
         # Check the top-level award assertion data
         eq_(award_1.user.email, assertion['recipient'])
-        eq_('%s%s' % (BASE_URL, award_1.get_absolute_url()), 
+        eq_('%s%s' % (BASE_URL, award_1.get_absolute_url()),
             assertion['evidence'])
 
         # Check some of the badge details in the assertion
@@ -103,14 +103,14 @@ class BadgerBadgeTest(BadgerTestCase):
         eq_('0.5.0', a_badge['version'])
         eq_(badge.title, a_badge['name'])
         eq_(badge.description, a_badge['description'])
-        eq_('%s%s' % (BASE_URL, badge.get_absolute_url()), 
+        eq_('%s%s' % (BASE_URL, badge.get_absolute_url()),
             a_badge['criteria'])
 
         # Check the badge issuer details
         b_issuer = a_badge['issuer']
         eq_(badge.creator.username, b_issuer['name'])
         eq_(badge.creator.email, b_issuer['contact'])
-        eq_('%s%s' % (BASE_URL, badge.creator.get_absolute_url()), 
+        eq_('%s%s' % (BASE_URL, badge.creator.get_absolute_url()),
             b_issuer['origin'])
 
         # Award a badge, and check that the awarder appears as issuer
@@ -121,8 +121,7 @@ class BadgerBadgeTest(BadgerTestCase):
         b_issuer = assertion['badge']['issuer']
         eq_(user_1.username, b_issuer['name'])
         eq_(user_1.email, b_issuer['contact'])
-        eq_('%s%s' % (BASE_URL, user_1.get_absolute_url()), 
-            b_issuer['origin'])
+        eq_(BASE_URL, b_issuer['origin'])
 
         # Make a badge with no creator
         badge_no_creator = self._get_badge(title="Badge no Creator",

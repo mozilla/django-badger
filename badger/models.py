@@ -1,7 +1,9 @@
 import logging
 
-from datetime import datetime
+from datetime import datetime, timedelta, tzinfo
 from time import time, gmtime, strftime
+
+from os.path import dirname
 
 from urlparse import urljoin
 
@@ -49,14 +51,35 @@ SITE_ISSUER = getattr(settings, 'BADGER_SITE_ISSUER', {
     "contact": "lorchard@mozilla.com"
 })
 
+DEFAULT_BADGE_IMAGE = getattr(settings, 'BADGER_DEFAULT_BADGE_IMAGE',
+    "%s/fixtures/default-badge.png" % dirname(__file__))
+
 # Set up a file system for badge uploads that can be kept separate from the
 # rest of /media if necessary. Lots of hackery to ensure sensible defaults.
 UPLOADS_ROOT = getattr(settings, 'BADGER_UPLOADS_ROOT',
     '%suploads/' % getattr(settings, 'MEDIA_ROOT', 'media/'))
 UPLOADS_URL = getattr(settings, 'BADGER_UPLOADS_URL',
     '%suploads/' % getattr(settings, 'MEDIA_URL', '/media/'))
-badge_uploads_fs = FileSystemStorage(location=UPLOADS_ROOT,
+BADGE_UPLOADS_FS = FileSystemStorage(location=UPLOADS_ROOT,
                                      base_url=UPLOADS_URL)
+
+TIME_ZONE_OFFSET = getattr(settings, "TIME_ZONE_OFFSET", timedelta(0))
+
+
+class TZOffset(tzinfo):
+    """TZOffset"""
+
+    def __init__(self, offset):
+        self.offset = offset
+
+    def utcoffset(self, dt):
+        return self.offset
+
+    def tzname(self, dt):
+        return settings.TIME_ZONE
+
+    def dst(self, dt):
+        return self.offset
 
 
 def scale_image(img_upload, img_max_size):
@@ -82,8 +105,8 @@ def scale_image(img_upload, img_max_size):
         x_offset = 0
         y_offset = int(float(src_height - crop_height) / 2)
 
-    img = img.crop((x_offset, y_offset, 
-        x_offset+int(crop_width), y_offset+int(crop_height)))
+    img = img.crop((x_offset, y_offset,
+        x_offset + int(crop_width), y_offset + int(crop_height)))
     img = img.resize((dst_width, dst_height), Image.ANTIALIAS)
 
     if img.mode != "RGB":
@@ -110,16 +133,13 @@ def get_permissions_for(self, user):
 def mk_upload_to(field_fn):
     """upload_to builder for file upload fields"""
     def upload_to(instance, filename):
-        if hasattr(instance, 'get_upload_root'):
-            base = instance.get_upload_root()
-        else:
-            base = 'misc'
+        base, slug = instance.get_upload_meta()
         time_now = int(time())
-        return '%(base)s/%(pk)s_%(time_now)s_%(field_fn)s' % dict( 
-            time_now=time_now, pk=instance.pk, base=base, field_fn=field_fn)
+        return '%(base)s/%(slug)s_%(time_now)s_%(field_fn)s' % dict(
+            time_now=time_now, slug=slug, base=base, field_fn=field_fn)
     return upload_to
 
- 
+
 class JSONField(models.TextField):
     """JSONField is a generic textfield that neatly serializes/unserializes
     JSON objects seamlessly
@@ -188,7 +208,7 @@ class Badge(models.Model):
     slug = models.SlugField(blank=False, unique=True)
     description = models.TextField(blank=True)
     image = models.ImageField(blank=True, null=True,
-                              storage=badge_uploads_fs, 
+                              storage=BADGE_UPLOADS_FS,
                               upload_to=mk_upload_to('image.png'))
     prerequisites = models.ManyToManyField('self', symmetrical=False,
                                             blank=True, null=True)
@@ -208,8 +228,8 @@ class Badge(models.Model):
     def get_absolute_url(self):
         return reverse('badger.views.detail', args=(self.slug,))
 
-    def get_upload_root(self):
-        return "badge"
+    def get_upload_meta(self):
+        return ("badge", self.slug)
 
     def clean(self):
         if self.image:
@@ -299,7 +319,8 @@ class Badge(models.Model):
             }
 
         data = {
-            # The version of the spec/hub this manifest is compatible with. Use "0.5.0" for the beta.
+            # The version of the spec/hub this manifest is compatible with. Use
+            # "0.5.0" for the beta.
             "version": OBI_VERSION,
             # TODO: truncate more intelligently
             "name": self.title[:128],
@@ -321,13 +342,13 @@ class AwardManager(models.Manager):
 
 class Award(models.Model):
     """Representation of a badge awarded to a user"""
-    
+
     admin_objects = models.Manager()
     objects = AwardManager()
 
     badge = models.ForeignKey(Badge)
     image = models.ImageField(blank=True, null=True,
-                              storage=badge_uploads_fs, 
+                              storage=BADGE_UPLOADS_FS,
                               upload_to=mk_upload_to('image.png'))
     user = models.ForeignKey(User, related_name="award_user")
     creator = models.ForeignKey(User, related_name="award_creator",
@@ -344,10 +365,10 @@ class Award(models.Model):
 
     @models.permalink
     def get_absolute_url(self):
-        return ('badger.views.award_detail', (self.badge.slug, self.pk)) 
+        return ('badger.views.award_detail', (self.badge.slug, self.pk))
 
-    def get_upload_root(self):
-        return "award"
+    def get_upload_meta(self):
+        return ("award", self.badge.slug)
 
     def save(self, *args, **kwargs):
 
@@ -363,7 +384,9 @@ class Award(models.Model):
             badge_will_be_awarded.send(sender=self.__class__, award=self)
 
         super(Award, self).save(*args, **kwargs)
-        self.bake_assertion_into_image(save=False)
+        # Called after super.save(), so we have some auto-gen fields like pk
+        # and created
+        self.bake_assertion_into_image()
 
         if is_new:
             # Only fire was-awarded signal on a new award.
@@ -377,7 +400,7 @@ class Award(models.Model):
             # Reset any progress for this user & badge upon award.
             Progress.objects.filter(user=self.user, badge=self.badge).delete()
 
-    def as_obi_assertion(self, request=None, use_baked_image=True):
+    def as_obi_assertion(self, request=None):
         badge_data = self.badge.as_obi_serialization(request)
 
         if request:
@@ -385,19 +408,21 @@ class Award(models.Model):
         else:
             base_url = 'http://%s' % (Site.objects.get_current().domain,)
 
-        # TODO: Award should have separate, assertion-baked image
-        if self.image and use_baked_image:
-            badge_data['image'] = urljoin(base_url, self.image.url)
-
         # If this award has a creator (ie. not system-issued), tweak the issuer
         # data to reflect award creator.
+        # TODO: Is this actually a good idea? Or should issuer be site-wide
         if self.creator:
             badge_data['issuer'] = {
                 # TODO: Get from user profile instead?
-                "origin": urljoin(base_url, self.creator.get_absolute_url()),
+                "origin": base_url,
                 "name": self.creator.username,
                 "contact": self.creator.email
             }
+
+        # HACK: Coerce the creation time into a timezone and zero-out the
+        # microsecond to get a nice and clean ISO8601 timestamp.
+        issued_on = self.created.replace(tzinfo=TZOffset(TIME_ZONE_OFFSET),
+                                         microsecond=0).isoformat()
 
         # see: https://github.com/brianlovesdata/openbadges/wiki/Assertions
         assertion = {
@@ -405,23 +430,22 @@ class Award(models.Model):
             "recipient": self.user.email,
             "evidence": urljoin(base_url, self.get_absolute_url()),
             # "expires": "2013-06-01",
-            "issued_on": self.created.isoformat(),
+            "issued_on": issued_on,
             "badge": badge_data
         }
         return assertion
 
-    def bake_assertion_into_image(self, request=None, save=True):
+    def bake_assertion_into_image(self, request=None):
         """Bake the OBI JSON badge award assertion into a copy of the original
         badge's image, if one exists."""
 
-        if not self.badge.image:
-            # If there's no image to bake, bail.
-            # TODO: Bake a copy of a default badge image
-            return False
-        
-        # Make a duplicate of the badge image
-        self.badge.image.open()
-        img_copy_fh = StringIO(self.badge.image.file.read())
+        if self.badge.image:
+            # Make a duplicate of the badge image
+            self.badge.image.open()
+            img_copy_fh = StringIO(self.badge.image.file.read())
+        else:
+            # Make a copy of the default badge image
+            img_copy_fh = StringIO(open(DEFAULT_BADGE_IMAGE, 'rb').read())
 
         try:
             # Try processing the image copy, bail if the image is bad.
@@ -436,14 +460,19 @@ class Award(models.Model):
         # see: https://github.com/brianlovesdata/openbadges/blob/master/controllers/baker.js
         from PIL import PngImagePlugin
         meta = PngImagePlugin.PngInfo()
-        assertion = self.as_obi_assertion(request, use_baked_image=False)
+        assertion = self.as_obi_assertion(request)
         meta.add_text('openbadges', json.dumps(assertion))
 
         # And, finally save out the baked image.
         new_img = StringIO()
         img.save(new_img, "PNG", pnginfo=meta)
         img_data = new_img.getvalue()
-        self.image.save('', ContentFile(img_data), save)
+        self.image.save('', ContentFile(img_data), False)
+
+        # Update the image field with the new image name
+        # NOTE: Can't do a full save(), because this gets called in save()
+        Award.objects.filter(pk=self.pk).update(image=self.image)
+
         return True
 
 

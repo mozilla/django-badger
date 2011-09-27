@@ -4,9 +4,19 @@
 
 ## TODO
 
+* BUG: Caching is too aggressive on demo site
+* Set up BrowserID on demo site
+* Upgrade demo site to post-funfactory playdoh
+* Implement nominations
+* Implement straight multiplayer award creation
+* Add images to Badge and Award feeds
+
 ### Core
 
 * Badge expiration datetime
+* Notifications
+    * Email? Inbox on site? Other channel?
+    * Awards available to claim
 * Templates
     * jinja helpers
     * django templatetags?
