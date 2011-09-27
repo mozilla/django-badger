@@ -18,7 +18,7 @@ show_unicode.short_description = "Display"
 
 def show_image(obj):
     img_url = "%s%s" % (UPLOADS_URL, obj.image)
-    return ('<a href="%s" target="_new"><img src="%s" width="64" height="64" /></a>' % 
+    return ('<a href="%s" target="_new"><img src="%s" width="48" height="48" /></a>' % 
         (img_url, img_url))
 show_image.allow_tags = True
 show_image.short_description = "Image"
