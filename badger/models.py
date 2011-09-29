@@ -259,6 +259,9 @@ class Badge(models.Model):
             return True
         if user == self.creator:
             return True
+        
+        # TODO: List of delegates for whom awarding is allowed
+
         return False
 
     def award_to(self, awardee, awarder=None):

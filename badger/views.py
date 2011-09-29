@@ -31,9 +31,17 @@ from django.views.decorators.http import (require_GET, require_POST,
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 
-from .models import (Badge, Award, Progress,
+from .models import (Award, Progress,
         BadgeAwardNotAllowedException)
 
+# TODO: Is there an extensible way to do this, where "add-ons" introduce proxy
+# model objects?
+try:
+    from badger_multiplayer.models import Badge
+except ImportError:
+    from badger.models import Badge
+
+from .forms import (BadgeAwardForm)
 
 BADGE_PAGE_SIZE = 14
 MAX_RECENT_AWARDS = 9
@@ -64,6 +72,29 @@ def detail(request, slug, format="html"):
         return render_to_response('badger/badge_detail.html', dict(
             badge=badge, awards=awards,
         ), context_instance=RequestContext(request))
+
+
+@require_http_methods(['GET', 'POST'])
+@login_required
+def award_badge(request, slug):
+    """Issue an award for a badge"""
+    badge = get_object_or_404(Badge, slug=slug)
+    if not badge.allows_award_to(request.user):
+        return HttpResponseForbidden()
+
+    if request.method != "POST":
+        form = BadgeAwardForm()
+    else:
+        form = BadgeAwardForm(request.POST, request.FILES)
+        if form.is_valid():
+            award = badge.award_to(form.cleaned_data['user'], request.user)
+            return HttpResponseRedirect(reverse(
+                    'badger.views.award_detail', 
+                    args=(badge.slug, award.id, )))
+
+    return render_to_response('badger/badge_award.html', dict(
+        form=form, badge=badge,
+    ), context_instance=RequestContext(request))
 
 
 @require_GET

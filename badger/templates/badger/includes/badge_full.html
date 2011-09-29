@@ -1,4 +1,6 @@
 <dl class="badge" data-slug="{{ badge.slug }}">
+    <dt>Title:</dt>
+        <dd class="title">{{ badge.title }}</dd>
     {% if award and award.image %}
         <dt>Image:</dt>
             <dd class="image"><img src="{{ award.image.url }}" width="256" height="256" /></dd>
@@ -6,10 +8,22 @@
         <dt>Image:</dt>
             <dd class="image"><img src="{{ badge.image.url }}" width="256" height="256" /></dd>
     {% endif %}
-    <dt>Title:</dt>
-        <dd class="title">{{ badge.title }}</dd>
     {% if badge.description %}
         <dt>Description:<dt>
             <dd class="description">{{ badge.description }}</dd>
     {% endif %}
+    <dt>Actions:</dt>
+    <dd><ul>
+
+        {% if badge.allows_award_to(request.user) %}
+            <li><a class="award_badge" href="{{ url('badger.views.award_badge', badge.slug) }}">{{ _('Issue award') }}</a></li>
+        {% endif %}
+        
+        {# TODO: Can this be done extensibly? with a registry? #}
+        {% set modules = [ "badger_multiplayer" ] %}
+        {% for module in modules %}
+            {% include module ~ "/includes/badge_full_actions.html" %}
+        {% endfor %}
+
+    </ul></dd>
 </dl>

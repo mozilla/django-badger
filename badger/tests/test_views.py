@@ -142,6 +142,43 @@ class BadgerViewsTest(BadgerTestCase):
             eq_(1, doc.find('.award .username:contains("%s")' % u.username)
                       .length)
 
+    @attr('issue_award')
+    def test_issue_award(self):
+        """Badge creator can issue award to another user"""
+        
+        user1 = self._get_user(username="creator")
+        user2 = self._get_user(username="awardee")
+
+        b1 = Badge.objects.create(creator=user1, title="Badge to awarded")
+
+        url = reverse('badger.views.award_badge', args=(b1.slug,))
+
+        # Non-creator should be denied attempt to award badge
+        self.client.login(username="awardee", password="trustno1")
+        r = self.client.get(url, follow=True)
+        eq_(403, r.status_code)
+
+        # But, the creator should be allowed
+        self.client.login(username="creator", password="trustno1")
+        r = self.client.get(url, follow=True)
+        eq_(200, r.status_code)
+
+        doc = pq(r.content)
+        form = doc('form#award_badge')
+        eq_(1, form.length)
+        eq_(1, form.find('*[name=user]').length)
+        eq_(1, form.find('input.submit,button.submit').length)
+
+        r = self.client.post(url, dict(
+            user=user2.id,
+        ), follow=True)
+        doc = pq(r.content)
+
+        logging.debug(r.content)
+
+        ok_(b1.is_awarded_to(user2))
+
+
     def _get_user(self, username="tester", email="tester@example.com",
             password="trustno1"):
         (user, created) = User.objects.get_or_create(username=username,
