@@ -4,18 +4,28 @@
 
 ## TODO
 
+### Inbox
+
+* Better display of awards on user profile
+* Better display of recent awards on a badge detail
 * BUG: Caching is too aggressive on demo site
 * Set up BrowserID on demo site
 * Upgrade demo site to post-funfactory playdoh
 * Implement nominations
 * Implement straight multiplayer award creation
 * Add images to Badge and Award feeds
+* Badge deletion
+    * Disallow if awards have been issued; require all awards be revoked first
+* Captchas?
+    * On nomination submit, award issue forms
 
 ### Core
 
 * Badge expiration datetime
 * Notifications
     * Email? Inbox on site? Other channel?
+    * Accept nominations from anyone
+    * Auto-approve all nominations
     * Awards available to claim
 * Templates
     * jinja helpers
@@ -24,6 +34,10 @@
     * Re-work feeds to be AS compliant
 * Come up with some templates that aren't totally ugly
 * Option in update_badges management command to overwrite existing.
+* Badge delegates
+    * List of users managed by badge creator who can
+        * Issue awards
+        * Approve nominations
 
 ### Multiplayer
 
