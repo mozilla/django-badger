@@ -12,31 +12,8 @@ except ImportError, e:
     from django.utils.translation import ugettext_lazy as _
 
 from badger.models import (Award)
+from badger.forms import (MyModelForm, MyForm)
 from badger_multiplayer.models import (Badge, Nomination)
-
-
-class MyModelForm(forms.ModelForm):
-    def as_ul(self):
-        "Returns this form rendered as HTML <li>s -- excluding the <ul></ul>."
-        return self._html_output(
-            normal_row=(u'<li%(html_class_attr)s>%(label)s %(field)s' +
-                '%(help_text)s%(errors)s</li>'),
-            error_row=u'<li>%s</li>',
-            row_ender='</li>',
-            help_text_html=u' <p class="help">%s</p>',
-            errors_on_separate_row=False)
-
-
-class MyForm(forms.Form):
-    def as_ul(self):
-        "Returns this form rendered as HTML <li>s -- excluding the <ul></ul>."
-        return self._html_output(
-            normal_row=(u'<li%(html_class_attr)s>%(label)s %(field)s' +
-                '%(help_text)s%(errors)s</li>'),
-            error_row=u'<li>%s</li>',
-            row_ender='</li>',
-            help_text_html=u' <p class="help">%s</p>',
-            errors_on_separate_row=False)
 
 
 class BadgeEditForm(MyModelForm):
@@ -63,3 +40,10 @@ class BadgeNewForm(BadgeEditForm):
         super(BadgeNewForm, self).__init__(*args, **kwargs)
         #if not settings.RECAPTCHA_PRIVATE_KEY:
         #    del self.fields['captcha']
+
+class BadgeSubmitNominationForm(MyModelForm):
+
+    class Meta:
+        model = Nomination
+        fields = ('nominee', )
+

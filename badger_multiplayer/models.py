@@ -18,13 +18,32 @@ from badger.models import (Award, BadgerException,
 
 from .signals import (nomination_will_be_approved, nomination_was_approved,
                       nomination_will_be_accepted, nomination_was_accepted,
-                      user_will_be_nominated, user_was_nominated,)
+                      user_will_be_nominated, user_was_nominated, )
 
 
 class Badge(badger.models.Badge):
     """Enhanced Badge model with multiplayer features"""
+    
     class Meta:
         proxy = True
+
+    get_permissions_for = get_permissions_for
+
+    def allows_nominate_for(self, user):
+        """Is nominate_for() allowed for this user?"""
+        if None == user:
+            return True
+        if user.is_anonymous():
+            return False
+        if user.is_staff or user.is_superuser:
+            return True
+        if user == self.creator:
+            return True
+
+        # TODO: Flag to enable / disable nominations from anyone
+        # TODO: List of delegates from whom nominations are accepted
+
+        return True
 
     def nominate_for(self, nominee, nominator=None):
         """Nominate a nominee for this badge on the nominator's behalf"""
@@ -33,6 +52,20 @@ class Badge(badger.models.Badge):
 
     def is_nominated_for(self, user):
         return Nomination.objects.filter(nominee=user, badge=self).count() > 0
+
+
+class Award(badger.models.Award):
+    """Enhanced Award model with multiplayer features"""
+
+    class Meta:
+        proxy = True
+
+    @property
+    def badge(self):
+        """Property that wraps the related badge in a multiplayer upgrade"""
+        new_inst = Badge()
+        new_inst.__dict__ = super(Award, self).badge.__dict__
+        return new_inst
 
 
 class NominationException(BadgerException):
@@ -88,7 +121,14 @@ class Nomination(models.Model):
                                         nomination=self)
 
         if self.is_approved() and self.is_accepted():
-            self.award = self.badge.award_to(self.nominee, self.approver)
+            # HACK: Convert the original-flavor Award into a multiplayer Award
+            # before assigning to self.
+            real_award = self.badge.award_to(self.nominee, self.approver)
+            award = Award()
+            award.__dict__ = real_award.__dict__
+            self.award = award
+            # This was the original code, which caused errors:
+            # self.award = self.badge.award_to(self.nominee, self.approver)
 
         super(Nomination, self).save(*args, **kwargs)
 
@@ -96,11 +136,26 @@ class Nomination(models.Model):
             user_was_nominated.send(sender=self.__class__,
                                     nomination=self)
 
+    def allows_detail_by(self, user):
+        if (user.is_staff or 
+               user.is_superuser or
+               user == self.badge.creator or
+               user == self.nominee or
+               user == self.creator ):
+            return True
+
+        # TODO: List of delegates empowered by badge creator to approve nominations
+
+        return False
+
     def allows_approve_by(self, user):
         if user.is_staff or user.is_superuser:
             return True
         if user == self.badge.creator:
             return True
+
+        # TODO: List of delegates empowered by badge creator to approve nominations
+
         return False
 
     def approve_by(self, approver):

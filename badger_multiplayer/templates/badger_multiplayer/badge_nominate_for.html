@@ -1,0 +1,22 @@
+{% extends "badger/base.html" %}
+
+{% block pageid %}badge_nominate{% endblock %}
+
+{% block content %}
+
+<h2>Submit a badge nomination</h2>
+
+<form id="nominate_badge" method="POST" action="" enctype="multipart/form-data">
+    {{ csrf() }}
+    <ul>
+        {{ form.as_ul() }}
+        <li><input type="submit" class="submit" value="Nominate"></li>
+    </ul>
+</form>
+
+<section class="badge">
+    <h3>Badge</h3>
+    {% include "badger/includes/badge_full.html" %}
+</section>
+
+{% endblock %}

@@ -36,7 +36,8 @@ from badger_multiplayer.models import (Badge, Nomination,
         NominationApproveNotAllowedException,
         NominationAcceptNotAllowedException)
 
-from badger_multiplayer.forms import (BadgeNewForm, BadgeEditForm)
+from badger_multiplayer.forms import (BadgeNewForm, BadgeEditForm,
+                                      BadgeSubmitNominationForm)
 
 
 @require_http_methods(['GET', 'POST'])
@@ -82,4 +83,52 @@ def edit(request, slug):
 
     return render_to_response('badger_multiplayer/badge_edit.html', dict(
         badge=badge, form=form,
+    ), context_instance=RequestContext(request))
+
+
+@require_http_methods(['GET', 'POST'])
+@login_required
+def nomination_detail(request, slug, id, format="html"):
+    """Show details on a nomination, provide for approval and acceptance"""
+    badge = get_object_or_404(Badge, slug=slug)
+    nomination = get_object_or_404(Nomination, badge=badge, pk=id)
+    if not nomination.allows_detail_by(request.user):
+        return HttpResponseForbidden()
+
+    if request.method == "POST":
+        action = request.POST.get('action', '')
+        if action == 'approve_by':
+            nomination.approve_by(request.user)
+        elif action == 'accept':
+            nomination.accept(request.user)
+        return HttpResponseRedirect(reverse(
+                'badger_multiplayer.views.nomination_detail', 
+                args=(slug, id)))
+
+    return render_to_response('badger_multiplayer/nomination_detail.html', dict(
+        badge=badge, nomination=nomination,
+    ), context_instance=RequestContext(request))
+
+
+@require_http_methods(['GET', 'POST'])
+@login_required
+def nominate_for(request, slug):
+    """Submit nomination for a badge"""
+    badge = get_object_or_404(Badge, slug=slug)
+    if not badge.allows_nominate_for(request.user):
+        return HttpResponseForbidden()
+
+    if request.method != "POST":
+        form = BadgeSubmitNominationForm()
+    else:
+        form = BadgeSubmitNominationForm(request.POST, request.FILES)
+        if form.is_valid():
+            award = badge.nominate_for(form.cleaned_data['nominee'], 
+                                       request.user)
+            return HttpResponseRedirect(reverse(
+                    'badger_multiplayer.views.nomination_detail', 
+                    args=(badge.slug, award.id, )))
+
+    return render_to_response('badger_multiplayer/badge_nominate_for.html', dict(
+        form=form, badge=badge,
     ), context_instance=RequestContext(request))

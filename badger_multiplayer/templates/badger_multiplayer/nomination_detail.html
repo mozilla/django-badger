@@ -1,0 +1,58 @@
+{% extends "badger/base.html" %}
+
+{% block pageid %}nomination_detail{% endblock %}
+
+{% block content %}
+
+<section class="nomination">
+    <h2>Nomination</h2>
+    <dl>
+        {% set show_approve = not nomination.is_approved() and nomination.allows_approve_by(request.user) %}
+        {% set show_accept = not nomination.is_accepted() and nomination.allows_accept(request.user) %}
+        {% if show_approve or show_accept %}
+            <dt>Actions:</dt><dd><ul>
+                {% if show_approve %}
+                    <li><form method="POST">
+                        {{ csrf() }}
+                        <input type="hidden" name="action" value="approve_by" />
+                        <button>{{ _('Approve nomination') }}</button>
+                    </form></li>
+                {% endif %}
+                {% if show_accept %}
+                    <li><form method="POST">
+                        {{ csrf() }}
+                        <input type="hidden" name="action" value="accept" />
+                        <button>{{ _('Accept nomination') }}</button>
+                    </form></li>
+                {% endif %}
+            </ul></dd>
+        {% endif %}
+        {% if nomination.award %}
+            <dt>Award:</dt>
+                <dd><a href="{{ nomination.award.get_absolute_url() }}">{{ nomination.award }}</a></dd>
+        {% endif %}
+        <dt>Accepted?:</dt>
+            <dd>{{ nomination.accepted and "Yes" or "No" }}</dd>
+        <dt>Approved?:</dt>
+            <dd>{{ nomination.approver and "Yes" or "No" }}</dd>
+        <dt>Nominee:</dt>
+            <dd><a href="{{ nomination.nominee.get_absolute_url() }}">{{ nomination.nominee }}</a></dd>
+        <dt>Nominator:</dt>
+            <dd><a href="{{ nomination.creator.get_absolute_url() }}">{{ nomination.creator }}</a></dd>
+        {% if nomination.approver %}
+            <dt>Approver:</dt>
+                <dd><a href="{{ nomination.approver.get_absolute_url() }}">{{ nomination.approver }}</a></dd>
+        {% endif %}
+        <dt>Created:</dt>
+            <dd>{{ nomination.created }}</dd>
+        <dt>Modified:</dt>
+            <dd>{{ nomination.modified }}</dd>
+    </dl>
+</section>
+
+<section class="badge">
+    <h3>Badge</h3>
+    {% include "badger/includes/badge_full.html" %}
+</section>
+
+{% endblock %}
