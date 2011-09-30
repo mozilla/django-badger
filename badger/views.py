@@ -31,15 +31,15 @@ from django.views.decorators.http import (require_GET, require_POST,
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 
-from .models import (Award, Progress,
+from .models import (Progress,
         BadgeAwardNotAllowedException)
 
 # TODO: Is there an extensible way to do this, where "add-ons" introduce proxy
 # model objects?
 try:
-    from badger_multiplayer.models import Badge
+    from badger_multiplayer.models import Badge, Award
 except ImportError:
-    from badger.models import Badge
+    from badger.models import Badge, Award
 
 from .forms import (BadgeAwardForm)
 
@@ -129,7 +129,7 @@ def awards_by_user(request, username):
     user = get_object_or_404(User, username=username)
     awards = Award.objects.filter(user=user)
     return render_to_response('badger/awards_by_user.html', dict(
-        user=user, awards=awards,
+        user=user, award_list=awards,
     ), context_instance=RequestContext(request))
 
 
