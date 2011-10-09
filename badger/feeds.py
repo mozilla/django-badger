@@ -25,9 +25,15 @@ except ImportError, e:
     from django.core.urlresolvers import reverse
 
 from . import validate_jsonp
-from .models import (Badge, Award, Progress,
-        BadgeAwardNotAllowedException)
+from .models import (Progress, BadgeAwardNotAllowedException,
+                     DEFAULT_BADGE_IMAGE)
 
+# TODO: Is there an extensible way to do this, where "add-ons" introduce proxy
+# model objects?
+try:
+    from badger_multiplayer.models import Badge, Award
+except ImportError:
+    from badger.models import Badge, Award
 
 MAX_FEED_ITEMS = getattr(settings, 'BADGER_MAX_FEED_ITEMS', 15)
 
@@ -122,7 +128,19 @@ class BaseFeed(Feed):
             return '%s' % obj.creator
 
     def item_description(self, obj):
-        return None
+        if obj.image:
+            image_url = obj.image.url
+        else:
+            image_url = '%simg/default-badge.png' % settings.MEDIA_URL
+        return """
+            <div>
+                <a href="%(href)s"><img alt="%(alt)s" src="%(image_url)s" /></a>
+            </div>
+        """ % dict(
+            alt=unicode(obj),
+            href=self.request.build_absolute_uri(obj.get_absolute_url()),
+            image_url=self.request.build_absolute_uri(image_url)
+        )
 
 
 class AwardActivityStreamJSONFeedGenerator(BaseJSONFeedGenerator):
