@@ -14,10 +14,8 @@
 
 <h2>Award detail</h2>
 
-<section class="awarded_to">
-    <h3>Awarded to</h3>
-    <a href="{{url('badger.views.awards_by_user', user.username)}}" 
-       class="username">{{ user.username }}</a>
+<section class="award">
+    {% include "badger/includes/award_full.html" %}
 </section>
 
 <section class="badge">

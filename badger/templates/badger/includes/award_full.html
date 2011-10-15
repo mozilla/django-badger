@@ -1,0 +1,10 @@
+<dl class="award">
+    <dt>Awarded to:</dt>
+        <dd><a href="{{url('badger.views.awards_by_user', user.username)}}" 
+            class="username">{{ user.username }}</a></dd>
+    <dt>Awarded by:</dt>
+        <dd><a href="{{url('badger.views.awards_by_user', user.username)}}" 
+            class="username">{{ award.creator }}</a></dd>
+    <dt>Issued on:</dt>
+        <dd>{{ award.created }}</dd>
+</dl>
