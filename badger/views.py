@@ -43,17 +43,24 @@ except ImportError:
 
 from .forms import (BadgeAwardForm)
 
-BADGE_PAGE_SIZE = 14
-MAX_RECENT_AWARDS = 9
+BADGE_PAGE_SIZE = 21
+MAX_RECENT = 9
 
 
-def index(request):
+def home(request):
+    return render_to_response('badger/home.html', dict(
+        badge_list=Badge.objects.order_by('-modified').all()[:MAX_RECENT],
+        award_list=Award.objects.order_by('-modified').all()[:MAX_RECENT],
+    ), context_instance=RequestContext(request))
+
+
+def badges_list(request):
     """Badger index page"""
     queryset = Badge.objects.order_by('-modified').all()
     return object_list(request, queryset,
         paginate_by=BADGE_PAGE_SIZE, allow_empty=True,
         template_object_name='badge',
-        template_name='badger/index.html')
+        template_name='badger/badges_list.html')
 
 
 @require_GET
@@ -61,7 +68,7 @@ def detail(request, slug, format="html"):
     """Badge detail view"""
     badge = get_object_or_404(Badge, slug=slug)
     awards = (Award.objects.filter(badge=badge)
-                           .order_by('-created'))[:MAX_RECENT_AWARDS]
+                           .order_by('-created'))[:MAX_RECENT]
 
     if format == 'json':
         data = badge.as_obi_serialization(request)
