@@ -12,6 +12,8 @@
         <dt>Description:</dt>
             <dd class="description">{{ badge.description }}</dd>
     {% endif %}
+    <dt>Creator:</dt>
+        <dd><a href="{{ badge.creator.get_absolute_url() }}">{{ badge.creator }}</a></dd>
     <dt>Created:</dt>
         <dd>{{ badge.created }}</dd>
     <dt>Modified:</dt>

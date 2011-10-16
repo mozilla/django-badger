@@ -16,15 +16,15 @@
 <h2>Badge detail</h2>
 {% include "badger/includes/badge_full.html" %}
 
-{% if awards %}
+{% if award_list %}
     <h2>Recent awards</h2>
-    <ul class="awards">
-        {% for award in awards %}
+    {% include "badger/includes/awards_list.html" %}
+    <nav><ul>
         <li>
-            {% include "badger/includes/award_as_user.html" %}
+            <a href="{{ url('badger.views.awards_list', badge.slug) }}">More...</a>
+            <a href="{{ url('badger.feeds.awards_by_badge', 'atom', badge.slug) }}"><img src="{{MEDIA_URL}}/img/feed-icon-14x14.png" /></a>
         </li>
-        {% endfor %}
-    </ul>
+    </ul></nav>
 {% endif %}
 
 {% endblock %}

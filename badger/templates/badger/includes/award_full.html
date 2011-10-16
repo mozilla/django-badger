@@ -1,9 +1,9 @@
 <dl class="award">
     <dt>Awarded to:</dt>
-        <dd><a href="{{url('badger.views.awards_by_user', user.username)}}" 
-            class="username">{{ user.username }}</a></dd>
+    <dd><a href="{{ award.user.get_absolute_url() }}"
+           class="username">{{ award.user }}</a></dd>
     <dt>Awarded by:</dt>
-        <dd><a href="{{url('badger.views.awards_by_user', user.username)}}" 
+        <dd><a href="{{ award.creator.get_absolute_url() }}" 
             class="username">{{ award.creator }}</a></dd>
     <dt>Issued on:</dt>
         <dd>{{ award.created }}</dd>

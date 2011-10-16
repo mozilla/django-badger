@@ -48,6 +48,7 @@ MAX_RECENT = 9
 
 
 def home(request):
+    """Badger home page"""
     return render_to_response('badger/home.html', dict(
         badge_list=Badge.objects.order_by('-modified').all()[:MAX_RECENT],
         award_list=Award.objects.order_by('-modified').all()[:MAX_RECENT],
@@ -55,7 +56,7 @@ def home(request):
 
 
 def badges_list(request):
-    """Badger index page"""
+    """Badges list page"""
     queryset = Badge.objects.order_by('-modified').all()
     return object_list(request, queryset,
         paginate_by=BADGE_PAGE_SIZE, allow_empty=True,
@@ -77,7 +78,7 @@ def detail(request, slug, format="html"):
         return resp
     else:
         return render_to_response('badger/badge_detail.html', dict(
-            badge=badge, awards=awards,
+            badge=badge, award_list=awards,
         ), context_instance=RequestContext(request))
 
 
@@ -105,10 +106,20 @@ def award_badge(request, slug):
 
 
 @require_GET
-def awards_list(request):
-    queryset = Award.objects.order_by('-modified').all()
+def awards_list(request, slug=None):
+    queryset = Award.objects
+    if not slug:
+        badge = None
+    else:
+        badge = get_object_or_404(Badge, slug=slug)
+        queryset = queryset.filter(badge=badge)
+    queryset = queryset.order_by('-modified').all()
+
     return object_list(request, queryset,
         paginate_by=BADGE_PAGE_SIZE, allow_empty=True,
+        extra_context=dict(
+            badge=badge
+        ),
         template_object_name='award',
         template_name='badger/awards_list.html')
 
