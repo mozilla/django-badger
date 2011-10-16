@@ -6,18 +6,10 @@
 
 ### Inbox
 
-* Better display of awards on user profile
-* Better display of recent awards on a badge detail
-* BUG: Caching is too aggressive on demo site
-* Set up BrowserID on demo site
-* Upgrade demo site to post-funfactory playdoh
-* Implement nominations
-* Implement straight multiplayer award creation
-* Add images to Badge and Award feeds
-* Badge deletion
-    * Disallow if awards have been issued; require all awards be revoked first
-* Captchas?
-    * On nomination submit, award issue forms
+* Show profile avatars as part of awards
+    * At least on home page
+* List approval-pending nominations for user (home page?)
+* List acceptance-pending nominations for user (home page?)
 
 ### Core
 
@@ -27,21 +19,23 @@
     * Accept nominations from anyone
     * Auto-approve all nominations
     * Awards available to claim
+    * not central to django-badger
+    * badge awards can be caught with signal subscriptions
+    * but, should it still be up to a project to handle that?
 * Templates
     * jinja helpers
     * django templatetags?
 * Activity streams - JSON and Atom
     * Re-work feeds to be AS compliant
-* Come up with some templates that aren't totally ugly
 * Option in update_badges management command to overwrite existing.
-* Badge delegates
-    * List of users managed by badge creator who can
-        * Issue awards
-        * Approve nominations
 
 ### Multiplayer
 
 * Nomination - create, delete, update, approve, reject
+* Badge delegates
+    * List of users managed by badge creator who can
+        * Issue awards
+        * Approve nominations
 * Conditional nominations
     * Models
         * Condition definition
@@ -67,10 +61,10 @@
 
 ### Misc
 
-* Notifications? 
-    * not central to django-badger
-    * badge awards can be caught with signal subscriptions
-    * but, should it still be up to a project to handle that?
+* Badge deletion
+    * Disallow if awards have been issued; require all awards be revoked first
+* Captchas?
+    * On nomination submit, award issue forms
 * Localization of badges in DB?
     * django-modeltranslation - http://code.google.com/p/django-modeltranslation/
         * Adds per-locale columns to existing model
