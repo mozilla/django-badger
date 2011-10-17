@@ -177,7 +177,7 @@ class JSONField(models.TextField):
 # Tell South that this field isn't all that special
 try:
     from south.modelsinspector import add_introspection_rules
-    add_introspection_rules([], ["^badger.model.JSONField"])
+    add_introspection_rules([], ["^badger.models.JSONField"])
 except ImportError, e:
     pass
 
