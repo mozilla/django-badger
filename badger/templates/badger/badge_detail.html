@@ -13,18 +13,31 @@
 
 {% block content %}
 
-<h2>Badge detail</h2>
-{% include "badger/includes/badge_full.html" %}
+<section id="detail">
+    <h2>Badge detail</h2>
+    {% include "badger/includes/badge_full.html" %}
+</section>
 
 {% if award_list %}
+<section id="recent_awardees">
     <h2>Recent awards</h2>
-    {% include "badger/includes/awards_list.html" %}
     <nav><ul>
         <li>
             <a href="{{ url('badger.views.awards_list', badge.slug) }}">More...</a>
             <a href="{{ url('badger.feeds.awards_by_badge', 'atom', badge.slug) }}"><img src="{{MEDIA_URL}}/img/feed-icon-14x14.png" /></a>
         </li>
     </ul></nav>
+    <ul class="awardees clearfix">
+        {% for award in award_list %}
+            <li class="awardee">
+                <a href="{{ award.get_absolute_url() }}" class="avatar_image"><img src="{{ user_avatar(award.user) }}"
+                    alt="{{ award.badge.title }}" width="128" height="128" /></a>            
+                <a href="{{ award.get_absolute_url() }}" class="label">
+                    <span class="user">{{ award.user }}</span></a>
+            </li>
+        {% endfor %}
+    </ul>
+</section>
 {% endif %}
 
 {% endblock %}

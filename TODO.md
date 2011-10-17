@@ -6,13 +6,14 @@
 
 ### Inbox
 
-* Show profile avatars as part of awards
-    * At least on home page
+* Tags on badges?
+* Search-driven badge awarding (rather than drop down)
 * List approval-pending nominations for user (home page?)
 * List acceptance-pending nominations for user (home page?)
 
 ### Core
 
+* Comments on badges, awards
 * Badge expiration datetime
 * Notifications
     * Email? Inbox on site? Other channel?

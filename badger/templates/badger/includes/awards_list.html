@@ -1,5 +1,6 @@
 <ul class="awards">
     {% for award in award_list %}
+
         {% if award.image %}
             {% set img_url = award.image.url %}
         {% elif award.badge.image %}
@@ -7,15 +8,23 @@
         {% else %}
             {% set img_url = "/media/img/default-badge.png" %}
         {% endif %}
+    
         <li class="award">
-            <a href="{{ award.get_absolute_url() }}" class="image"><img src="{{ img_url }}"
+
+            <a href="{{ award.get_absolute_url() }}" class="award_image"><img src="{{ img_url }}"
                 alt="{{ award.badge.title }}" width="128" height="128" /></a>
+        
             <a href="{{ award.get_absolute_url() }}" class="label">
                 <span class="badge_title">{{ award.badge.title }}</span>
                 <span class="relation">awarded to</span>
                 <span class="user">{{ award.user }}</span>
             </a>
+            
+            <a href="{{ award.get_absolute_url() }}" class="avatar_image"><img src="{{ user_avatar(award.user) }}"
+                alt="{{ award.badge.title }}" width="128" height="128" /></a>            
+
         </li>
+
     {% endfor %}
 </ul>
 {% include "badger/includes/pagination.html" %}

@@ -1,4 +1,5 @@
 import logging
+import re
 
 from datetime import datetime, timedelta, tzinfo
 from time import time, gmtime, strftime
@@ -11,7 +12,7 @@ from urlparse import urljoin
 from django.conf import settings
 
 from django.db import models
-from django.db.models import signals
+from django.db.models import signals, Q
 from django.db.models.fields.files import FieldFile, ImageFieldFile
 from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
@@ -181,6 +182,64 @@ except ImportError, e:
     pass
 
 
+class SearchManagerMixin(object):
+    """Quick & dirty manager mixin for search"""
+
+    # See: http://www.julienphalip.com/blog/2008/08/16/adding-search-django-site-snap/
+    def _normalize_query(self, query_string,
+                        findterms=re.compile(r'"([^"]+)"|(\S+)').findall,
+                        normspace=re.compile(r'\s{2,}').sub):
+        ''' Splits the query string in invidual keywords, getting rid of unecessary spaces
+            and grouping quoted words together.
+            Example:
+            
+            >>> normalize_query('  some random  words "with   quotes  " and   spaces')
+            ['some', 'random', 'words', 'with quotes', 'and', 'spaces']
+        
+        '''
+        return [normspace(' ', (t[0] or t[1]).strip()) for t in findterms(query_string)] 
+
+    # See: http://www.julienphalip.com/blog/2008/08/16/adding-search-django-site-snap/
+    def _get_query(self, query_string, search_fields):
+        ''' Returns a query, that is a combination of Q objects. That combination
+            aims to search keywords within a model by testing the given search fields.
+        
+        '''
+        query = None # Query to search for every search term        
+        terms = self._normalize_query(query_string)
+        for term in terms:
+            or_query = None # Query to search for a given term in each field
+            for field_name in search_fields:
+                q = Q(**{"%s__icontains" % field_name: term})
+                if or_query is None:
+                    or_query = q
+                else:
+                    or_query = or_query | q
+            if query is None:
+                query = or_query
+            else:
+                query = query & or_query
+        return query
+
+    def search(self, query_string, sort='title'):
+        """Quick and dirty keyword search on submissions"""
+        # TODO: Someday, replace this with something like Sphinx or another real search engine
+        strip_qs = query_string.strip()
+        if not strip_qs:
+            return self.all_sorted(sort).order_by('-modified')
+        else:
+            query = self._get_query(strip_qs, self.search_fields)
+            return self.all_sorted(sort).filter(query).order_by('-modified')
+
+    def all_sorted(self, sort=None):
+        """Apply to .all() one of the sort orders supported for views"""
+        queryset = self.all()
+        if sort == 'title':
+            return queryset.order_by('title')
+        else:
+            return queryset.order_by('-created')
+
+
 class BadgerException(Exception):
     """General Badger model exception"""
 
@@ -197,8 +256,9 @@ class BadgeAlreadyAwardedException(BadgeException):
     """Attempt to award a unique badge twice."""
 
 
-class BadgeManager(models.Manager):
+class BadgeManager(models.Manager, SearchManagerMixin):
     """Manager for Badge model objects"""
+    search_fields = ('title', 'slug', 'description', )
 
 
 class Badge(models.Model):

@@ -44,7 +44,7 @@ except ImportError:
 from .forms import (BadgeAwardForm)
 
 BADGE_PAGE_SIZE = 21
-MAX_RECENT = 9
+MAX_RECENT = 10
 
 
 def home(request):
@@ -57,9 +57,17 @@ def home(request):
 
 def badges_list(request):
     """Badges list page"""
-    queryset = Badge.objects.order_by('-modified').all()
+    query_string = request.GET.get('q', None)
+    if query_string is not None:
+        sort_order = request.GET.get('sort', 'created')
+        queryset = Badge.objects.search(query_string, sort_order)
+    else: 
+        queryset = Badge.objects.order_by('-modified').all()
     return object_list(request, queryset,
         paginate_by=BADGE_PAGE_SIZE, allow_empty=True,
+        extra_context=dict(
+            query_string=query_string
+        ),
         template_object_name='badge',
         template_name='badger/badges_list.html')
 
