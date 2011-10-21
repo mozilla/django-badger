@@ -1,7 +1,3 @@
-## Open questions
-
-* Are register_signals and update_badges the right idea in badges.py?
-
 ## TODO
 
 ### Inbox
@@ -126,3 +122,8 @@
     * transdb - http://code.google.com/p/transdb/
         * Needs modification / subclass of model
         * Adds a blob column with JSON structure containing translations
+
+## Open questions
+
+* Are register_signals and update_badges the right idea in badges.py?
+
