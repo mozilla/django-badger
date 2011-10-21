@@ -8,7 +8,7 @@ from .feeds import BadgesRecentFeed, BadgesByUserFeed
 
 
 urlpatterns = patterns('badger_multiplayer.views',
-    url(r'^/create$', 'create', 
+    url(r'^create$', 'create', 
         name='badger_multiplayer.create_badge'),
     url(r'^badge/(?P<slug>[^/]+)/nominate$', 'nominate_for', 
         name='badger_multiplayer.nominate_for'),
