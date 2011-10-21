@@ -1,0 +1,16 @@
+<ul class="badges clearfix">
+    {% for award in award_list %}
+        {% if award.image %}
+            {% set img_url = award.image.url %}
+        {% else %}
+            {% set img_url = "/media/img/default-badge.png" %}
+        {% endif %}
+        <li class="badge">
+            <a href="{{ award.get_absolute_url() }}" class="image"><img src="{{ img_url }}"
+                alt="{{ award.badge.title }}" width="128" height="128" /></a>            
+            <a href="{{ award.get_absolute_url() }}" class="label">
+                <span class="title">{{ award.badge.title }}</span></a>
+        </li>
+    {% endfor %}
+</ul>
+{% include "badger/includes/pagination.html" %}

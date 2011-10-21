@@ -53,4 +53,11 @@ def user_avatar(user, secure=False, size=256, rating='pg', default=''):
             s=size, d=default, r=rating
         ))
     )
-    
+
+@register.function
+def user_awards(user):
+    return Award.objects.filter(user=user)
+
+@register.function
+def user_badges(user):
+    return Badge.objects.filter(creator=user)
