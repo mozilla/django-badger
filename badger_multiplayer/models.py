@@ -106,6 +106,10 @@ class Nomination(models.Model):
         return u'Nomination for %s to %s by %s' % (self.badge, self.nominee,
                                                    self.creator)
 
+    def get_absolute_url(self):
+        return reverse('badger_multiplayer.views.nomination_detail', 
+                       args=(self.badge.slug, self.id))
+
     def save(self, *args, **kwargs):
 
         # Signals and some bits of logic only happen on a new nomination.
