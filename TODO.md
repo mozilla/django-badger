@@ -7,8 +7,6 @@
 ### Inbox
 
 * Update README for django-badger with docs and more description of features
-* Recent awards on user profile page
-* CSS layout broken on clean slate front page
 * Thumbnail sizing on image uploads for badges and profile avatars
 * Tags on badges?
 * Search-driven badge awarding (rather than drop down)
@@ -27,10 +25,13 @@
     * overall layout and UI
     * visual cues for badge vs user vs award
 
+* CSS layout broken on clean slate front page
+* CSS tweaks for long display names
+    * restrict display name length a bit more?
+
 ### Core
 
 * Allow users to reject, delete, hide awards
-* Badge expiration datetime
 * Notifications
     * Email? Inbox on site? Other channel?
     * Accept nominations from anyone
@@ -45,6 +46,16 @@
 * Activity streams - JSON and Atom
     * Re-work feeds to be AS compliant
 * Option in update_badges management command to overwrite existing.
+
+* More badge attributes
+    * Expiration datetime
+    * Unique per person
+    * Unique across site
+    * Secret info accessible only by badge awardee
+        * ie. containing an amazon gift code (bad idea?)
+    * Redeemable badges
+        * ie. I owe you a beer
+        * QR code scannable by badge owner to confirm redeeming
 
 ### Multiplayer
 
@@ -87,6 +98,7 @@
 
 ### Misc
 
+* Collapse multiple awards on a profile into a single item with a counter
 * Badge deletion
     * Disallow if awards have been issued; require all awards be revoked first
 * Captchas?
