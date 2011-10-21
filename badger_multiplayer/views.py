@@ -40,6 +40,16 @@ from badger_multiplayer.forms import (BadgeNewForm, BadgeEditForm,
                                       BadgeSubmitNominationForm)
 
 
+@require_GET
+def badges_by_user(request, username):
+    """Badges created by user"""
+    user = get_object_or_404(User, username=username)
+    badges = Badge.objects.filter(creator=user)
+    return render_to_response('badger_multiplayer/badges_by_user.html', dict(
+        user=user, badge_list=badges,
+    ), context_instance=RequestContext(request))
+
+
 @require_http_methods(['GET', 'POST'])
 @login_required
 def create(request):
