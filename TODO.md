@@ -6,13 +6,6 @@
 
 ### Inbox
 
-* Update README for django-badger with docs and more description of features
-* Thumbnail sizing on image uploads for badges and profile avatars
-* Tags on badges?
-* Search-driven badge awarding (rather than drop down)
-* List approval-pending nominations for user (home page?)
-* List acceptance-pending nominations for user (home page?)
-
 * user-managed trophycase(s)
     * multiple user-curated display sets of awards
     * needs a decent printable stylesheet to make lanyards
@@ -25,6 +18,11 @@
     * overall layout and UI
     * visual cues for badge vs user vs award
 
+* Update README for django-badger with docs and more description of features
+* Thumbnail sizing on image uploads for badges and profile avatars
+* Tags on badges?
+* Search-driven badge awarding (rather than drop down)
+
 * CSS layout broken on clean slate front page
 * CSS tweaks for long display names
     * restrict display name length a bit more?
@@ -34,9 +32,6 @@
 * Allow users to reject, delete, hide awards
 * Notifications
     * Email? Inbox on site? Other channel?
-    * Accept nominations from anyone
-    * Auto-approve all nominations
-    * Awards available to claim
     * not central to django-badger
     * badge awards can be caught with signal subscriptions
     * but, should it still be up to a project to handle that?
@@ -51,6 +46,8 @@
     * Expiration datetime
     * Unique per person
     * Unique across site
+    * Accept nominations from anyone
+    * Auto-approve all nominations
     * Secret info accessible only by badge awardee
         * ie. containing an amazon gift code (bad idea?)
     * Redeemable badges
