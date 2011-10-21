@@ -6,6 +6,9 @@
 
 ### Inbox
 
+* avatar images on users listed on awards, nominations, etc
+* images on nomination displays
+
 * design help needed
     * overall layout and UI
     * visual cues for badge vs user vs award
