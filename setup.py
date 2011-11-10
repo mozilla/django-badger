@@ -11,7 +11,7 @@ setup(
     url='http://github.com/lmorchard/django-badger',
     license='BSD',
     packages=['badger', 'badger.management.commands', 'badger.migrations'],
-    package_data={'badger': ['fixtures/*', 'templates/*']},
+    package_data={'badger': ['fixtures/*', 'templates/badger/*.html', 'templates/badger/includes/*.html']},
     include_package_data=True,
     classifiers=[
         'Development Status :: 4 - Beta',
