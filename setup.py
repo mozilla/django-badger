@@ -10,7 +10,7 @@ setup(
     author_email='me@lmorchard.com',
     url='http://github.com/lmorchard/django-badger',
     license='BSD',
-    packages=['badger', 'badger.management.commands', 'badger.migrations'],
+    packages=['badger', 'badger.management', 'badger.management.commands', 'badger.migrations'],
     package_data={'badger': ['fixtures/*', 'templates/badger/*.html', 'templates/badger/includes/*.html']},
     include_package_data=True,
     classifiers=[
