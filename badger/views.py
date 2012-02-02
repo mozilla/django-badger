@@ -1,4 +1,3 @@
-import jingo
 import logging
 import random
 

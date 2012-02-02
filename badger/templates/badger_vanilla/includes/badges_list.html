@@ -1,0 +1,17 @@
+<ul class="badges">
+    {% for badge in badge_list %}
+
+        <li class="badge">
+            <a href="{{ badge.get_absolute_url }}" class="image">
+            {% if badge.image %}
+                <img src="{{badge.image.url}}" 
+            {% else %}
+                <img src="/media/img/default-badge.png"
+            {% endif %}
+        
+                alt="{{ badge.title }}" width="128" height="128" /></a>
+            <a href="{{ badge.get_absolute_url }}" class="label"><span class="title">{{ badge.title }}</span></a>
+        </li>
+    {% endfor %}
+</ul>
+{% include "badger/includes/pagination.html" %}

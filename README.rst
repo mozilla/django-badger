@@ -38,6 +38,17 @@ Settings
 - TBD, see ``badger/tests/badger_example/badges.py`` for an example.
 
 
+Templates
+---------
+
+There are two sets of templates in the templates folder.  The templates
+found in ``badger_playdoh`` are intended for use with Playdoh sites, while
+those found in ``badger_vanilla`` are meant for plain Django sites.
+
+You'll need to make a copy of one of these folders into a directory named
+``templates/badger`` at the top level of your project. Then, you can customize
+the templates as necessary for your site.
+
 Creating badges
 ---------------
 

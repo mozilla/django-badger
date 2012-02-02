@@ -1,0 +1,25 @@
+{% extends "badger/base.html" %}
+
+
+{% block pageid %}award_detail{% endblock %}
+
+{% block extrahead %}
+    <link rel="alternate" type="application/json"
+        title="{{award}} (JSON)')"
+        href="{% url badger.award_detail_json badge.slug award.pk %}" />
+{% endblock %}
+
+{% block content %}
+
+<h2>Award detail</h2>
+
+<section class="award">
+    {% include "badger/includes/award_full.html" %}
+</section>
+
+<section class="badge">
+    <h3>Badge</h3>
+    {% include "badger/includes/badge_full.html" %}
+</section>
+
+{% endblock %}

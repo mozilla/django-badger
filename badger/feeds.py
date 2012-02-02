@@ -3,8 +3,6 @@ import datetime
 import hashlib
 import urllib
 
-import jingo
-
 from django.contrib.syndication.views import Feed, FeedDoesNotExist
 from django.utils.feedgenerator import (SyndicationFeed, Rss201rev2Feed,
                                         Atom1Feed, get_tag_uri)

@@ -1,0 +1,24 @@
+{% load badger_tags %}
+
+<ul class="awards">
+    {% for award in award_list %}
+ 
+        <li class="award">
+
+            <a href="{{ award.get_absolute_url }}" class="award_image"><img src="{% award_image award %}"
+                alt="{{ award.badge.title }}" width="128" height="128" /></a>
+        
+            <a href="{{ award.get_absolute_url }}" class="label">
+                <span class="badge_title">{{ award.badge.title }}</span>
+                <span class="relation">awarded to</span>
+                <span class="user">{{ award.user }}</span>
+            </a>
+            
+            <a href="{{ award.get_absolute_url }}" class="avatar_image"><img src="{% user_avatar award.user %}"
+                alt="{{ award.badge.title }}" width="128" height="128" /></a>            
+
+        </li>
+
+    {% endfor %}
+</ul>
+{% include "badger/includes/pagination.html" %}
