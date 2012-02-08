@@ -2,6 +2,9 @@
 
 ### Inbox
 
+* Test out the new Vanilla django templates from phoebebright
+    * At least build an example django app around them
+
 * busybox game demo that exercises badge progress, metabadges, etc.
 
 * avatar images on users listed on awards, nominations, etc
