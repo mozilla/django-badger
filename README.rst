@@ -85,9 +85,7 @@ Here are other apps in the Badger family, either in progress or proposed:
     (This app hasn't been started yet, and it's possible that it may evaporate
     and/or just be integrated into `django-badger` as a hypermedia API.)
 
-There used to be mention here of federation, but you should instead check out
-the [Mozilla Open Badges][obi] project.
-
-[obi]: https://github.com/mozilla/openbadges
+If you want to federate or share badges, you should check out
+the `Mozilla Open Badges <https://github.com/mozilla/openbadges>`_ project.
 
 .. vim:set tw=78 ai fo+=n fo-=l ft=rst:
