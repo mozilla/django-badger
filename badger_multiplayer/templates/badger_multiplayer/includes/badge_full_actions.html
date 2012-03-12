@@ -1,5 +1,5 @@
 {% if badge.allows_nominate_for(request.user) %}
-    <li><a class="edit_badge" href="{{ url('badger_multiplayer.views.nominate_for', badge.slug) }}">{{ _('Submit nomination') }}</a></li>
+    <li><a class="nominate_badge" href="{{ url('badger_multiplayer.views.nominate_for', badge.slug) }}">{{ _('Submit nomination') }}</a></li>
 {% endif %}
 {% if badge.allows_edit_by(request.user) %}
     <li><a class="edit_badge" href="{{ url('badger_multiplayer.views.edit', badge.slug) }}">{{ _('Edit badge') }}</a></li>

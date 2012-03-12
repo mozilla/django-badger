@@ -5,7 +5,7 @@ from django.conf import settings
 from django.http import HttpRequest
 from django.test.client import Client
 
-from commons import LocalizingClient
+from django.test.client import Client
 
 from pyquery import PyQuery as pq
 
@@ -17,11 +17,11 @@ from django.template.defaultfilters import slugify
 from django.contrib.auth.models import User
 
 try:
-    from commons.urlresolvers import reverse
+    from funfactory.urlresolvers import reverse
 except ImportError, e:
     from django.core.urlresolvers import reverse
 
-from . import BadgerTestCase
+from badger.tests import BadgerTestCase
 
 from badger.models import (Award, Progress,
         BadgeAwardNotAllowedException)
@@ -35,7 +35,7 @@ class BadgerViewsTest(BadgerTestCase):
 
     def setUp(self):
         self.testuser = self._get_user()
-        self.client = LocalizingClient()
+        self.client = Client()
 
     def tearDown(self):
         Nomination.objects.all().delete()

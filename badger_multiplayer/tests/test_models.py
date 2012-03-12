@@ -15,16 +15,16 @@ from django.template.defaultfilters import slugify
 
 from django.contrib.auth.models import User
 
-from . import BadgerTestCase
-
 import badger
 import badger_multiplayer
 
-from badger.models import (Award, Progress,
+from badger.tests import BadgerTestCase
+
+from badger.models import (Progress,
         BadgeAwardNotAllowedException,
         BadgeAlreadyAwardedException)
 
-from badger_multiplayer.models import (Badge, Nomination,
+from badger_multiplayer.models import (Badge, Award, Nomination,
         NominationApproveNotAllowedException,
         NominationAcceptNotAllowedException)
 
