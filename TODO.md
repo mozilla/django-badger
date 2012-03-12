@@ -1,28 +1,9 @@
 ## TODO
 
-### Inbox
-
-* Test out the new Vanilla django templates from phoebebright
-    * At least build an example django app around them
-
-* busybox game demo that exercises badge progress, metabadges, etc.
-
-* avatar images on users listed on awards, nominations, etc
-* images on nomination displays
-
-* design help needed
-    * overall layout and UI
-    * visual cues for badge vs user vs award
-
-* Update README for django-badger with docs and more description of features
-* Thumbnail sizing on image uploads for badges and profile avatars
-* Search-driven badge awarding (rather than drop down)
-
-* CSS layout broken on clean slate front page
-* CSS tweaks for long display names
-    * restrict display name length a bit more?
-
 ### Core
+
+* Revamp to use newest funfactory / playdoh
+    * http://playdoh.readthedocs.org/en/latest/getting-started/upgrading.html#upgrading-an-old-playdoh-fork
 
 * Allow users to reject, delete, hide awards
 
@@ -31,17 +12,20 @@
     * not central to django-badger
     * badge awards can be caught with signal subscriptions
     * but, should it still be up to a project to handle that?
+    * optionally use django-notifications?
+
+* Thumbnail sizing on image uploads for badges and profile avatars
+
+* Search-driven badge awarding (rather than drop down)
 
 * user-managed trophycase(s)
     * multiple user-curated display sets of awards
     * needs a decent printable stylesheet to make lanyards
     * QR code built-in?
 
-* Tags on badges?
-
-* Templates
-    * jinja helpers
-    * django templatetags?
+* Get more Hypermedia API flavor
+    * Accept: application/json along with .json extension
+    * Start accepting POSTs, PUTs, and DELETEs for programmatic manipulation.
 
 * Activity streams - JSON and Atom
     * Re-work feeds to be AS compliant
@@ -57,6 +41,24 @@
     * Redeemable badges
         * ie. I owe you a beer
         * QR code scannable by badge owner to confirm redeeming
+
+* Update README for django-badger with docs and more description of features
+
+* Avatar images on users listed on awards, nominations, etc
+
+* Images on nomination displays
+
+* Tags on badges?
+
+* Busybox game demo that exercises badge progress, metabadges, etc.
+
+* design help needed
+    * overall layout and UI
+    * visual cues for badge vs user vs award
+
+* CSS layout broken on clean slate front page
+* CSS tweaks for long display names
+    * restrict display name length a bit more?
 
 ### Multiplayer
 
@@ -106,11 +108,15 @@
 
 ### API
 
-* REST API
-    * Might be better as a separate package?
-    * Most of the readable API will be covered by {json,rss,atom} feeds
+* Hypermedia API
+    * Sprinkle in some more JSON and honor Accept: application/json
+    * Accept programmatic writes
+    * OAuth for machines as alternate to BrowserID for people
 
 ### Misc
+
+* Test out the new Vanilla django templates from phoebebright
+    * At least build an example django app around them
 
 * Collapse multiple awards on a profile into a single item with a counter
 * Badge deletion

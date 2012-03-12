@@ -82,10 +82,12 @@ Here are other apps in the Badger family, either in progress or proposed:
     and bots can issue awards and nominations in response to events monitored
     in custom ways. Also, opens the way for things like mobile apps, etc.
 
-`django-badger-federation <https://github.com/lmorchard/django-badger-federation>`_
-    Builds on ``django-badger-api`` and Activity Streams with facilities to
-    make badging a distributed feature. Your network of sites can be badge
-    issuers and badge collection hubs, and you can allow sites outside your
-    network to participate.
+    (This app hasn't been started yet, and it's possible that it may evaporate
+    and/or just be integrated into `django-badger` as a hypermedia API.)
+
+There used to be mention here of federation, but you should instead check out
+the [Mozilla Open Badges][obi] project.
+
+[obi]: https://github.com/mozilla/openbadges
 
 .. vim:set tw=78 ai fo+=n fo-=l ft=rst:
