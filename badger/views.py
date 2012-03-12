@@ -71,7 +71,7 @@ def badges_list(request):
         template_name='badger/badges_list.html')
 
 
-@require_GET
+@require_http_methods(['HEAD', 'GET'])
 def detail(request, slug, format="html"):
     """Badge detail view"""
     badge = get_object_or_404(Badge, slug=slug)
@@ -131,7 +131,7 @@ def awards_list(request, slug=None):
         template_name='badger/awards_list.html')
 
 
-@require_GET
+@require_http_methods(['HEAD', 'GET'])
 def award_detail(request, slug, id, format="html"):
     """Award detail view"""
     badge = get_object_or_404(Badge, slug=slug)

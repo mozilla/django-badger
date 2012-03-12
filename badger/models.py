@@ -1,5 +1,6 @@
 import logging
 import re
+import random
 
 from datetime import datetime, timedelta, tzinfo
 from time import time, gmtime, strftime
@@ -25,7 +26,7 @@ from django.contrib.sites.models import Site
 from django.template.defaultfilters import slugify
 
 try:
-    from commons.urlresolvers import reverse
+    from funfactory.urlresolvers import reverse
 except ImportError, e:
     from django.core.urlresolvers import reverse
 
@@ -67,21 +68,7 @@ BADGE_UPLOADS_FS = FileSystemStorage(location=UPLOADS_ROOT,
 
 TIME_ZONE_OFFSET = getattr(settings, "TIME_ZONE_OFFSET", timedelta(0))
 
-
-class TZOffset(tzinfo):
-    """TZOffset"""
-
-    def __init__(self, offset):
-        self.offset = offset
-
-    def utcoffset(self, dt):
-        return self.offset
-
-    def tzname(self, dt):
-        return settings.TIME_ZONE
-
-    def dst(self, dt):
-        return self.offset
+MK_UPLOAD_TMPL = '%(base)s/%(field_fn)s_%(slug)s_%(now)s_%(rand)04d.%(ext)s'
 
 
 def scale_image(img_upload, img_max_size):
@@ -132,13 +119,13 @@ def get_permissions_for(self, user):
     return perms
 
 
-def mk_upload_to(field_fn):
+def mk_upload_to(field_fn, ext, tmpl=MK_UPLOAD_TMPL):
     """upload_to builder for file upload fields"""
     def upload_to(instance, filename):
         base, slug = instance.get_upload_meta()
-        time_now = int(time())
-        return '%(base)s/%(slug)s_%(time_now)s_%(field_fn)s' % dict(
-            time_now=time_now, slug=slug, base=base, field_fn=field_fn)
+        return tmpl % dict(now=int(time()), rand=random.randint(0, 1000),
+                           slug=slug[:50], base=base, field_fn=field_fn,
+                           ext=ext)
     return upload_to
 
 
@@ -270,7 +257,7 @@ class Badge(models.Model):
     description = models.TextField(blank=True)
     image = models.ImageField(blank=True, null=True,
                               storage=BADGE_UPLOADS_FS,
-                              upload_to=mk_upload_to('image.png'))
+                              upload_to=mk_upload_to('image','png'))
     prerequisites = models.ManyToManyField('self', symmetrical=False,
                                             blank=True, null=True)
     unique = models.BooleanField(default=False)
@@ -327,6 +314,10 @@ class Badge(models.Model):
 
     def award_to(self, awardee, awarder=None):
         """Award this badge to the awardee on the awarder's behalf"""
+        # If no awarder given, assume this is on the badge creator's behalf.
+        if not awarder:
+            awarder = self.creator
+
         if not self.allows_award_to(awarder):
             raise BadgeAwardNotAllowedException()
 
@@ -367,7 +358,7 @@ class Badge(models.Model):
     def as_obi_serialization(self, request=None):
         """Produce an Open Badge Infrastructure serialization of this badge"""
         if request:
-            base_url = request.build_absolute_uri('/')
+            base_url = request.build_absolute_uri('/')[:-1]
         else:
             base_url = 'http://%s' % (Site.objects.get_current().domain,)
 
@@ -389,7 +380,7 @@ class Badge(models.Model):
             # TODO: truncate more intelligently
             "name": self.title[:128],
             # TODO: truncate more intelligently
-            "description": self.description[:128],
+            "description": self.description[:128] or self.title[:128],
             "criteria": urljoin(base_url, self.get_absolute_url()),
             "issuer": issuer
         }
@@ -413,7 +404,7 @@ class Award(models.Model):
     badge = models.ForeignKey(Badge)
     image = models.ImageField(blank=True, null=True,
                               storage=BADGE_UPLOADS_FS,
-                              upload_to=mk_upload_to('image.png'))
+                              upload_to=mk_upload_to('image','png'))
     user = models.ForeignKey(User, related_name="award_user")
     creator = models.ForeignKey(User, related_name="award_creator",
                                 blank=True, null=True)
@@ -432,7 +423,8 @@ class Award(models.Model):
         return ('badger.views.award_detail', (self.badge.slug, self.pk))
 
     def get_upload_meta(self):
-        return ("award", self.badge.slug)
+        u = self.user.username
+        return ("award/%s/%s/%s" % (u[0], u[1], u), self.badge.slug)
 
     def save(self, *args, **kwargs):
 
@@ -450,7 +442,7 @@ class Award(models.Model):
         super(Award, self).save(*args, **kwargs)
         # Called after super.save(), so we have some auto-gen fields like pk
         # and created
-        self.bake_assertion_into_image()
+        self.bake_obi_image()
 
         if is_new:
             # Only fire was-awarded signal on a new award.
@@ -468,7 +460,7 @@ class Award(models.Model):
         badge_data = self.badge.as_obi_serialization(request)
 
         if request:
-            base_url = request.build_absolute_uri('/')
+            base_url = request.build_absolute_uri('/')[:-1]
         else:
             base_url = 'http://%s' % (Site.objects.get_current().domain,)
 
@@ -483,25 +475,25 @@ class Award(models.Model):
                 "contact": self.creator.email
             }
 
-        # HACK: Coerce the creation time into a timezone and zero-out the
-        # microsecond to get a nice and clean ISO8601 timestamp.
-        issued_on = self.created.replace(tzinfo=TZOffset(TIME_ZONE_OFFSET),
-                                         microsecond=0).isoformat()
-
         # see: https://github.com/brianlovesdata/openbadges/wiki/Assertions
         assertion = {
-            # TODO: Get email from profile? alternate identifier?
             "recipient": self.user.email,
             "evidence": urljoin(base_url, self.get_absolute_url()),
-            # "expires": "2013-06-01",
-            "issued_on": issued_on,
+            # TODO: implement award expiration
+            # "expires": self.expires.strftime('%Y-%m-%d'),
+            "issued_on": self.created.strftime('%Y-%m-%d'),
             "badge": badge_data
         }
         return assertion
 
-    def bake_assertion_into_image(self, request=None):
+    def bake_obi_image(self, request=None):
         """Bake the OBI JSON badge award assertion into a copy of the original
         badge's image, if one exists."""
+
+        if request:
+            base_url = request.build_absolute_uri('/')
+        else:
+            base_url = 'http://%s' % (Site.objects.get_current().domain,)
 
         if self.badge.image:
             # Make a duplicate of the badge image
@@ -520,18 +512,26 @@ class Award(models.Model):
         # Here's where the baking gets done. JSON representation of the OBI
         # assertion gets written into the "openbadges" metadata field
         # see: http://blog.client9.com/2007/08/python-pil-and-png-metadata-take-2.html
-        # see: https://github.com/brianlovesdata/openbadges/blob/master/lib/baker.js
-        # see: https://github.com/brianlovesdata/openbadges/blob/master/controllers/baker.js
+        # see: https://github.com/mozilla/openbadges/blob/development/lib/baker.js
+        # see: https://github.com/mozilla/openbadges/blob/development/controllers/baker.js
         from PIL import PngImagePlugin
         meta = PngImagePlugin.PngInfo()
-        assertion = self.as_obi_assertion(request)
-        meta.add_text('openbadges', json.dumps(assertion))
+        # TODO: Will need this, if we stop doing hosted assertions
+        # assertion = self.as_obi_assertion(request)
+        # meta.add_text('openbadges', json.dumps(assertion))
+        hosted_assertion_url = '%s%s' % (
+            base_url, reverse('badger.award_detail_json',
+                              args=(self.badge.slug, self.id)))
+        meta.add_text('openbadges', hosted_assertion_url)
 
         # And, finally save out the baked image.
         new_img = StringIO()
         img.save(new_img, "PNG", pnginfo=meta)
         img_data = new_img.getvalue()
+        name_before = self.image.name
         self.image.save('', ContentFile(img_data), False)
+        if (self.image.storage.exists(name_before)):
+            self.image.storage.delete(name_before)
 
         # Update the image field with the new image name
         # NOTE: Can't do a full save(), because this gets called in save()

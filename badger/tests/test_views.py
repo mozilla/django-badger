@@ -6,8 +6,9 @@ from django.http import HttpRequest
 from django.test.client import Client
 
 from django.utils import simplejson
+from django.utils.translation import get_language
 
-from commons import LocalizingClient
+from django.contrib.auth.models import User
 
 from pyquery import PyQuery as pq
 
@@ -16,12 +17,13 @@ from nose.plugins.attrib import attr
 
 from django.template.defaultfilters import slugify
 
-from django.contrib.auth.models import User
-
 try:
-    from commons.urlresolvers import reverse
+    from funfactory.urlresolvers import (get_url_prefix, Prefixer, reverse,
+                                         set_url_prefix)
+    from tower import activate
 except ImportError, e:
     from django.core.urlresolvers import reverse
+    get_url_prefix = None
 
 from . import BadgerTestCase
 
@@ -34,7 +36,7 @@ class BadgerViewsTest(BadgerTestCase):
 
     def setUp(self):
         self.testuser = self._get_user()
-        self.client = LocalizingClient()
+        self.client = Client()
         Award.objects.all().delete()
 
     def tearDown(self):
@@ -73,7 +75,8 @@ class BadgerViewsTest(BadgerTestCase):
         user = self._get_user()
         user2 = self._get_user(username='tester2')
 
-        b1, created = Badge.objects.get_or_create(creator=user, title="Code Badge #1")
+        b1, created = Badge.objects.get_or_create(creator=user,
+                title="Code Badge #1", description="Some description")
         award = b1.award_to(user2)
 
         url = reverse('badger.views.award_detail', args=(b1.slug, award.pk,))
@@ -115,9 +118,9 @@ class BadgerViewsTest(BadgerTestCase):
         doc = pq(r.content)
 
         eq_('badge_awards_by_user', doc.find('body').attr('id'))
-        eq_(3, doc.find('.award').length)
+        eq_(3, doc.find('.badge').length)
         for b in (b1, b2, b3):
-            eq_(1, doc.find('.award .badge .title:contains("%s")' % b.title)
+            eq_(1, doc.find('.badge .title:contains("%s")' % b.title)
                       .length)
 
     def test_awards_by_badge(self):
@@ -136,13 +139,11 @@ class BadgerViewsTest(BadgerTestCase):
         r = self.client.get(url, follow=True)
         doc = pq(r.content)
 
-        eq_('badge_awards_by_badge', doc.find('body').attr('id'))
         eq_(3, doc.find('.award').length)
         for u in (u1, u2, u3):
-            eq_(1, doc.find('.award .username:contains("%s")' % u.username)
+            eq_(1, doc.find('.award .user:contains("%s")' % u.username)
                       .length)
 
-    @attr('issue_award')
     def test_issue_award(self):
         """Badge creator can issue award to another user"""
         
@@ -171,19 +172,6 @@ class BadgerViewsTest(BadgerTestCase):
 
         r = self.client.post(url, dict(
             user=user2.id,
-        ), follow=True)
-        doc = pq(r.content)
-
-        logging.debug(r.content)
+        ), follow=False)
 
         ok_(b1.is_awarded_to(user2))
-
-
-    def _get_user(self, username="tester", email="tester@example.com",
-            password="trustno1"):
-        (user, created) = User.objects.get_or_create(username=username,
-                defaults=dict(email=email))
-        if created:
-            user.set_password(password)
-            user.save()
-        return user

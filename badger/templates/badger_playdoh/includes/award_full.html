@@ -1,10 +1,10 @@
 <dl class="award">
     <dt>Awarded to:</dt>
-    <dd><a href="{{ award.user.get_absolute_url() }}"
+        <dd class="awarded_to"><a href="{{ award.user.get_absolute_url() }}"
            class="username">{{ award.user }}</a></dd>
     <dt>Awarded by:</dt>
-        <dd><a href="{{ award.creator.get_absolute_url() }}" 
+        <dd class="awarded_by"><a href="{{ award.creator.get_absolute_url() }}" 
             class="username">{{ award.creator }}</a></dd>
     <dt>Issued on:</dt>
-        <dd>{{ award.created }}</dd>
+        <dd class="issued">{{ award.created }}</dd>
 </dl>

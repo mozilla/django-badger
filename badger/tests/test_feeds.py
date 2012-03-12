@@ -6,8 +6,6 @@ from django.conf import settings
 from django.http import HttpRequest
 from django.test.client import Client
 
-from commons import LocalizingClient
-
 from pyquery import PyQuery as pq
 
 from nose.tools import assert_equal, with_setup, assert_false, eq_, ok_
@@ -33,7 +31,7 @@ class BadgerFeedsTest(BadgerTestCase):
 
     def setUp(self):
         self.testuser = self._get_user()
-        self.client = LocalizingClient()
+        self.client = Client()
         Award.objects.all().delete()
 
     def tearDown(self):

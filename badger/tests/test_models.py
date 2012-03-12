@@ -20,6 +20,11 @@ from nose.plugins.attrib import attr
 
 from django.template.defaultfilters import slugify
 
+try:
+    from funfactory.urlresolvers import reverse
+except ImportError, e:
+    from django.core.urlresolvers import reverse
+
 from django.contrib.auth.models import User
 
 from . import BadgerTestCase
@@ -32,6 +37,7 @@ from badger.models import (Badge, Award, Progress,
         SITE_ISSUER)
 
 from badger.tests.badger_example.models import GuestbookEntry
+
 
 BASE_URL = 'http://example.com'
 BADGE_IMG_FN = "%s/fixtures/default-badge.png" % dirname(dirname(__file__))
@@ -67,7 +73,6 @@ class BadgerBadgeTest(BadgerTestCase):
         badge.award_to(awardee=user, awarder=badge.creator)
         ok_(badge.is_awarded_to(user))
 
-    @attr('baked')
     def test_baked_award_image(self):
         """Award gets image baked with OBI assertion"""
         # Get the source for a sample badge image
@@ -91,6 +96,18 @@ class BadgerBadgeTest(BadgerTestCase):
         award_1 = badge.award_to(awardee=user_awardee_1)
         ok_(award_1.image)
         img = Image.open(award_1.image.file)
+
+        hosted_assertion_url = img.info['openbadges']
+        expected_url = '%s%s' % (
+            BASE_URL, reverse('badger.award_detail_json',
+                              args=(award_1.badge.slug, award_1.id)))
+        eq_(expected_url, hosted_assertion_url)
+
+        return True
+
+        # TODO: Re-enable the testing below, if/when we go back to baking JSON
+        # rather than hosted assertion URLs.
+
         assertion = json.loads(img.info['openbadges'])
 
         # Check the top-level award assertion data
