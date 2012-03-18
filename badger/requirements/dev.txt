@@ -4,3 +4,4 @@ nose==1.0.0
 -e git://github.com/jbalogh/test-utils.git#egg=test-utils
 
 feedparser
+pyquery
