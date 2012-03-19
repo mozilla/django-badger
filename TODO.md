@@ -2,15 +2,17 @@
 
 ### Core
 
+* Update to work with OBI changes
+    * Use salty hashes instead of email addresses
+    * Dump / disable / comment out in-house badge OBI baking in favor of
+      outsourcing to openbadges.org
+
 * Award by email address
     * Find an existing user
     * If no existing user, create an invite code to defer award
         * Need to revive the invite code notion
 
 * Allow users to ignore, reject, delete, hide awards
-
-* Dump / disable / comment out in-house badge OBI baking in favor of
-  outsourcing to openbadges.org
 
 * Thumbnail sizing on image uploads for badges and profile avatars
 
@@ -20,6 +22,7 @@
     * multiple user-curated display sets of awards
     * needs a decent printable stylesheet to make lanyards
     * QR code built-in?
+    * maybe just outsource this to openbadges.org
 
 * Get more Hypermedia API flavor
     * Accept: application/json along with .json extension

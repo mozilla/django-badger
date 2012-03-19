@@ -75,6 +75,8 @@ TIME_ZONE_OFFSET = getattr(settings, "TIME_ZONE_OFFSET", timedelta(0))
 
 MK_UPLOAD_TMPL = '%(base)s/%(field_fn)s_%(slug)s_%(now)s_%(rand)04d.%(ext)s'
 
+DEFAULT_HTTP_PROTOCOL = getattr(settings, "DEFAULT_HTTP_PROTOCOL", "http")
+
 
 def scale_image(img_upload, img_max_size):
     """Crop and scale an image file."""
@@ -297,8 +299,9 @@ class Badge(models.Model):
             self.slug = slugify(self.title)
         super(Badge, self).save(**kwargs)
         if notification:
-            notification.send([self.creator], 'badge_edited',
-                              dict(badge=self))
+            notification.send([self.creator], 'badge_edited', 
+                              dict(badge=self,
+                                   protocol=DEFAULT_HTTP_PROTOCOL))
 
     def allows_edit_by(self, user):
         if user.is_staff or user.is_superuser:
@@ -337,9 +340,11 @@ class Badge(models.Model):
 
         if notification:
             notification.send([self.creator], 'badge_awarded',
-                              dict(award=award))
+                              dict(award=award,
+                                   protocol=DEFAULT_HTTP_PROTOCOL))
             notification.send([awardee], 'award_received',
-                              dict(award=award))
+                              dict(award=award,
+                                   protocol=DEFAULT_HTTP_PROTOCOL))
         
         return award
 
