@@ -2,17 +2,15 @@
 
 ### Core
 
-* Revamp to use newest funfactory / playdoh
-    * http://playdoh.readthedocs.org/en/latest/getting-started/upgrading.html#upgrading-an-old-playdoh-fork
+* Award by email address
+    * Find an existing user
+    * If no existing user, create an invite code to defer award
+        * Need to revive the invite code notion
 
-* Allow users to reject, delete, hide awards
+* Allow users to ignore, reject, delete, hide awards
 
-* Notifications
-    * Email? Inbox on site? Other channel?
-    * not central to django-badger
-    * badge awards can be caught with signal subscriptions
-    * but, should it still be up to a project to handle that?
-    * optionally use django-notifications?
+* Dump / disable / comment out in-house badge OBI baking in favor of
+  outsourcing to openbadges.org
 
 * Thumbnail sizing on image uploads for badges and profile avatars
 
@@ -44,10 +42,6 @@
 
 * Update README for django-badger with docs and more description of features
 
-* Avatar images on users listed on awards, nominations, etc
-
-* Images on nomination displays
-
 * Tags on badges?
 
 * Busybox game demo that exercises badge progress, metabadges, etc.
@@ -71,7 +65,7 @@
 
 * Nomination
     * Reject
-    * Second
+    * Second / Like
 
 * Comments on badges, awards, nominations
 
