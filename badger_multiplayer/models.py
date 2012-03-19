@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.db.models import signals
 from django.core.serializers.json import DjangoJSONEncoder
@@ -10,6 +11,11 @@ try:
     from commons.urlresolvers import reverse
 except ImportError, e:
     from django.core.urlresolvers import reverse
+
+if "notification" in settings.INSTALLED_APPS:
+    from notification import models as notification
+else:
+    notification = None
 
 import badger.models
 from badger.models import (Award, BadgerException,
@@ -47,8 +53,12 @@ class Badge(badger.models.Badge):
 
     def nominate_for(self, nominee, nominator=None):
         """Nominate a nominee for this badge on the nominator's behalf"""
-        return Nomination.objects.create(badge=self, creator=nominator,
+        nomination = Nomination.objects.create(badge=self, creator=nominator,
                                          nominee=nominee)
+        if notification:
+            notification.send([self.creator, nominator], 'nomination_submitted',
+                              dict(nomination=nomination))
+        return nomination
 
     def is_nominated_for(self, user):
         return Nomination.objects.filter(nominee=user, badge=self).count() > 0
@@ -173,6 +183,12 @@ class Nomination(models.Model):
         self.save()
         nomination_was_approved.send(sender=self.__class__,
                                      nomination=self)
+        if notification:
+            notification.send([self.badge.creator, self.creator],
+                              'nomination_approved', dict(nomination=self))
+            notification.send([self.nominee],
+                              'nomination_received', dict(nomination=self))
+        
         return self
 
     def is_approved(self):
@@ -197,6 +213,12 @@ class Nomination(models.Model):
         self.save()
         nomination_was_accepted.send(sender=self.__class__,
                                      nomination=self)
+
+        if notification:
+            notification.send([self.badge.creator, self.nominee, self.creator],
+                              'nomination_accepted',
+                              dict(nomination=self))
+        
         return self
 
     def is_accepted(self):
