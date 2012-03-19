@@ -10,6 +10,32 @@ from django.utils.module_loading import module_has_submodule
 import badger
 
 
+if "notification" in settings.INSTALLED_APPS:
+    from notification import models as notification
+    from django.utils.translation import ugettext_noop as _
+
+    def create_notice_types(app, created_models, verbosity, **kwargs):
+        notices = (
+            ("badge_edited", _("Badge edited"),
+                _("one of your badges has been edited")),
+            ("badge_awarded", _("Badge awarded"),
+                _("one of your badges has been awarded to someone")),
+            ("award_received", _("Award received"),
+                _("you have been awarded a badge")),
+            #("award_accepted", _("Badge award accepted"),
+            #    _("someone has accepted an award for one of your badges")),
+            #("award_declined", _("Badge award declined"),
+            #    _("someone has declined an award for one of your badges")),
+            # TODO: Notification on progress?
+        )
+        for notice in notices:
+            notification.create_notice_type(*notice)
+
+    signals.post_syncdb.connect(create_notice_types, sender=notification)
+else:
+    print "Skipping creation of NoticeTypes as notification app not found"
+
+
 def update_badges(overwrite=False):
     from django.utils.importlib import import_module
 

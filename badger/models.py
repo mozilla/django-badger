@@ -40,6 +40,11 @@ try:
 except ImportError:
     import Image
 
+if "notification" in settings.INSTALLED_APPS:
+    from notification import models as notification
+else:
+    notification = None
+
 from .signals import (badge_will_be_awarded, badge_was_awarded)
 
 
@@ -291,6 +296,9 @@ class Badge(models.Model):
         if not self.slug:
             self.slug = slugify(self.title)
         super(Badge, self).save(**kwargs)
+        if notification:
+            notification.send([self.creator], 'badge_edited',
+                              dict(badge=self))
 
     def allows_edit_by(self, user):
         if user.is_staff or user.is_superuser:
@@ -326,6 +334,13 @@ class Badge(models.Model):
             return Award.objects.filter(user=awardee, badge=self)[0]
 
         award = Award.objects.create(user=awardee, badge=self, creator=awarder)
+
+        if notification:
+            notification.send([self.creator], 'badge_awarded',
+                              dict(award=award))
+            notification.send([awardee], 'award_received',
+                              dict(award=award))
+        
         return award
 
     def check_prerequisites(self, awardee, dep_badge, award):
