@@ -299,9 +299,10 @@ class Badge(models.Model):
             self.slug = slugify(self.title)
         super(Badge, self).save(**kwargs)
         if notification:
-            notification.send([self.creator], 'badge_edited', 
-                              dict(badge=self,
-                                   protocol=DEFAULT_HTTP_PROTOCOL))
+            if self.creator:
+                notification.send([self.creator], 'badge_edited', 
+                                  dict(badge=self,
+                                       protocol=DEFAULT_HTTP_PROTOCOL))
 
     def allows_edit_by(self, user):
         if user.is_staff or user.is_superuser:
@@ -339,9 +340,10 @@ class Badge(models.Model):
         award = Award.objects.create(user=awardee, badge=self, creator=awarder)
 
         if notification:
-            notification.send([self.creator], 'badge_awarded',
-                              dict(award=award,
-                                   protocol=DEFAULT_HTTP_PROTOCOL))
+            if self.creator:
+                notification.send([self.creator], 'badge_awarded',
+                                  dict(award=award,
+                                       protocol=DEFAULT_HTTP_PROTOCOL))
             notification.send([awardee], 'award_received',
                               dict(award=award,
                                    protocol=DEFAULT_HTTP_PROTOCOL))
