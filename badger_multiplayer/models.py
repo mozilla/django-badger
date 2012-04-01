@@ -27,6 +27,9 @@ from .signals import (nomination_will_be_approved, nomination_was_approved,
                       user_will_be_nominated, user_was_nominated, )
 
 
+DEFAULT_HTTP_PROTOCOL = getattr(settings, "DEFAULT_HTTP_PROTOCOL", "http")
+
+
 class Badge(badger.models.Badge):
     """Enhanced Badge model with multiplayer features"""
     
@@ -56,8 +59,9 @@ class Badge(badger.models.Badge):
         nomination = Nomination.objects.create(badge=self, creator=nominator,
                                          nominee=nominee)
         if notification:
-            notification.send([self.creator, nominator], 'nomination_submitted',
-                              dict(nomination=nomination))
+            notification.send([self.creator], 'nomination_submitted',
+                              dict(nomination=nomination,
+                                   protocol=DEFAULT_HTTP_PROTOCOL))
         return nomination
 
     def is_nominated_for(self, user):
@@ -184,10 +188,17 @@ class Nomination(models.Model):
         nomination_was_approved.send(sender=self.__class__,
                                      nomination=self)
         if notification:
-            notification.send([self.badge.creator, self.creator],
-                              'nomination_approved', dict(nomination=self))
-            notification.send([self.nominee],
-                              'nomination_received', dict(nomination=self))
+            if self.badge.creator:
+                notification.send([self.badge.creator], 'nomination_approved',
+                                  dict(nomination=self,
+                                       protocol=DEFAULT_HTTP_PROTOCOL))
+            if self.creator:
+                notification.send([self.creator], 'nomination_approved',
+                                  dict(nomination=self,
+                                       protocol=DEFAULT_HTTP_PROTOCOL))
+            notification.send([self.nominee], 'nomination_received',
+                              dict(nomination=self,
+                                   protocol=DEFAULT_HTTP_PROTOCOL))
         
         return self
 
@@ -215,9 +226,14 @@ class Nomination(models.Model):
                                      nomination=self)
 
         if notification:
-            notification.send([self.badge.creator, self.nominee, self.creator],
-                              'nomination_accepted',
-                              dict(nomination=self))
+            if self.badge.creator:
+                notification.send([self.badge.creator], 'nomination_accepted',
+                                  dict(nomination=self,
+                                       protocol=DEFAULT_HTTP_PROTOCOL))
+            if self.creator:
+                notification.send([self.creator], 'nomination_accepted',
+                                  dict(nomination=self,
+                                       protocol=DEFAULT_HTTP_PROTOCOL))
         
         return self
 
