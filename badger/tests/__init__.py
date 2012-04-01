@@ -18,6 +18,7 @@ except ImportError, e:
 
 import badger
 
+from badger.models import (Badge, Award, Progress, DeferredAward)
 
 class BadgerTestCase(test.TestCase):
     """Ensure test app and models are set up before tests"""
@@ -43,12 +44,21 @@ class BadgerTestCase(test.TestCase):
             set_url_prefix(Prefixer(rf.get('/%s/' % (locale,))))
             activate(locale)
 
+        # Create a default user for tests
+        self.user_1 = self._get_user(username="user_1",
+                                     email="user_1@example.com",
+                                     password="user_1_pass")
+
         # Call the original method that does the fixtures etc.
         super(test.TestCase, self)._pre_setup()
 
     def _post_teardown(self):
         # Call the original method.
         super(test.TestCase, self)._post_teardown()
+
+        Award.objects.all().delete()
+        Badge.objects.all().delete()
+
         # Restore the settings.
         settings.INSTALLED_APPS = self._original_installed_apps
         loading.cache.loaded = False
@@ -58,11 +68,23 @@ class BadgerTestCase(test.TestCase):
             set_url_prefix(self.old_prefix)
             activate(self.old_locale)
 
-    def _get_user(self, username="tester", email=None, password="trustno1"):
-        email = email or ('%s@example.com' % username)
+    def _get_user(self, username="tester", email="tester@example.com",
+            password="trustno1", is_staff=False, is_superuser=False):
         (user, created) = User.objects.get_or_create(username=username,
                 defaults=dict(email=email))
         if created:
+            user.is_superuser = is_superuser
+            user.is_staff = is_staff
             user.set_password(password)
             user.save()
         return user
+
+    def _get_badge(self, title="Test Badge",
+            description="This is a test badge", creator=None):
+        if creator is None:
+            creator = self.user_1
+        elif creator is False:
+            creator = None
+        (badge, created) = Badge.objects.get_or_create(title=title,
+                defaults=dict(description=description, creator=creator))
+        return badge

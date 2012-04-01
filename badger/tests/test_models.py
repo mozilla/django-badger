@@ -31,7 +31,7 @@ from . import BadgerTestCase
 
 import badger
 
-from badger.models import (Badge, Award, Progress,
+from badger.models import (Badge, Award, Progress, DeferredAward,
         BadgeAwardNotAllowedException,
         BadgeAlreadyAwardedException,
         SITE_ISSUER)
@@ -44,14 +44,6 @@ BADGE_IMG_FN = "%s/fixtures/default-badge.png" % dirname(dirname(__file__))
 
 
 class BadgerBadgeTest(BadgerTestCase):
-
-    def setUp(self):
-        self.user_1 = self._get_user(username="user_1",
-                email="user_1@example.com", password="user_1_pass")
-
-    def tearDown(self):
-        Award.objects.all().delete()
-        Badge.objects.all().delete()
 
     def test_get_badge(self):
         """Can create a badge"""
@@ -72,6 +64,28 @@ class BadgerBadgeTest(BadgerTestCase):
         ok_(not badge.is_awarded_to(user))
         badge.award_to(awardee=user, awarder=badge.creator)
         ok_(badge.is_awarded_to(user))
+
+    def test_award_unique_duplication(self):
+        """Only one award for a unique badge can be created"""
+        user = self._get_user()
+        b = Badge.objects.create(slug='one-and-only', title='One and Only',
+                unique=True, creator=user)
+        a = Award.objects.create(badge=b, user=user)
+
+        # award_to should not trigger the exception
+        b.award_to(user)
+
+        try:
+            a = Award.objects.create(badge=b, user=user)
+            ok_(False, 'BadgeAlreadyAwardedException should have been raised')
+        except BadgeAlreadyAwardedException, e:
+            # But, directly creating another award should trigger the exception
+            pass
+
+        eq_(1, Award.objects.filter(badge=b, user=user).count())
+
+
+class BadgerOBITest(BadgerTestCase):
 
     def test_baked_award_image(self):
         """Award gets image baked with OBI assertion"""
@@ -156,24 +170,8 @@ class BadgerBadgeTest(BadgerTestCase):
         eq_(SITE_ISSUER['contact'], b_issuer['contact'])
         eq_(SITE_ISSUER['origin'], b_issuer['origin'])
 
-    def test_award_unique_duplication(self):
-        """Only one award for a unique badge can be created"""
-        user = self._get_user()
-        b = Badge.objects.create(slug='one-and-only', title='One and Only',
-                unique=True, creator=user)
-        a = Award.objects.create(badge=b, user=user)
 
-        # award_to should not trigger the exception
-        b.award_to(user)
-
-        try:
-            a = Award.objects.create(badge=b, user=user)
-            ok_(False, 'BadgeAlreadyAwardedException should have been raised')
-        except BadgeAlreadyAwardedException, e:
-            # But, directly creating another award should trigger the exception
-            pass
-
-        eq_(1, Award.objects.filter(badge=b, user=user).count())
+class BadgerProgressTest(BadgerTestCase):
 
     def test_progress_badge_already_awarded(self):
         """New progress toward an awarded unique badge cannot be recorded"""
@@ -193,23 +191,90 @@ class BadgerBadgeTest(BadgerTestCase):
         # None, because award deletes progress.
         eq_(0, Progress.objects.filter(badge=b, user=user).count())
 
-    def _get_user(self, username="tester", email="tester@example.com",
-            password="trustno1", is_staff=False, is_superuser=False):
-        (user, created) = User.objects.get_or_create(username=username,
-                defaults=dict(email=email))
-        if created:
-            user.is_superuser = is_superuser
-            user.is_staff = is_staff
-            user.set_password(password)
-            user.save()
-        return user
 
-    def _get_badge(self, title="Test Badge",
-            description="This is a test badge", creator=None):
-        if creator is None:
-            creator = self.user_1
-        elif creator is False:
-            creator = None
-        (badge, created) = Badge.objects.get_or_create(title=title,
-                defaults=dict(description=description, creator=creator))
-        return badge
+class BadgerDeferredAwardTest(BadgerTestCase):
+
+    def test_claim_by_code(self):
+        """Can claim a deferred award by claim code"""
+        user = self._get_user()
+        awardee = self._get_user(username='winner1',
+                                 email='winner@example.com')
+
+        badge1 = self._get_badge(title="Test A", creator=user)
+
+        ok_(not badge1.is_awarded_to(awardee))
+
+        da = DeferredAward(badge=badge1)
+        da.save()
+        code = da.claim_code
+        
+        eq_(1, DeferredAward.objects.filter(claim_code=code).count())
+        DeferredAward.objects.claim_by_code(awardee, code)
+        eq_(0, DeferredAward.objects.filter(claim_code=code).count())
+        
+        ok_(badge1.is_awarded_to(awardee))
+
+    def test_claim_by_email(self):
+        """Can claim all deferred awards by email address"""
+        user = self._get_user()
+        awardee = self._get_user(username='winner2',
+                                 email='winner@example.com')
+
+        badge1 = self._get_badge(title="Test A", creator=user)
+        badge2 = self._get_badge(title="Test B", creator=user)
+        badge3 = self._get_badge(title="Test C", creator=user)
+
+        for badge in (badge1, badge2, badge3):
+            ok_(not badge.is_awarded_to(awardee))
+            DeferredAward(badge=badge, email=awardee.email).save()
+        
+        eq_(3, DeferredAward.objects.filter(email=awardee.email).count())
+        DeferredAward.objects.claim_by_email(awardee)
+        eq_(0, DeferredAward.objects.filter(email=awardee.email).count())
+
+        for badge in (badge1, badge2, badge3):
+            ok_(badge.is_awarded_to(awardee))
+    
+    def test_reusable_claim(self):
+        """Can repeatedly claim a reusable deferred award"""
+        user = self._get_user()
+        awardee = self._get_user(username='winner1',
+                                 email='winner@example.com')
+
+        badge1 = self._get_badge(title="Test A", creator=user)
+
+        ok_(not badge1.is_awarded_to(awardee))
+
+        da = DeferredAward(badge=badge1, reusable=True)
+        da.save()
+        code = da.claim_code
+        
+        for i in range(0, 5):
+            eq_(1, DeferredAward.objects.filter(claim_code=code).count())
+            DeferredAward.objects.claim_by_code(awardee, code)
+        
+        ok_(badge1.is_awarded_to(awardee))
+        eq_(5, Award.objects.filter(badge=badge1, user=awardee).count())
+    
+    def test_disallowed_claim(self):
+        """Deferred award created by someone not allowed to award a badge
+        cannot be claimed"""
+        user = self._get_user()
+        random_guy = self._get_user(username='random_guy',
+                                    is_superuser=False)
+        awardee = self._get_user(username='winner1',
+                                 email='winner@example.com')
+
+        badge1 = self._get_badge(title="Test A", creator=user)
+
+        ok_(not badge1.is_awarded_to(awardee))
+
+        da = DeferredAward(badge=badge1, creator=random_guy)
+        da.save()
+        code = da.claim_code
+        
+        eq_(1, DeferredAward.objects.filter(claim_code=code).count())
+        result = DeferredAward.objects.claim_by_code(awardee, code)
+        eq_(0, DeferredAward.objects.filter(claim_code=code).count())
+        
+        ok_(not badge1.is_awarded_to(awardee))

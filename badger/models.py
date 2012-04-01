@@ -77,6 +77,8 @@ MK_UPLOAD_TMPL = '%(base)s/%(field_fn)s_%(slug)s_%(now)s_%(rand)04d.%(ext)s'
 
 DEFAULT_HTTP_PROTOCOL = getattr(settings, "DEFAULT_HTTP_PROTOCOL", "http")
 
+CLAIM_CODE_LENGTH = getattr(settings, "CLAIM_CODE_LENGTH", 6)
+
 
 def scale_image(img_upload, img_max_size):
     """Crop and scale an image file."""
@@ -629,3 +631,51 @@ class Progress(models.Model):
         self.counter -= amount
         self._quiet_save(raise_exception)
         return self
+
+
+class DeferredAwardManager(models.Manager):
+
+    def claim_by_email(self, awardee):
+        """Claim all deferred awards that match the awardee's email"""
+        return self._claim_qs(awardee, self.filter(email=awardee.email))
+
+    def claim_by_code(self, awardee, code):
+        """Claim a deferred award by code for the awardee"""
+        return self._claim_qs(awardee, self.filter(claim_code=code))
+
+    def _claim_qs(self, awardee, qs):
+        """Claim all the deferred awards that match the queryset"""
+        for da in qs:
+            da.claim(awardee)
+
+
+def make_random_code():
+    s = '0123456789abcdefghijklmnopqrstuvwxyz'
+    return ''.join([random.choice(s) for x in range(CLAIM_CODE_LENGTH)])
+
+
+class DeferredAward(models.Model):
+    """Deferred award, can be converted into into a real award."""
+    objects = DeferredAwardManager()
+
+    badge = models.ForeignKey(Badge)
+    description = models.TextField(blank=True)
+    reusable = models.BooleanField(default=False)
+    email = models.EmailField(blank=True, null=True, db_index=True)
+    claim_code = models.CharField(max_length=CLAIM_CODE_LENGTH,
+            default=make_random_code, editable=False, unique=True,
+            db_index=True)
+    creator = models.ForeignKey(User, blank=True, null=True)
+    created = models.DateTimeField(auto_now_add=True, blank=False)
+    modified = models.DateTimeField(auto_now=True, blank=False)
+
+    def claim(self, awardee):
+        """Claim the deferred award for the given user"""
+        if not self.reusable:
+            # Self-destruct, if not made reusable.
+            self.delete()
+        try:
+            return self.badge.award_to(awardee, self.creator)
+        except (BadgeAlreadyAwardedException, BadgeAwardNotAllowedException), e:
+            # Just swallow up and ignore any issues in awarding.
+            pass
