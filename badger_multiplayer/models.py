@@ -59,9 +59,10 @@ class Badge(badger.models.Badge):
         nomination = Nomination.objects.create(badge=self, creator=nominator,
                                          nominee=nominee)
         if notification:
-            notification.send([self.creator], 'nomination_submitted',
-                              dict(nomination=nomination,
-                                   protocol=DEFAULT_HTTP_PROTOCOL))
+            if self.creator:
+                notification.send([self.creator], 'nomination_submitted',
+                                  dict(nomination=nomination,
+                                       protocol=DEFAULT_HTTP_PROTOCOL))
         return nomination
 
     def is_nominated_for(self, user):
@@ -79,6 +80,20 @@ class Award(badger.models.Award):
         """Property that wraps the related badge in a multiplayer upgrade"""
         new_inst = Badge()
         new_inst.__dict__ = super(Award, self).badge.__dict__
+        return new_inst
+
+
+class DeferredAward(badger.models.DeferredAward):
+    """Enhanced DeferredAward model with multiplayer features"""
+
+    class Meta:
+        proxy = True
+
+    @property
+    def badge(self):
+        """Property that wraps the related badge in a multiplayer upgrade"""
+        new_inst = Badge()
+        new_inst.__dict__ = super(DeferredAward, self).badge.__dict__
         return new_inst
 
 
