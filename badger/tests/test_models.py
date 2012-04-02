@@ -15,6 +15,8 @@ from django.http import HttpRequest
 from django.utils import simplejson as json
 from django.test.client import Client
 
+from django.core import mail
+
 from nose.tools import assert_equal, with_setup, assert_false, eq_, ok_
 from nose.plugins.attrib import attr
 
@@ -73,7 +75,7 @@ class BadgerBadgeTest(BadgerTestCase):
         a = Award.objects.create(badge=b, user=user)
 
         # award_to should not trigger the exception
-        b.award_to(user)
+        b.award_to(awardee=user)
 
         try:
             a = Award.objects.create(badge=b, user=user)
@@ -164,7 +166,6 @@ class BadgerOBITest(BadgerTestCase):
         ok_(award_3.image)
         img = Image.open(award_3.image.file)
         assertion = json.loads(img.info['openbadges'])
-        logging.debug("ASSS %s" % assertion)
         b_issuer = assertion['badge']['issuer']
         eq_(SITE_ISSUER['name'], b_issuer['name'])
         eq_(SITE_ISSUER['contact'], b_issuer['contact'])
@@ -216,23 +217,42 @@ class BadgerDeferredAwardTest(BadgerTestCase):
 
     def test_claim_by_email(self):
         """Can claim all deferred awards by email address"""
+        deferred_email = 'winner@example.com'
         user = self._get_user()
-        awardee = self._get_user(username='winner2',
-                                 email='winner@example.com')
+        titles = ("Test A", "Test B", "Test C")
+        badges = (self._get_badge(title=title, creator=user)
+                  for title in titles)
+        deferreds = []
 
-        badge1 = self._get_badge(title="Test A", creator=user)
-        badge2 = self._get_badge(title="Test B", creator=user)
-        badge3 = self._get_badge(title="Test C", creator=user)
+        # Issue deferred awards for each of the badges.
+        for badge in badges:
+            result = badge.award_to(email=deferred_email, awarder=user)
+            deferreds.append(result)
+            ok_(hasattr(result, 'claim_code'))
 
-        for badge in (badge1, badge2, badge3):
-            ok_(not badge.is_awarded_to(awardee))
-            DeferredAward(badge=badge, email=awardee.email).save()
+        # Scour the mail outbox for claim messages.
+        for deferred in deferreds:
+            found = False
+            for msg in mail.outbox:
+                if (deferred.badge.title in msg.subject and
+                        deferred.get_claim_url() in msg.body):
+                    found = True
+            ok_(found, '%s should have been found in subject' %
+                       deferred.badge.title)
         
+        # Register an awardee user with the email address, but the badge should
+        # not have been awarded yet.
+        awardee = self._get_user(username='winner2', email=deferred_email)
+        for badge in badges:
+            ok_(not badge.is_awarded_to(awardee))
+
+        # Now, claim the deferred awards, and they should all self-destruct
         eq_(3, DeferredAward.objects.filter(email=awardee.email).count())
         DeferredAward.objects.claim_by_email(awardee)
         eq_(0, DeferredAward.objects.filter(email=awardee.email).count())
 
-        for badge in (badge1, badge2, badge3):
+        # After claiming, the awards should exist.
+        for badge in badges:
             ok_(badge.is_awarded_to(awardee))
     
     def test_reusable_claim(self):

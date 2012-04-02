@@ -147,8 +147,8 @@ class BadgerViewsTest(BadgerTestCase):
     def test_issue_award(self):
         """Badge creator can issue award to another user"""
         
-        user1 = self._get_user(username="creator")
-        user2 = self._get_user(username="awardee")
+        user1 = self._get_user(username="creator", email="creator@example.com")
+        user2 = self._get_user(username="awardee", email="awardee@example.com")
 
         b1 = Badge.objects.create(creator=user1, title="Badge to awarded")
 
@@ -167,11 +167,46 @@ class BadgerViewsTest(BadgerTestCase):
         doc = pq(r.content)
         form = doc('form#award_badge')
         eq_(1, form.length)
-        eq_(1, form.find('*[name=user]').length)
+        eq_(1, form.find('*[name=email]').length)
         eq_(1, form.find('input.submit,button.submit').length)
 
         r = self.client.post(url, dict(
-            user=user2.id,
+            email=user2.email,
         ), follow=False)
 
+        ok_('award' in r['Location'])
+
+        ok_(b1.is_awarded_to(user2))
+
+    def test_issue_deferred_award(self):
+        """Deferred award for a badge can be issued to an email address."""
+
+        deferred_email = "awardee@example.com"
+
+        user1 = self._get_user(username="creator", email="creator@example.com")
+
+        b1 = Badge.objects.create(creator=user1, title="Badge to defer")
+
+        url = reverse('badger.views.award_badge', args=(b1.slug,))
+
+        self.client.login(username="creator", password="trustno1")
+        r = self.client.get(url, follow=True)
+        eq_(200, r.status_code)
+
+        doc = pq(r.content)
+        form = doc('form#award_badge')
+        eq_(1, form.length)
+        eq_(1, form.find('*[name=email]').length)
+        eq_(1, form.find('input.submit,button.submit').length)
+
+        r = self.client.post(url, dict(
+            email=deferred_email,
+        ), follow=False)
+
+        ok_('award' not in r['Location'])
+
+        user2 = self._get_user(username="awardee", email=deferred_email)
+        self.client.login(username="awardee", password="trustno1")
+        r = self.client.get(reverse('badger.views.detail',
+            args=(b1.slug,)), follow=True)
         ok_(b1.is_awarded_to(user2))

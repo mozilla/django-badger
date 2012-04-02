@@ -7,22 +7,20 @@
     * Dump / disable / comment out in-house badge OBI baking in favor of
       outsourcing to openbadges.org
 
-* Award by email address
-    * Find an existing user
-    * If no existing user, create an invite code to defer award
-        * Need to revive the invite code notion
+* Claim codes
+    * QR codes
+    * Per-badge, non-unique
+    * Reusable claim code management for badge owner
+
+* Award description / explanation field
+
+* Nomination description / explanation field
 
 * Allow users to ignore, reject, delete, hide awards
 
 * Thumbnail sizing on image uploads for badges and profile avatars
 
 * Search-driven badge awarding (rather than drop down)
-
-* user-managed trophycase(s)
-    * multiple user-curated display sets of awards
-    * needs a decent printable stylesheet to make lanyards
-    * QR code built-in?
-    * maybe just outsource this to openbadges.org
 
 * Get more Hypermedia API flavor
     * Accept: application/json along with .json extension
@@ -53,11 +51,15 @@
     * overall layout and UI
     * visual cues for badge vs user vs award
 
-* CSS layout broken on clean slate front page
-* CSS tweaks for long display names
-    * restrict display name length a bit more?
+* user-managed trophycase(s)
+    * multiple user-curated display sets of awards
+    * needs a decent printable stylesheet to make lanyards
+    * QR code built-in?
+    * maybe just outsource this to openbadges.org
 
 ### Multiplayer
+
+* Nominate by email address, instead of user selection
 
 * Badge properties
     * No self-nominations

@@ -53,14 +53,7 @@ class MyForm(forms.Form):
             errors_on_separate_row=False)
 
 
-class BadgeAwardForm(MyModelForm):
-
-    # TODO: Should this not be a ModelForm?
+class BadgeAwardForm(MyForm):
+    """Form to create either a real or deferred badge award"""
     # TODO: Needs a captcha?
-
-    class Meta:
-        model = Award
-        fields = ('user', )
-
-
-
+    email = forms.EmailField()

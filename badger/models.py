@@ -15,6 +15,7 @@ from django.conf import settings
 from django.db import models
 from django.db.models import signals, Q
 from django.db.models.fields.files import FieldFile, ImageFieldFile
+from django.core.mail import send_mail
 from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
 from django.core.files.base import ContentFile
@@ -22,6 +23,11 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import simplejson as json
 from django.contrib.auth.models import User, AnonymousUser
 from django.contrib.sites.models import Site
+from django.contrib.auth.signals import user_logged_in
+from django.dispatch import receiver
+
+from django.template import Context
+from django.template.loader import render_to_string
 
 from django.template.defaultfilters import slugify
 
@@ -326,7 +332,7 @@ class Badge(models.Model):
 
         return False
 
-    def award_to(self, awardee, awarder=None):
+    def award_to(self, awardee=None, email=None, awarder=None):
         """Award this badge to the awardee on the awarder's behalf"""
         # If no awarder given, assume this is on the badge creator's behalf.
         if not awarder:
@@ -334,6 +340,19 @@ class Badge(models.Model):
 
         if not self.allows_award_to(awarder):
             raise BadgeAwardNotAllowedException()
+
+        # If we have an email, but no awardee, try looking up the user.
+        if email and not awardee:
+            qs = User.objects.filter(email=email)
+            if not qs:
+                # If there's no user for this email address, create a
+                # DeferredAward for future claiming.
+                da = DeferredAward(badge=self, email=email)
+                da.save()
+                return da
+
+            # Otherwise, we'll use the most recently created user
+            awardee = qs.latest('date_joined')
 
         # If unique and already awarded, just return the existing award.
         if self.unique and self.is_awarded_to(awardee):
@@ -669,13 +688,45 @@ class DeferredAward(models.Model):
     created = models.DateTimeField(auto_now_add=True, blank=False)
     modified = models.DateTimeField(auto_now=True, blank=False)
 
+    def get_claim_url(self):
+        """Get the URL to a page where this DeferredAward can be claimed."""
+        return reverse('badger.views.claim_deferred_award',
+                       args=(self.claim_code,))
+
+    def save(self, **kwargs):
+        """Save the DeferredAward, sending a claim email if it's new"""
+        is_new = not self.pk
+        
+        super(DeferredAward, self).save(**kwargs)
+
+        if is_new and self.email:
+            # If this is new and there's an email, send an invite to claim.
+            context = Context(dict(
+                deferred_award=self,
+                badge=self.badge,
+                protocol=DEFAULT_HTTP_PROTOCOL,
+                current_site=Site.objects.get_current()
+            ))
+            tmpl_name = 'badger/deferred_award_%s.txt'
+            subject = render_to_string(tmpl_name % 'subject', {}, context)
+            body = render_to_string(tmpl_name % 'body', {}, context)
+            send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                      [self.email], fail_silently=False)
+
     def claim(self, awardee):
         """Claim the deferred award for the given user"""
         if not self.reusable:
             # Self-destruct, if not made reusable.
             self.delete()
         try:
-            return self.badge.award_to(awardee, self.creator)
-        except (BadgeAlreadyAwardedException, BadgeAwardNotAllowedException), e:
+            return self.badge.award_to(awardee=awardee, awarder=self.creator)
+        except (BadgeAlreadyAwardedException,
+                BadgeAwardNotAllowedException), e:
             # Just swallow up and ignore any issues in awarding.
             pass
+
+
+@receiver(user_logged_in)
+def claim_on_login(sender, request, user, **kwargs):
+    """When a user logs in, claim any deferred awards by email"""
+    DeferredAward.objects.claim_by_email(user)

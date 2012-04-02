@@ -27,6 +27,8 @@ from django.views.generic.list_detail import object_list
 from django.views.decorators.http import (require_GET, require_POST,
                                           require_http_methods)
 
+from django.contrib import messages
+
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 
@@ -36,9 +38,9 @@ from .models import (Progress,
 # TODO: Is there an extensible way to do this, where "add-ons" introduce proxy
 # model objects?
 try:
-    from badger_multiplayer.models import Badge, Award
+    from badger_multiplayer.models import Badge, Award, DeferredAward
 except ImportError:
-    from badger.models import Badge, Award
+    from badger.models import Badge, Award, DeferredAward
 
 from .forms import (BadgeAwardForm)
 
@@ -102,10 +104,21 @@ def award_badge(request, slug):
     else:
         form = BadgeAwardForm(request.POST, request.FILES)
         if form.is_valid():
-            award = badge.award_to(form.cleaned_data['user'], request.user)
-            return HttpResponseRedirect(reverse(
-                    'badger.views.award_detail', 
-                    args=(badge.slug, award.id, )))
+            email = form.cleaned_data['email']
+            result = badge.award_to(email=email, awarder=request.user)
+            if result:
+                if not hasattr(result, 'claim_code'):
+                    messages.info(request, _('Award issued to %s') % email)
+                    return HttpResponseRedirect(
+                            reverse('badger.views.award_detail', 
+                                    args=(badge.slug, result.id,)))
+                else:
+                    messages.info(request, _('%s is not a known user, ' 
+                                             'invitation to claim award '
+                                             'sent') % email)
+                    return HttpResponseRedirect(
+                            reverse('badger.views.detail', 
+                                    args=(badge.slug,)))
 
     return render_to_response('badger/badge_award.html', dict(
         form=form, badge=badge,
@@ -146,6 +159,24 @@ def award_detail(request, slug, id, format="html"):
         return render_to_response('badger/award_detail.html', dict(
             badge=badge, award=award,
         ), context_instance=RequestContext(request))
+
+
+@require_http_methods(['GET', 'POST'])
+@login_required
+def claim_deferred_award(request, claim_code):
+    """Deferred award detail view"""
+    deferred_award = get_object_or_404(DeferredAward, claim_code=claim_code)
+
+    if request.method == "POST":
+        award = deferred_award.claim(request.user)
+        if award:
+            return HttpResponseRedirect(reverse('badger.views.award_detail',
+                                                args=(award.badge.slug,
+                                                      award.id,)))
+
+    return render_to_response('badger/claim_deferred_award.html', dict(
+        badge=deferred_award.badge, deferred_award=deferred_award,
+    ), context_instance=RequestContext(request))
 
 
 @require_GET
