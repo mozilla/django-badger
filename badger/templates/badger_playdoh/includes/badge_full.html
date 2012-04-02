@@ -1,24 +1,24 @@
 <dl class="badge" data-slug="{{ badge.slug }}">
-    <dt>Title:</dt>
+    <dt>{{_("Title:")}}</dt>
         <dd class="title">{{ badge.title }}</dd>
     {% if award and award.image %}
-        <dt>Image:</dt>
+        <dt>{{_("Image:")}}</dt>
             <dd class="image"><a href="{{ badge.get_absolute_url() }}" class="image"><img src="{{ award.image.url }}" width="256" height="256" /></a></dd>
     {% elif badge.image %}
-        <dt>Image:</dt>
+        <dt>{{_("Image:")}}</dt>
             <dd class="image"><a href="{{ badge.get_absolute_url() }}" class="image"><img src="{{ badge.image.url }}" width="256" height="256" /></a></dd>
     {% endif %}
     {% if badge.description %}
-        <dt>Description:</dt>
+        <dt>{{_("Description:")}}</dt>
             <dd class="description">{{ badge.description }}</dd>
     {% endif %}
-    <dt>Creator:</dt>
-        <dd><a href="{{ badge.creator.get_absolute_url() }}">{{ badge.creator }}</a></dd>
-    <dt>Created:</dt>
+    <dt>{{_("Creator:")}}</dt>
+        <dd><a href="{{ badge.creator.get_absolute_url() }}"><img src="{{ user_avatar(badge.creator) }}" class="avatar" alt="{{ badge.creator }}" width="28" height="28" />{{ badge.creator }}</a></dd>
+    <dt>{{_("Created:")}}</dt>
         <dd>{{ badge.created }}</dd>
-    <dt>Modified:</dt>
+    <dt>{{_("Modified:")}}</dt>
         <dd>{{ badge.modified }}</dd>
-    <dt>Actions:</dt>
+    <dt>{{_("Actions")}}:</dt>
     <dd><ul>
 
         {% if badge.allows_award_to(request.user) %}

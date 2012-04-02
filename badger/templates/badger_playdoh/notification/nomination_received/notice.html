@@ -1,0 +1,11 @@
+{% trans badge_url=nomination.badge.get_absolute_url(),
+            badge_title=nomination.badge.title,
+            nomination_url=nomination.get_absolute_url(),
+            user_name=nomination.nominee,
+            user_url=nomination.nominee.get_absolute_url() %}
+
+You were <a href="{{ nomination_url }}">nominated</a> 
+for the badge <a href="{{ badge_url }}">{{ badge_title }}</a>. 
+Want <a href="{{ nomination_url }}">to accept</a>?
+
+{% endtrans %}

@@ -1,0 +1,15 @@
+{% trans domain=current_site.domain,
+         badge_url=nomination.badge.get_absolute_url(),
+         badge_title=nomination.badge.title,
+         nomination_url=nomination.get_absolute_url(), 
+         user_name=nomination.nominee,
+         user_url=nomination.nominee.get_absolute_url(),
+         approver_user_name=nomination.approver,
+         approver_url=nomination.approver.get_absolute_url() %}
+
+<a href="{{ approver_url }}">{{ approver_user_name }}</a> approved the
+<a href="{{ nomination_url }}">nomination</a> of 
+<a href="{{ user_url }}">{{ user_name }}</a> for the badge 
+<a href="{{ badge_url }}">{{ badge_title }}</a>.
+
+{% endtrans %}

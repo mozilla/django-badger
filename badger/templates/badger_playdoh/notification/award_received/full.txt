@@ -1,0 +1,15 @@
+{% trans domain=current_site.domain, 
+            badge_url=award.badge.get_absolute_url(),
+            badge_title=award.badge.title,
+            award_url=award.get_absolute_url(),
+            user_name=award.user,
+            protocol=(protocol or 'http'),
+            user_url=award.user.get_absolute_url() %}
+
+You have received an award for the badge {{ badge_title }}.
+
+Check out the details, here:
+
+    {{ protocol }}://{{ domain }}{{ award_url }}
+    
+{% endtrans %}

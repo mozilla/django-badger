@@ -13,30 +13,38 @@
 
 {% block content %}
 
-<section id="detail">
-    <h2>Badge detail</h2>
-    {% include "badger/includes/badge_full.html" %}
-</section>
+<section class="row-fluid">
 
-{% if award_list %}
-<section id="recent_awardees">
-    <h2>Recent awards</h2>
-    <nav><ul>
-        <li>
-            <a href="{{ url('badger.views.awards_list', badge.slug) }}">More...</a>
-            <a href="{{ url('badger.feeds.awards_by_badge', 'atom', badge.slug) }}"><img src="{{MEDIA_URL}}/img/feed-icon-14x14.png" /></a>
-        </li>
-    </ul></nav>
-    <ul class="awardees clearfix">
-        {% for award in award_list %}
-            <li class="awardee">
-                <a href="{{ award.get_absolute_url() }}" class="avatar_image"><img src="{{ user_avatar(award.user) }}"
-                    alt="{{ award.badge.title }}" width="128" height="128" /></a>            
-                <a href="{{ award.get_absolute_url() }}" class="label">
-                    <span class="user">{{ award.user }}</span></a>
-            </li>
-        {% endfor %}
-    </ul>
+    <section class="span3" id="detail">
+        <header class="page-header">
+            <h2>{{ _('Badge detail') }}</h2>
+        </header>
+        {% include "badger/includes/badge_full.html" %}
+    </section>
+
+    {% if award_list %}
+    <section class="span9" id="recent_awardees" class="item_flow">
+        <header class="page-header">
+            <h2>
+                <span>{{ _("Recent awards") }}</span>
+                <small>(
+                    <a href="{{ url('badger.views.awards_list', badge.slug) }}">{{ _("More...") }}</a>
+                    <a href="{{ url('badger.feeds.awards_by_badge', 'atom', badge.slug) }}"><img src="{{MEDIA_URL}}/img/feed-icon-14x14.png" /></a>
+                )</small>
+            </h2>
+        </header>
+        <ul class="awardees clearfix">
+            {% for award in award_list %}
+                <li class="awardee">
+                    <a href="{{ award.get_absolute_url() }}" class="avatar_image"><img src="{{ user_avatar(award.user) }}"
+                        alt="{{ award.badge.title }}" width="128" height="128" /></a>            
+                    <a href="{{ award.get_absolute_url() }}" class="label">
+                        <span class="user">{{ award.user }}</span></a>
+                </li>
+            {% endfor %}
+        </ul>
+    </section>
+
 </section>
 {% endif %}
 

@@ -1,0 +1,32 @@
+{% if nomination.creator %}
+{% trans domain=current_site.domain,
+         badge_url=nomination.badge.get_absolute_url(),
+         badge_title=nomination.badge.title,
+         nomination_url=nomination.get_absolute_url(),
+         user_name=nomination.nominee,
+         user_url=nomination.nominee.get_absolute_url(),
+         creator_user_name=nomination.creator,
+         creator_url=nomination.creator.get_absolute_url() %}
+
+<a href="{{ user_url }}">{{ user_name }}</a> 
+was <a href="{{ nomination_url }}">nominated</a> 
+by <a href="{{ creator_url }}">{{ creator_user_name }}</a> 
+for the badge <a href="{{ badge_url }}">{{ badge_title }}</a>. 
+Want to <a href="{{ nomination_url }}">approve it</a>?
+
+{% endtrans %}
+{% else %}
+{% trans domain=current_site.domain,
+         badge_url=nomination.badge.get_absolute_url(),
+         badge_title=nomination.badge.title,
+         nomination_url=nomination.get_absolute_url(),
+         user_name=nomination.nominee,
+         user_url=nomination.nominee.get_absolute_url() %}
+
+<a href="{{ user_url }}">{{ user_name }}</a> 
+was <a href="{{ nomination_url }}">nominated</a> 
+for the badge <a href="{{ badge_url }}">{{ badge_title }}</a>. 
+Want to <a href="{{ nomination_url }}">approve it</a>?
+
+{% endtrans %}
+{% endif %}

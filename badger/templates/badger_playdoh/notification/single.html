@@ -1,0 +1,23 @@
+{% extends "notification/base.html" %}
+
+{% block headtitle %}{{ _("Notices") }}{% endblock %}
+
+{% block content %}
+<section>
+    <header class="page-header">
+        <h1>
+            <span>{{ _("Notice") }}</span>
+            <small>(
+                <a href="{{ url('notification_notices') }}">{{ _("View all notices") }}</a>
+            )</small>
+        </h1>
+    </header>
+    
+    <div class="{{ notice.is_unseen() and 'unseen_notice' or 'notice' }}">
+        <span class="label label-info">{{ _(notice.notice_type.display) }}</span>
+        <span class="notice_message">{{ notice.message|safe }}</span>
+        <span class="notice_time">{{ notice.added }}</span>
+    </div>
+
+</section> 
+{% endblock %}

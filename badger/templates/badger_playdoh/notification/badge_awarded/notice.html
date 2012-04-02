@@ -1,0 +1,11 @@
+{% trans badge_url=award.badge.get_absolute_url(),
+            badge_title=award.badge.title,
+            award_url=award.get_absolute_url(),
+            user_name=award.user,
+            user_url=award.user.get_absolute_url() %}
+
+<a href="{{ badge_url }}">{{ badge_title }}</a> was 
+<a href="{{ award_url }}">awarded</a> to 
+<a href="{{ user_url }}">{{ user_name }}</a>.
+
+{% endtrans %}

@@ -1,0 +1,1 @@
+{% trans site_name=current_site.name, badge_title=badge.title %}[{{ site_name }}] Claim your award for the badge "{{ badge_title }}"{% endtrans %}

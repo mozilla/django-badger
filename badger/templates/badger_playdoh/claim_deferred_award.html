@@ -1,6 +1,6 @@
 {% extends "badger/base.html" %}
 
-{% block pageid %}badge_award{% endblock %}
+{% block pageid %}claim_badge{% endblock %}
 
 {% block content %}
 
@@ -8,15 +8,13 @@
 
     <section class="span3">
         <header class="page-header">
-            <h2>{{ _("Issue an award") }}</h2>
+            <h2>{{ _("Claim an award") }}</h2>
         </header>
 
-        <form id="award_badge" method="POST" action="" enctype="multipart/form-data">
+        <form id="claim_award" method="POST" action="">
             {{ csrf() }}
-            <ul>
-                {{ form.as_ul() }}
-                <li><input type="submit" class="submit" value="{{ _("Award") }}"></li>
-            </ul>
+            <p>{{ _("If you're reading this, then you can claim an award for this badge!") }}</p>
+            <input type="submit" class="submit" value="{{ _("Claim your award") }}">
         </form>
     </section>
 
@@ -28,4 +26,5 @@
     </section>
 
 </section>
+
 {% endblock %}

@@ -10,7 +10,9 @@
 
 {% block content %}
 <section class="awards_list">
-    <h2>Awards for {{ user }}</h2>
+    <header class="page-header">
+        <h2>{{ _("Awards for {user}") | f(user=user) }}</h2>
+    </header>
     {% include "badger/includes/awards_as_badges_list.html" %}
 </section>
 {% endblock %}

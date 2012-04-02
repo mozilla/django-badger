@@ -1,0 +1,13 @@
+{% trans domain=current_site.domain, 
+         badge_url=badge.get_absolute_url(),
+         badge_title=badge.title,
+         claim_url=deferred_award.get_claim_url(),
+         protocol=(protocol or 'http') %}
+
+You have received an award for the badge {{ badge_title }}.
+
+You can claim it, here:
+
+    {{ protocol }}://{{ domain }}{{ claim_url }}
+    
+{% endtrans %}

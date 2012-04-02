@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{# Broken for now, and seems not-so-useful because needs auth
+{% block extrahead %}
+<link rel="alternate" type="application/atom+xml" title="Notices Feed" 
+    href="{{ url('notification_feed_for_user') }}" />
+{% endblock %}
+#}
+
+{% block bodyclass %}notices{% endblock %}
+
+{#
+{% block subnav %}
+    {% if user.is_authenticated %}
+        <ul>
+            <li><a href="{{ url('notification_notices') }}">{{ _("Notices") }}</a></li>
+            <li><a href="{{ url('notification_notice_settings') }}">{{ _("Settings") }}</a></li>
+        </ul>
+    {% else %}
+        &nbsp;
+    {% endif %}
+{% endblock %}
+#}

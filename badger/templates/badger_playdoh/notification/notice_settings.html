@@ -1,0 +1,44 @@
+{% extends "notification/base.html" %}
+
+{% block headtitle %}{{ _("Notification Settings") }}{% endblock %}
+
+{% block content %}
+    
+    <section class="notice_settings">
+        <header class="page-header">
+            <h1>{{ _("Notification Settings") }}</h1>
+        </header>
+        
+       <p>
+            {{ _("Primary email") }}:<br />
+            <b>{{ user.email }}</b><br />
+       </p>
+        
+        <form method="POST" action="">
+            {{ csrf() }}
+            <table class="notice_settings">
+                <tr>
+                    <th>{{ _("Notification Type") }}</th>
+                    {% for header in notice_settings.column_headers %}
+                        <th>{{ header }}</th>
+                    {% endfor %}
+                </tr>
+                {% for row in notice_settings.rows %}
+                    <tr>
+                        <td>{{ _(row.notice_type.display) }}<br/>
+                            <span class="notice_type_description">{{ _(row.notice_type.description) }}</span>
+                        </td>
+                        {% for cell in row.cells %}
+                            <td>
+                                <input type="checkbox" name="{{ cell.0 }}" {% if cell.1 %}checked="yes"{% endif %}/>
+                            </td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+                <tr>
+                    <td><input type="submit" value="{{ _("Change") }}" /></td>
+                </tr>
+            </table>
+        </form>
+    </section>
+{% endblock %}

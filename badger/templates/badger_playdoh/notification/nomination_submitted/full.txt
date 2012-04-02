@@ -1,0 +1,30 @@
+{% if nomination.creator %}
+{% trans domain=current_site.domain,
+         protocol=(protocol or 'http'),
+         badge_title=nomination.badge.title,
+         nomination_url=nomination.get_absolute_url(),
+         user_name=nomination.nominee,
+         creator_user_name=nomination.creator %}
+
+{{ user_name }} was nominated by {{ creator_user_name }} for the badge {{ badge_title }}.
+
+You can approve the nomination, here:
+
+    {{ protocol }}://{{ domain }}{{ nomination_url }}
+    
+{% endtrans %}
+{% else %}
+{% trans domain=current_site.domain,
+         protocol=(protocol or 'http'),
+         badge_title=nomination.badge.title,
+         nomination_url=nomination.get_absolute_url(),
+         user_name=nomination.nominee %}
+
+{{ user_name }} was nominated by {{ creator_user_name }} for the badge {{ badge_title }}.
+
+You can approve the nomination, here:
+
+    {{ protocol }}://{{ domain }}{{ nomination_url }}
+    
+{% endtrans %}
+{% endif %}

@@ -10,17 +10,26 @@
 
 {% block content %}
 
-<h2>Badge detail for {{badge.title}}</h2>
+<section class="row-fluid">
+    <section>
+        <header class="page-header">
+            <h2>{{ _("Badge detail for {title}") | f(title=badge.title) }}</h2>
+        </header>
+        {% include "badger/includes/badge_full.html" %}
+    </section>
 
-{% include "badger/includes/badge_full.html" %}
+    <section>
+        <header class="page-header">
+            <h2>{{_("Awards")}}</h2>
+        </header>
+        <ul class="awards">
+            {% for award in awards %}
+            <li>
+                {% include "badger/includes/award_as_user.html" %}
+            </li>
+            {% endfor %}
+        </ul>
+    </section>
+</section>
 
-<h2>Awards</h2>
-
-<ul class="awards">
-    {% for award in awards %}
-    <li>
-        {% include "badger/includes/award_as_user.html" %}
-    </li>
-    {% endfor %}
-</ul>
 {% endblock %}

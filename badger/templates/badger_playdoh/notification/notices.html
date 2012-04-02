@@ -1,0 +1,32 @@
+{% extends "notification/base.html" %}
+
+{% block headtitle %}{{ _("Notices") }}{% endblock %}
+
+{% block content %}
+<section>
+    <header class="page-header">
+        <h1>
+            <span>{{ _("Notices") }}</span>
+            <small>(
+                <a href="{{ url('notification_notice_settings') }}">{{ _("Settings") }}</a>,
+                <a href="{{ url('notification_mark_all_seen') }}">{{ _("Mark all read") }}</a>
+            )</small>
+        </h1>
+    </header>
+    
+    <ul class="notices">
+    {% if notices %}
+        {% for notice in notices[:50] %}{# TODO: Paginate #}
+            <li id="notice-{{ notice.id }}" class="{{ notice.is_unseen() and 'unseen_notice' or 'notice' }}">
+                <a class="notice_time" href="{{ notice.get_absolute_url() }}">{{ notice.added }}</a>
+                <span class="notice_type label">{{ _(notice.notice_type.display) }}</span>
+                <span class="notice_message">{{ notice.message|safe }}</span>
+            </li>
+        {% endfor %}
+    {% else %}
+        <li class="notice"><p>{{ _("No notices.") }}</p></li>
+    {% endif %}
+    </ul>
+
+</section> 
+{% endblock %}

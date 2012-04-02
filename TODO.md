@@ -2,6 +2,8 @@
 
 ### Core
 
+* Update vanilla django templates
+
 * Update to work with OBI changes
     * Use salty hashes instead of email addresses
     * Dump / disable / comment out in-house badge OBI baking in favor of
