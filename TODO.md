@@ -2,13 +2,6 @@
 
 ### Core
 
-* ?next URL after sign in appears not to work.
-    * Breaks the claim after sign in process
-
-* Access levels
-    * Exhibitors can create and award badges
-    * attendees can receive awards
-
 * Claim codes
     * QR codes
     * Per-badge, non-unique
@@ -16,9 +9,8 @@
     * Tool to mass-generate single-use claim codes
         * Page to list all self-owned deferred awards for a badge
             * Printable stylesheet, make easily cut-out claim tickets
-
-* Expiration time on DeferredAward
-    * reusables should self-destruct after the end-time of an event
+    * Expiration time on DeferredAward
+        * reusables should self-destruct after the end-time of an event
 
 * Tags for badges?
     * Geeky, but hashtags are in popular use now
