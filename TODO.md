@@ -3,14 +3,31 @@
 ### Core
 
 * Claim codes
-    * QR codes
-    * Per-badge, non-unique
     * Reusable claim code management for badge owner
-    * Tool to mass-generate single-use claim codes
+        * Tool to mass-generate single-use claim codes
         * Page to list all self-owned deferred awards for a badge
-            * Printable stylesheet, make easily cut-out claim tickets
+            * Printable stylesheet, make easily cut-out physical claim tickets
     * Expiration time on DeferredAward
         * reusables should self-destruct after the end-time of an event
+    * "Giftable" claim code
+        * Allows someone with access to the claim code to process it on behalf
+          of someone else.
+          * e.g. Registration desk with net access at an event. Hand over the
+            code, registration worker visits claim URL, enters email address of
+            claimant. Claimant gets the award.
+        * With reusable deferred award: Enter an email address, clone the
+          deferred award as a single-use assigned to the given email.
+        * With a single-use: Enter an email address and assign it to the
+          deferred award. Blank out or regenerate the claim code.
+
+* user-managed trophycase(s)
+    * multiple user-curated display sets of awards
+    * needs a decent printable stylesheet to make lanyards
+    * QR code built-in?
+    * maybe just outsource this to openbadges.org
+        * combine award acceptance in Badger with a subsequent JS call to OBI
+          issuing API.
+        * Can it be iframe'd into the profile page?
 
 * Tags for badges?
     * Geeky, but hashtags are in popular use now
@@ -24,20 +41,15 @@
     * Dump / disable / comment out in-house badge OBI baking in favor of
       outsourcing to openbadges.org
 
+* Fix sign-in immediately after sign-out
+    * Seems like the CSRF token in the session gets dumped, which makes the
+      sign-in button broken
+
 * Subdomains
     * Origin for umbrella issuer, based on user or group?
     * Useful for an event?
 
 * Update vanilla django templates
-
-* user-managed trophycase(s)
-    * multiple user-curated display sets of awards
-    * needs a decent printable stylesheet to make lanyards
-    * QR code built-in?
-    * maybe just outsource this to openbadges.org
-        * combine award acceptance in Badger with a subsequent JS call to OBI
-          issuing API.
-        * Can it be iframe'd into the profile page?
 
 * Award description / explanation field
 
