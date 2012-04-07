@@ -8,7 +8,7 @@
         * Page to list all self-owned deferred awards for a badge
             * Printable stylesheet, make easily cut-out physical claim tickets
     * Expiration time on DeferredAward
-        * reusables should self-destruct after the end-time of an event
+        * should be able to self-destruct after the end-time of an event
     * "Giftable" claim code
         * Allows someone with access to the claim code to process it on behalf
           of someone else.
