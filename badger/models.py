@@ -262,6 +262,13 @@ class BadgeManager(models.Manager, SearchManagerMixin):
     """Manager for Badge model objects"""
     search_fields = ('title', 'slug', 'description', )
 
+    def allows_add_by(self, user):
+        if getattr(settings, "BADGER_ALLOW_ADD_BY_ANYONE", False):
+            return True
+        if user.has_perm('badger.add_badge'):
+            return True
+        return False
+
 
 class Badge(models.Model):
     """Representation of a badge"""
@@ -322,8 +329,12 @@ class Badge(models.Model):
                                   dict(badge=self,
                                        protocol=DEFAULT_HTTP_PROTOCOL))
 
+    def allows_detail_by(self, user):
+        # TODO: Need some logic here, someday.
+        return True
+
     def allows_edit_by(self, user):
-        if user.is_staff or user.is_superuser:
+        if user.has_perm('badger.change_badge'):
             return True
         if user == self.creator:
             return True
@@ -481,6 +492,10 @@ class Award(models.Model):
     def get_upload_meta(self):
         u = self.user.username
         return ("award/%s/%s/%s" % (u[0], u[1], u), self.badge.slug)
+
+    def allows_detail_by(self, user):
+        # TODO: Need some logic here, someday.
+        return True
 
     def save(self, *args, **kwargs):
 
@@ -702,6 +717,16 @@ class DeferredAward(models.Model):
 
     class Meta:
         ordering = ['-modified', '-created']
+
+    get_permissions_for = get_permissions_for
+
+    def allows_detail_by(self, user):
+        # TODO: Need some logic here, someday.
+        return True
+
+    def allows_claim_by(self, user):
+        # TODO: Need some logic here, someday.
+        return True
 
     def get_claim_url(self):
         """Get the URL to a page where this DeferredAward can be claimed."""

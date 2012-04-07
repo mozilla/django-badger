@@ -35,7 +35,6 @@ except ImportError:
 
 @register.function
 def user_avatar(user, secure=False, size=256, rating='pg', default=''):
-
     try:
         profile = user.get_profile()
         if profile.avatar:
@@ -55,13 +54,20 @@ def user_avatar(user, secure=False, size=256, rating='pg', default=''):
         ))
     )
 
+
 @register.function
 def user_awards(user):
     return Award.objects.filter(user=user)
 
+
 @register.function
 def user_badges(user):
     return Badge.objects.filter(creator=user)
+
+
+@register.function
+def badger_allows_add_by(user):
+    return Badge.objects.allows_add_by(user)
 
 
 @register.function

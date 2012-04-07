@@ -77,6 +77,9 @@ def badges_list(request):
 def detail(request, slug, format="html"):
     """Badge detail view"""
     badge = get_object_or_404(Badge, slug=slug)
+    if not badge.allows_detail_by(request.user):
+        return HttpResponseForbidden()
+
     awards = (Award.objects.filter(badge=badge)
                            .order_by('-created'))[:MAX_RECENT]
 
@@ -149,6 +152,8 @@ def award_detail(request, slug, id, format="html"):
     """Award detail view"""
     badge = get_object_or_404(Badge, slug=slug)
     award = get_object_or_404(Award, badge=badge, pk=id)
+    if not award.allows_detail_by(request.user):
+        return HttpResponseForbidden()
 
     if format == 'json':
         data = simplejson.dumps(award.as_obi_assertion(request))
@@ -168,6 +173,8 @@ def claim_deferred_award(request, claim_code=None):
     if not claim_code:
         claim_code = request.GET.get('code', '').strip()
     deferred_award = get_object_or_404(DeferredAward, claim_code=claim_code)
+    if not deferred_award.allows_claim_by(request.user):
+        return HttpResponseForbidden()
 
     if request.method == "POST":
         award = deferred_award.claim(request.user)
