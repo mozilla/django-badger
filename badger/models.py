@@ -267,21 +267,31 @@ class Badge(models.Model):
     """Representation of a badge"""
     objects = BadgeManager()
 
-    title = models.CharField(max_length=255, blank=False, unique=True)
-    slug = models.SlugField(blank=False, unique=True)
-    description = models.TextField(blank=True)
+    title = models.CharField(max_length=255, blank=False, unique=True,
+            help_text="Short, descriptive title")
+    slug = models.SlugField(blank=False, unique=True,
+            help_text="Very short name, for use in URLs and links")
+    description = models.TextField(blank=True,
+            help_text="Longer description of the badge and its criteria")
     image = models.ImageField(blank=True, null=True,
-                              storage=BADGE_UPLOADS_FS,
-                              upload_to=mk_upload_to('image','png'))
+            storage=BADGE_UPLOADS_FS, upload_to=mk_upload_to('image','png'),
+            help_text="Upload an image to represent the badge")
     prerequisites = models.ManyToManyField('self', symmetrical=False,
-                                            blank=True, null=True)
-    unique = models.BooleanField(default=False)
+            blank=True, null=True,
+            help_text="When all of the selected badges have been awarded, this "
+                      "badge will be automatically awarded.")
+    # TODO: Rename? Eventually we'll want a globally-unique badge. That is, one
+    # unique award for one person for the whole site.
+    unique = models.BooleanField(default=False,
+            help_text="Should only one award of this badge be allowed per "
+                      "person?")
     creator = models.ForeignKey(User, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, blank=False)
     modified = models.DateTimeField(auto_now=True, blank=False)
 
     class Meta:
         unique_together = ('title', 'slug')
+        ordering = ['-modified', '-created']
 
     get_permissions_for = get_permissions_for
 
@@ -456,6 +466,9 @@ class Award(models.Model):
     modified = models.DateTimeField(auto_now=True, blank=False)
 
     get_permissions_for = get_permissions_for
+
+    class Meta:
+        ordering = ['-modified', '-created']
 
     def __unicode__(self):
         by = self.creator and (' by %s' % self.creator) or ''
@@ -682,11 +695,13 @@ class DeferredAward(models.Model):
     reusable = models.BooleanField(default=False)
     email = models.EmailField(blank=True, null=True, db_index=True)
     claim_code = models.CharField(max_length=CLAIM_CODE_LENGTH,
-            default=make_random_code, editable=False, unique=True,
-            db_index=True)
+            default=make_random_code, unique=True, db_index=True)
     creator = models.ForeignKey(User, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, blank=False)
     modified = models.DateTimeField(auto_now=True, blank=False)
+
+    class Meta:
+        ordering = ['-modified', '-created']
 
     def get_claim_url(self):
         """Get the URL to a page where this DeferredAward can be claimed."""

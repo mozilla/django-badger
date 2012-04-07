@@ -5,6 +5,7 @@ from django.conf import settings
 
 from django.contrib.auth.models import SiteProfileNotAvailable
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils.html import conditional_escape
 
 try:
     from commons.urlresolvers import reverse
@@ -61,3 +62,13 @@ def user_awards(user):
 @register.function
 def user_badges(user):
     return Badge.objects.filter(creator=user)
+
+
+@register.function
+def qr_code_image(value, alt=None, size=150):
+    url = conditional_escape("http://chart.apis.google.com/chart?%s" % \
+            urllib.urlencode({'chs':'%sx%s' % (size, size), 'cht':'qr', 'chl':value, 'choe':'UTF-8'}))
+    alt = conditional_escape(alt or value)
+    
+    return Markup(u"""<img class="qrcode" src="%s" width="%s" height="%s" alt="%s" />""" %
+                  (url, size, size, alt))

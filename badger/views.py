@@ -163,8 +163,10 @@ def award_detail(request, slug, id, format="html"):
 
 @require_http_methods(['GET', 'POST'])
 @login_required
-def claim_deferred_award(request, claim_code):
+def claim_deferred_award(request, claim_code=None):
     """Deferred award detail view"""
+    if not claim_code:
+        claim_code = request.GET.get('code', '').strip()
     deferred_award = get_object_or_404(DeferredAward, claim_code=claim_code)
 
     if request.method == "POST":
