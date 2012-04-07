@@ -50,6 +50,7 @@ class BadgerViewsTest(BadgerTestCase):
         ok_('/accounts/login' in r['Location'])
 
         # Should be fine after login
+        settings.BADGER_ALLOW_ADD_BY_ANYONE = True
         self.client.login(username="tester", password="trustno1")
         r = self.client.get(reverse('badger_multiplayer.views.create'))
         eq_(200, r.status_code)

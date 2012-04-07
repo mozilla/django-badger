@@ -54,6 +54,9 @@ def badges_by_user(request, username):
 @login_required
 def create(request):
     """Create a new badge"""
+    if not Badge.objects.allows_add_by(request.user):
+        return HttpResponseForbidden()
+
     if request.method != "POST":
         form = BadgeNewForm()
     else:
