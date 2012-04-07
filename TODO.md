@@ -2,17 +2,50 @@
 
 ### Core
 
-* Update vanilla django templates
+* ?next URL after sign in appears not to work.
+    * Breaks the claim after sign in process
+
+* Access levels
+    * Exhibitors can create and award badges
+    * attendees can receive awards
+
+* Claim codes
+    * QR codes
+    * Per-badge, non-unique
+    * Reusable claim code management for badge owner
+    * Tool to mass-generate single-use claim codes
+        * Page to list all self-owned deferred awards for a badge
+            * Printable stylesheet, make easily cut-out claim tickets
+
+* Expiration time on DeferredAward
+    * reusables should self-destruct after the end-time of an event
+
+* Tags for badges?
+    * Geeky, but hashtags are in popular use now
+    * Data visualization on badge tag page
+        * how many awards per badge, maybe some nice pie charts
+        * who's being awarded?
+        * who's authored badges?
 
 * Update to work with OBI changes
     * Use salty hashes instead of email addresses
     * Dump / disable / comment out in-house badge OBI baking in favor of
       outsourcing to openbadges.org
 
-* Claim codes
-    * QR codes
-    * Per-badge, non-unique
-    * Reusable claim code management for badge owner
+* Subdomains
+    * Origin for umbrella issuer, based on user or group?
+    * Useful for an event?
+
+* Update vanilla django templates
+
+* user-managed trophycase(s)
+    * multiple user-curated display sets of awards
+    * needs a decent printable stylesheet to make lanyards
+    * QR code built-in?
+    * maybe just outsource this to openbadges.org
+        * combine award acceptance in Badger with a subsequent JS call to OBI
+          issuing API.
+        * Can it be iframe'd into the profile page?
 
 * Award description / explanation field
 
@@ -45,19 +78,11 @@
 
 * Update README for django-badger with docs and more description of features
 
-* Tags on badges?
-
 * Busybox game demo that exercises badge progress, metabadges, etc.
 
 * design help needed
     * overall layout and UI
     * visual cues for badge vs user vs award
-
-* user-managed trophycase(s)
-    * multiple user-curated display sets of awards
-    * needs a decent printable stylesheet to make lanyards
-    * QR code built-in?
-    * maybe just outsource this to openbadges.org
 
 ### Multiplayer
 
