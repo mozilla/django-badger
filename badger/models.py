@@ -290,8 +290,8 @@ class Badge(models.Model):
     # TODO: Rename? Eventually we'll want a globally-unique badge. That is, one
     # unique award for one person for the whole site.
     unique = models.BooleanField(default=False,
-            help_text="Should only one award of this badge be allowed per "
-                      "person?")
+            help_text="Should awards of this badge be restricted to "
+                      "one-per-person?")
     creator = models.ForeignKey(User, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, blank=False)
     modified = models.DateTimeField(auto_now=True, blank=False)
@@ -701,6 +701,10 @@ def make_random_code():
     return ''.join([random.choice(s) for x in range(CLAIM_CODE_LENGTH)])
 
 
+class DeferredAwardGrantNotAllowedException(BadgerException):
+    """Attempt to grant a DeferredAward not allowed"""
+
+
 class DeferredAward(models.Model):
     """Deferred award, can be converted into into a real award."""
     objects = DeferredAwardManager()
@@ -717,6 +721,10 @@ class DeferredAward(models.Model):
 
     class Meta:
         ordering = ['-modified', '-created']
+        permissions = (
+            ("grant_deferredaward",
+             "Can grant deferred award to an email address"),
+        )
 
     get_permissions_for = get_permissions_for
 
@@ -727,6 +735,15 @@ class DeferredAward(models.Model):
     def allows_claim_by(self, user):
         # TODO: Need some logic here, someday.
         return True
+
+    def allows_grant_by(self, user):
+        if user.has_perm('badger.grant_deferredaward'):
+            return True
+        if self.badge.allows_award_to(user):
+            return True
+        if user == self.creator:
+            return True
+        return False
 
     def get_claim_url(self):
         """Get the URL to a page where this DeferredAward can be claimed."""
@@ -764,6 +781,23 @@ class DeferredAward(models.Model):
                 BadgeAwardNotAllowedException), e:
             # Just swallow up and ignore any issues in awarding.
             pass
+
+    def grant_to(self, email, granter):
+        """Grant this deferred award to the given email"""
+        if not self.allows_grant_by(granter):
+            raise DeferredAwardGrantNotAllowedException()
+        if not self.reusable:
+            # If not reusable, reassign email and regenerate claim code.
+            self.email = email
+            self.claim_code = make_random_code()
+            self.save()
+            return self
+        else:
+            # If reusable, create a clone and leave this deferred award alone.
+            new_da = DeferredAward(badge=self.badge, email=email,
+                                   creator=granter, reusable=False)
+            new_da.save()
+            return new_da
 
 
 @receiver(user_logged_in)

@@ -36,6 +36,7 @@ import badger
 from badger.models import (Badge, Award, Progress, DeferredAward,
         BadgeAwardNotAllowedException,
         BadgeAlreadyAwardedException,
+        DeferredAwardGrantNotAllowedException,
         SITE_ISSUER)
 
 from badger.tests.badger_example.models import GuestbookEntry
@@ -298,3 +299,82 @@ class BadgerDeferredAwardTest(BadgerTestCase):
         eq_(0, DeferredAward.objects.filter(claim_code=code).count())
         
         ok_(not badge1.is_awarded_to(awardee))
+
+    def test_granted_claim(self):
+        """Reusable deferred award can be granted to someone by email"""
+
+        # Assemble the characters involved...
+        creator = self._get_user()
+        random_guy = self._get_user(username='random_guy',
+                                    email='random_guy@example.com',
+                                    is_superuser=False)
+        staff_person = self._get_user(username='staff_person', 
+                                      email='staff@example.com',
+                                      is_staff=True)
+        grantee_email = 'winner@example.com'
+        grantee = self._get_user(username='winner1',
+                                 email=grantee_email)
+
+        # Create a consumable award claim
+        badge1 = self._get_badge(title="Test A", creator=creator)
+        original_email = 'original@example.com'
+        da = DeferredAward(badge=badge1, creator=creator, email=original_email)
+        claim_code = da.claim_code
+        da.save()
+
+        # Grant the deferred award, ensure the existing one is modified.
+        new_da = da.grant_to(email=grantee_email, granter=staff_person)
+        ok_(claim_code != new_da.claim_code)
+        ok_(da.email != original_email)
+        eq_(da.pk, new_da.pk)
+        eq_(new_da.email, grantee_email)
+
+        # Claim the deferred award, assert that the appropriate deferred award
+        # was destroyed
+        eq_(1, DeferredAward.objects.filter(pk=da.pk).count())
+        eq_(1, DeferredAward.objects.filter(pk=new_da.pk).count())
+        DeferredAward.objects.claim_by_email(grantee)
+        eq_(0, DeferredAward.objects.filter(pk=da.pk).count())
+        eq_(0, DeferredAward.objects.filter(pk=new_da.pk).count())
+
+        # Finally, assert the award condition
+        ok_(badge1.is_awarded_to(grantee))
+
+        # Create a reusable award claim
+        badge2 = self._get_badge(title="Test B", creator=creator)
+        da = DeferredAward(badge=badge2, creator=creator, reusable=True)
+        claim_code = da.claim_code
+        da.save()
+
+        # Grant the deferred award, ensure a new deferred award is generated.
+        new_da = da.grant_to(email=grantee_email, granter=staff_person)
+        ok_(claim_code != new_da.claim_code)
+        ok_(da.pk != new_da.pk)
+        eq_(new_da.email, grantee_email)
+
+        # Claim the deferred award, assert that the appropriate deferred award
+        # was destroyed
+        eq_(1, DeferredAward.objects.filter(pk=da.pk).count())
+        eq_(1, DeferredAward.objects.filter(pk=new_da.pk).count())
+        DeferredAward.objects.claim_by_email(grantee)
+        eq_(1, DeferredAward.objects.filter(pk=da.pk).count())
+        eq_(0, DeferredAward.objects.filter(pk=new_da.pk).count())
+
+        # Finally, assert the award condition
+        ok_(badge2.is_awarded_to(grantee))
+
+        # Create one more award claim
+        badge3 = self._get_badge(title="Test C", creator=creator)
+        da = DeferredAward(badge=badge3, creator=creator)
+        claim_code = da.claim_code
+        da.save()
+
+        # Grant the deferred award, ensure a new deferred award is generated.
+        try:
+            new_da = da.grant_to(email=grantee_email, granter=random_guy)
+            is_ok = False
+        except Exception, e:
+            ok_(type(e) is DeferredAwardGrantNotAllowedException)
+            is_ok = True
+
+        ok_(is_ok, "Permission should be required for granting")
