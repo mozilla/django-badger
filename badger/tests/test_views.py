@@ -27,7 +27,7 @@ except ImportError, e:
 
 from . import BadgerTestCase
 
-from badger.models import (Badge, Award, Progress,
+from badger.models import (Badge, Award, Progress, DeferredAward,
         BadgeAwardNotAllowedException)
 from badger.utils import get_badge, award_badge
 
@@ -180,13 +180,9 @@ class BadgerViewsTest(BadgerTestCase):
 
     def test_issue_deferred_award(self):
         """Deferred award for a badge can be issued to an email address."""
-
         deferred_email = "awardee@example.com"
-
         user1 = self._get_user(username="creator", email="creator@example.com")
-
         b1 = Badge.objects.create(creator=user1, title="Badge to defer")
-
         url = reverse('badger.views.award_badge', args=(b1.slug,))
 
         self.client.login(username="creator", password="trustno1")
@@ -204,6 +200,36 @@ class BadgerViewsTest(BadgerTestCase):
         ), follow=False)
 
         ok_('award' not in r['Location'])
+
+        user2 = self._get_user(username="awardee", email=deferred_email)
+        self.client.login(username="awardee", password="trustno1")
+        r = self.client.get(reverse('badger.views.detail',
+            args=(b1.slug,)), follow=True)
+        ok_(b1.is_awarded_to(user2))
+
+    def test_grant_deferred_award(self):
+        """Deferred award for a badge can be granted to an email address."""
+        deferred_email = "awardee@example.com"
+        user1 = self._get_user(username="creator", email="creator@example.com")
+        b1 = Badge.objects.create(creator=user1, title="Badge to defer")
+        
+        da = DeferredAward(badge=b1, creator=user1, email='foobar@example.com')
+        da.save()
+        url = da.get_claim_url()
+
+        self.client.login(username="creator", password="trustno1")
+        r = self.client.get(url, follow=True)
+        eq_(200, r.status_code)
+
+        doc = pq(r.content)
+        form = doc('form#grant_award')
+        eq_(1, form.length)
+        eq_(1, form.find('*[name=email]').length)
+        eq_(1, form.find('input.submit,button.submit').length)
+
+        r = self.client.post(url, dict(
+            is_grant=1, email=deferred_email,
+        ), follow=False)
 
         user2 = self._get_user(username="awardee", email=deferred_email)
         self.client.login(username="awardee", password="trustno1")

@@ -57,3 +57,9 @@ class BadgeAwardForm(MyForm):
     """Form to create either a real or deferred badge award"""
     # TODO: Needs a captcha?
     email = forms.EmailField()
+
+
+class DeferredAwardGrantForm(MyForm):
+    """Form to grant a deferred badge award"""
+    # TODO: Needs a captcha?
+    email = forms.EmailField()

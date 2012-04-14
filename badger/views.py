@@ -42,7 +42,7 @@ try:
 except ImportError:
     from badger.models import Badge, Award, DeferredAward
 
-from .forms import (BadgeAwardForm)
+from .forms import (BadgeAwardForm, DeferredAwardGrantForm)
 
 BADGE_PAGE_SIZE = 21
 MAX_RECENT = 15
@@ -172,18 +172,36 @@ def claim_deferred_award(request, claim_code=None):
     if not claim_code:
         claim_code = request.GET.get('code', '').strip()
     deferred_award = get_object_or_404(DeferredAward, claim_code=claim_code)
-    if not deferred_award.allows_claim_by(request.user):
+    if not deferred_award.allows_detail_by(request.user):
         return HttpResponseForbidden()
 
-    if request.method == "POST":
-        award = deferred_award.claim(request.user)
-        if award:
-            return HttpResponseRedirect(reverse('badger.views.award_detail',
-                                                args=(award.badge.slug,
-                                                      award.id,)))
+    if request.method != "POST":
+        grant_form = DeferredAwardGrantForm()
+    else:
+        grant_form = DeferredAwardGrantForm(request.POST, request.FILES)
+        is_grant = request.POST.get('is_grant', None)
+        if not is_grant:
+            if not deferred_award.allows_claim_by(request.user):
+                return HttpResponseForbidden()
+            award = deferred_award.claim(request.user)
+            if award:
+                url = reverse('badger.views.award_detail',
+                              args=(award.badge.slug, award.id,))
+                return HttpResponseRedirect(url)
+        else:
+            if not deferred_award.allows_grant_by(request.user):
+                return HttpResponseForbidden()
+            if grant_form.is_valid():
+                email = request.POST.get('email', None)
+                deferred_award.grant_to(email=email, granter=request.user)
+                messages.info(request, _('Award claim granted to %s') % email)
+                url = reverse('badger.views.detail',
+                              args=(deferred_award.badge.slug,))
+                return HttpResponseRedirect(url)
 
     return render_to_response('badger/claim_deferred_award.html', dict(
         badge=deferred_award.badge, deferred_award=deferred_award,
+        grant_form=grant_form
     ), context_instance=RequestContext(request))
 
 
