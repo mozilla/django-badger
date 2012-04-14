@@ -734,6 +734,10 @@ class DeferredAward(models.Model):
 
     def allows_claim_by(self, user):
         # TODO: Need some logic here, someday.
+        # TODO: Could enforce that the user.email == self.email, but I want to
+        # allow for people with multiple email addresses. That is, I get an
+        # award claim invite sent to lorchard@mozilla.com, but I claim it while
+        # signed in as me@lmorchard.com. Warning displayed in the view.
         return True
 
     def allows_grant_by(self, user):
@@ -772,15 +776,16 @@ class DeferredAward(models.Model):
 
     def claim(self, awardee):
         """Claim the deferred award for the given user"""
-        if not self.reusable:
-            # Self-destruct, if not made reusable.
-            self.delete()
         try:
-            return self.badge.award_to(awardee=awardee, awarder=self.creator)
+            award = self.badge.award_to(awardee=awardee, awarder=self.creator)
         except (BadgeAlreadyAwardedException,
                 BadgeAwardNotAllowedException), e:
             # Just swallow up and ignore any issues in awarding.
-            pass
+            award = None
+        if not self.reusable:
+            # Self-destruct, if not made reusable.
+            self.delete()
+        return award
 
     def grant_to(self, email, granter):
         """Grant this deferred award to the given email"""
