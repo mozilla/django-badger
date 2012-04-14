@@ -113,12 +113,11 @@ def award_badge(request, slug):
                 if not hasattr(result, 'claim_code'):
                     messages.info(request, _('Award issued to %s') % email)
                     return HttpResponseRedirect(
-                            reverse('badger.views.award_detail', 
-                                    args=(badge.slug, result.id,)))
+                            reverse('badger.views.detail', 
+                                    args=(badge.slug,)))
                 else:
-                    messages.info(request, _('%s is not a known user, ' 
-                                             'invitation to claim award '
-                                             'sent') % email)
+                    messages.info(request, _('Invitation to claim award '
+                                             'sent to %s') % email)
                     return HttpResponseRedirect(
                             reverse('badger.views.detail', 
                                     args=(badge.slug,)))
