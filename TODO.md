@@ -2,23 +2,34 @@
 
 ### Core
 
+* Check up on errors in image upload process, particularly for size.
+
 * Claim codes
-    * Reusable claim code management for badge owner
+    * claim code management for badge owner
         * Tool to mass-generate single-use claim codes
         * Page to list all self-owned deferred awards for a badge
             * Printable stylesheet, make easily cut-out physical claim tickets
     * Expiration time on DeferredAward
         * should be able to self-destruct after the end-time of an event
-    * "Giftable" claim code
-        * Allows someone with access to the claim code to process it on behalf
-          of someone else.
-          * e.g. Registration desk with net access at an event. Hand over the
-            code, registration worker visits claim URL, enters email address of
-            claimant. Claimant gets the award.
-        * With reusable deferred award: Enter an email address, clone the
-          deferred award as a single-use assigned to the given email.
-        * With a single-use: Enter an email address and assign it to the
-          deferred award. Blank out or regenerate the claim code.
+        * scheduled cron task to delete expired
+
+* Tags for badges?
+    * Geeky, but hashtags are in popular use now
+    * Data visualization on badge tag page
+        * how many awards per badge, maybe some nice pie charts
+        * who's being awarded?
+        * who's authored badges?
+
+* Track which awards have been pushed to the Backpack, offer to push those in
+  need on visit to profile.
+
+* Allow users to ignore, reject, delete, hide awards
+
+* Fewer public displays for non-multiplayer
+    * Front page is user's profile by default.
+    * Redirect to backpack?
+    * Hide recent awards?
+    * Do not show other users?
 
 * user-managed trophycase(s)
     * multiple user-curated display sets of awards
@@ -29,13 +40,6 @@
           issuing API.
         * Can it be iframe'd into the profile page?
 
-* Tags for badges?
-    * Geeky, but hashtags are in popular use now
-    * Data visualization on badge tag page
-        * how many awards per badge, maybe some nice pie charts
-        * who's being awarded?
-        * who's authored badges?
-
 * Update to work with OBI changes
     * Use salty hashes instead of email addresses
     * Dump / disable / comment out in-house badge OBI baking in favor of
@@ -45,17 +49,22 @@
     * Seems like the CSRF token in the session gets dumped, which makes the
       sign-in button broken
 
+* Merge django-badger and django-badger-multiplayer?
+    * The separation is a bit confusing
+    * Might be more interesting to just control features through switches and
+      permissions
+
 * Subdomains
     * Origin for umbrella issuer, based on user or group?
     * Useful for an event?
+    * DNS wildcard entry + Host: header
+    * See: http://www.redrobotstudios.com/blog/2008/12/12/handling-subdomains-in-django/
 
 * Update vanilla django templates
 
 * Award description / explanation field
 
 * Nomination description / explanation field
-
-* Allow users to ignore, reject, delete, hide awards
 
 * Thumbnail sizing on image uploads for badges and profile avatars
 
@@ -116,6 +125,10 @@
     * List of users managed by badge creator who can
         * Issue awards
         * Approve nominations
+    * Just use plain old Django groups?
+        * Need a non-admin UI to manage the group associated with a badge.
+        * Should be possible to share the same group between badges. eg. assign
+          multiple badges to the same user group
 
 * Conditional nominations
     * Models
@@ -133,7 +146,8 @@
     * Open vs closed badge award nomination
 
 * Nomination with claim code
-    * Claim optionally triggers approval
+    * ie. DeferredNomination with claim code
+    * Claim triggers approval process
     * Could be expressed as QR code
 
 ### API
