@@ -4,13 +4,13 @@
 
 {% block content %}
 
-<h2>Submit a badge nomination</h2>
+<h2>Submit badge nominations</h2>
 
 <form id="nominate_badge" method="POST" action="" enctype="multipart/form-data">
     {{ csrf() }}
     <ul>
         {{ form.as_ul() }}
-        <li><input type="submit" class="submit" value="Nominate"></li>
+        <li><input type="submit" class="submit" value="Submit nominations"></li>
     </ul>
 </form>
 
