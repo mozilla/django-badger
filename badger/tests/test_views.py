@@ -167,16 +167,54 @@ class BadgerViewsTest(BadgerTestCase):
         doc = pq(r.content)
         form = doc('form#award_badge')
         eq_(1, form.length)
-        eq_(1, form.find('*[name=email]').length)
+        eq_(1, form.find('*[name=emails]').length)
         eq_(1, form.find('input.submit,button.submit').length)
 
         r = self.client.post(url, dict(
-            email=user2.email,
+            emails=user2.email,
         ), follow=False)
 
         ok_('award' in r['Location'])
 
         ok_(b1.is_awarded_to(user2))
+
+    def test_issue_multiple_awards(self):
+        """Multiple emails can be submitted at once to issue awards"""
+        # Build creator user and badge
+        creator = self._get_user(username="creator", email="creator@example.com")
+        b1 = Badge.objects.create(creator=creator, title="Badge to defer")
+
+        # Build future awardees
+        user1 = self._get_user(username="user1", email="user1@example.com")
+        user2 = self._get_user(username="user2", email="user2@example.com")
+        user3 = self._get_user(username="user3", email="user3@example.com")
+        user4_email = 'user4@example.com'
+
+        # Login as the badge creator, prepare to award...
+        self.client.login(username="creator", password="trustno1")
+        url = reverse('badger.views.award_badge', args=(b1.slug,))
+        r = self.client.get(url, follow=True)
+        eq_(200, r.status_code)
+
+        # Make sure the expected parts appear in the form.
+        doc = pq(r.content)
+        form = doc('form#award_badge')
+        eq_(1, form.length)
+        eq_(1, form.find('*[name=emails]').length)
+        eq_(1, form.find('input.submit,button.submit').length)
+
+        # Post a list of emails with a variety of separators.
+        r = self.client.post(url, dict(
+            emails=("%s,%s\n%s %s" %
+                    (user1.email, user2.email, user3.email, user4_email)),
+        ), follow=False)
+
+        # Ensure that the known users received awards and the unknown user got
+        # a deferred award.
+        ok_(b1.is_awarded_to(user1))
+        ok_(b1.is_awarded_to(user2))
+        ok_(b1.is_awarded_to(user3))
+        eq_(1, DeferredAward.objects.filter(email=user4_email).count())
 
     def test_issue_deferred_award(self):
         """Deferred award for a badge can be issued to an email address."""
@@ -192,11 +230,11 @@ class BadgerViewsTest(BadgerTestCase):
         doc = pq(r.content)
         form = doc('form#award_badge')
         eq_(1, form.length)
-        eq_(1, form.find('*[name=email]').length)
+        eq_(1, form.find('*[name=emails]').length)
         eq_(1, form.find('input.submit,button.submit').length)
 
         r = self.client.post(url, dict(
-            email=deferred_email,
+            emails=deferred_email,
         ), follow=False)
 
         ok_('award' not in r['Location'])

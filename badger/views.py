@@ -107,20 +107,17 @@ def award_badge(request, slug):
     else:
         form = BadgeAwardForm(request.POST, request.FILES)
         if form.is_valid():
-            email = form.cleaned_data['email']
-            result = badge.award_to(email=email, awarder=request.user)
-            if result:
-                if not hasattr(result, 'claim_code'):
-                    messages.info(request, _('Award issued to %s') % email)
-                    return HttpResponseRedirect(
-                            reverse('badger.views.detail', 
-                                    args=(badge.slug,)))
-                else:
-                    messages.info(request, _('Invitation to claim award '
-                                             'sent to %s') % email)
-                    return HttpResponseRedirect(
-                            reverse('badger.views.detail', 
-                                    args=(badge.slug,)))
+            emails = form.cleaned_data['emails']
+            for email in emails:
+                result = badge.award_to(email=email, awarder=request.user)
+                if result:
+                    if not hasattr(result, 'claim_code'):
+                        messages.info(request, _('Award issued to %s') % email)
+                    else:
+                        messages.info(request, _('Invitation to claim award '
+                                                 'sent to %s') % email)
+            return HttpResponseRedirect(reverse('badger.views.detail', 
+                                                args=(badge.slug,)))
 
     return render_to_response('badger/badge_award.html', dict(
         form=form, badge=badge,
