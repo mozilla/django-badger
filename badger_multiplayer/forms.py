@@ -12,7 +12,7 @@ except ImportError, e:
     from django.utils.translation import ugettext_lazy as _
 
 from badger.models import (Award)
-from badger.forms import (MyModelForm, MyForm)
+from badger.forms import (MyModelForm, MyForm, MultiEmailField)
 from badger_multiplayer.models import (Badge, Nomination)
 
 
@@ -20,7 +20,7 @@ class BadgeEditForm(MyModelForm):
 
     class Meta:
         model = Badge
-        fields = ('title', 'image', 'description',)
+        fields = ('title', 'image', 'description', 'unique',)
 
     required_css_class = "required"
     error_css_class = "error"
@@ -41,9 +41,9 @@ class BadgeNewForm(BadgeEditForm):
         #if not settings.RECAPTCHA_PRIVATE_KEY:
         #    del self.fields['captcha']
 
-class BadgeSubmitNominationForm(MyModelForm):
 
-    class Meta:
-        model = Nomination
-        fields = ('nominee', )
-
+class BadgeSubmitNominationForm(MyForm):
+    """Form to submit badge nominations"""
+    emails = MultiEmailField(max_emails=10,
+            help_text="Enter up to 10 email addresses for badge award "
+                      "nominees")

@@ -26,10 +26,12 @@ from django.views.generic.list_detail import object_list
 from django.views.decorators.http import (require_GET, require_POST,
                                           require_http_methods)
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 
 from badger.models import (Award, Progress,
+        BadgerException, BadgeAlreadyAwardedException,
         BadgeAwardNotAllowedException)
 
 from badger_multiplayer.models import (Badge, Nomination,
@@ -115,12 +117,12 @@ def nomination_detail(request, slug, id, format="html"):
         elif action == 'accept':
             nomination.accept(request.user)
         return HttpResponseRedirect(reverse(
-                'badger_multiplayer.views.nomination_detail', 
+                'badger_multiplayer.views.nomination_detail',
                 args=(slug, id)))
 
-    return render_to_response('badger_multiplayer/nomination_detail.html', dict(
-        badge=badge, nomination=nomination,
-    ), context_instance=RequestContext(request))
+    return render_to_response('badger_multiplayer/nomination_detail.html',
+                              dict(badge=badge, nomination=nomination,),
+                              context_instance=RequestContext(request))
 
 
 @require_http_methods(['GET', 'POST'])
@@ -136,12 +138,29 @@ def nominate_for(request, slug):
     else:
         form = BadgeSubmitNominationForm(request.POST, request.FILES)
         if form.is_valid():
-            award = badge.nominate_for(form.cleaned_data['nominee'], 
-                                       request.user)
-            return HttpResponseRedirect(reverse(
-                    'badger_multiplayer.views.nomination_detail', 
-                    args=(badge.slug, award.id, )))
+            emails = form.cleaned_data['emails']
+            for email in emails:
+                users = User.objects.filter(email=email)
+                if not users:
+                    # TODO: Need a deferred nomination mechanism for
+                    # non-registered users.
+                    pass
+                else:
+                    nominee = users[0]
+                    try:
+                        award = badge.nominate_for(nominee, request.user)
+                        messages.info(request,
+                            _('Nomination submitted for %s') % email)
+                    except BadgeAlreadyAwardedException, e:
+                        messages.info(request,
+                            _('Badge already awarded to %s') % email)
+                    except Exception, e:
+                        messages.info(request,
+                            _('Nomination failed for %s') % email)
 
-    return render_to_response('badger_multiplayer/badge_nominate_for.html', dict(
-        form=form, badge=badge,
-    ), context_instance=RequestContext(request))
+            return HttpResponseRedirect(reverse('badger.views.detail',
+                                                args=(badge.slug,)))
+
+    return render_to_response('badger_multiplayer/badge_nominate_for.html',
+                              dict(form=form, badge=badge,),
+                              context_instance=RequestContext(request))

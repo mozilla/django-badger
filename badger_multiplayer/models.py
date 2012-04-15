@@ -75,6 +75,11 @@ class Award(badger.models.Award):
     class Meta:
         proxy = True
 
+    def delete(self):
+        """Make sure nominations get deleted along with awards"""
+        Nomination.objects.filter(award=self).delete()
+        super(Award, self).delete()
+
     @property
     def badge(self):
         """Property that wraps the related badge in a multiplayer upgrade"""
