@@ -91,7 +91,7 @@ def detail(request, slug, format="html"):
     """Badge detail view"""
     badge = get_object_or_404(Badge, slug=slug)
     if not badge.allows_detail_by(request.user):
-        return HttpResponseForbidden()
+        return HttpResponseForbidden('Detail forbidden')
 
     awards = (Award.objects.filter(badge=badge)
                            .order_by('-created'))[:MAX_RECENT]
@@ -113,7 +113,7 @@ def award_badge(request, slug):
     """Issue an award for a badge"""
     badge = get_object_or_404(Badge, slug=slug)
     if not badge.allows_award_to(request.user):
-        return HttpResponseForbidden()
+        return HttpResponseForbidden('Award forbidden')
 
     if request.method != "POST":
         form = BadgeAwardForm()
@@ -162,7 +162,7 @@ def award_detail(request, slug, id, format="html"):
     badge = get_object_or_404(Badge, slug=slug)
     award = get_object_or_404(Award, badge=badge, pk=id)
     if not award.allows_detail_by(request.user):
-        return HttpResponseForbidden()
+        return HttpResponseForbidden('Award detail forbidden')
 
     if format == 'json':
         data = simplejson.dumps(award.as_obi_assertion(request))
@@ -183,7 +183,7 @@ def claim_deferred_award(request, claim_code=None):
         claim_code = request.GET.get('code', '').strip()
     deferred_award = get_object_or_404(DeferredAward, claim_code=claim_code)
     if not deferred_award.allows_detail_by(request.user):
-        return HttpResponseForbidden()
+        return HttpResponseForbidden('Claim detail denied')
 
     if request.method != "POST":
         grant_form = DeferredAwardGrantForm()
@@ -192,7 +192,7 @@ def claim_deferred_award(request, claim_code=None):
         is_grant = request.POST.get('is_grant', None)
         if not is_grant:
             if not deferred_award.allows_claim_by(request.user):
-                return HttpResponseForbidden()
+                return HttpResponseForbidden('Claim denied')
             award = deferred_award.claim(request.user)
             if award:
                 url = reverse('badger.views.award_detail',
@@ -200,7 +200,7 @@ def claim_deferred_award(request, claim_code=None):
                 return HttpResponseRedirect(url)
         else:
             if not deferred_award.allows_grant_by(request.user):
-                return HttpResponseForbidden()
+                return HttpResponseForbidden('Grant denied')
             if grant_form.is_valid():
                 email = request.POST.get('email', None)
                 deferred_award.grant_to(email=email, granter=request.user)
