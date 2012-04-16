@@ -331,12 +331,12 @@ class Badge(models.Model):
                       "badge will be automatically awarded.")
     # TODO: Rename? Eventually we'll want a globally-unique badge. That is, one
     # unique award for one person for the whole site.
-    unique = models.BooleanField(default=False,
+    unique = models.BooleanField(default=True,
             help_text="Should awards of this badge be restricted to "
                       "one-per-person?")
 
     if taggit:
-        tags = TaggableManager()
+        tags = TaggableManager(blank=True)
 
     creator = models.ForeignKey(User, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, blank=False)
