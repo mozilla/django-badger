@@ -32,6 +32,12 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 
+try:
+    import taggit
+    from taggit.models import Tag, TaggedItem
+except:
+    taggit = None
+
 from .models import (Progress,
         BadgeAwardNotAllowedException)
 
@@ -50,23 +56,30 @@ MAX_RECENT = 15
 
 def home(request):
     """Badger home page"""
+    badge_list = Badge.objects.order_by('-modified').all()[:MAX_RECENT]
+    award_list = Award.objects.order_by('-modified').all()[:MAX_RECENT]
+    badge_tags = Badge.objects.top_tags()
+
     return render_to_response('badger/home.html', dict(
-        badge_list=Badge.objects.order_by('-modified').all()[:MAX_RECENT],
-        award_list=Award.objects.order_by('-modified').all()[:MAX_RECENT],
+        badge_list=badge_list, award_list=award_list, badge_tags=badge_tags
     ), context_instance=RequestContext(request))
 
 
-def badges_list(request):
+def badges_list(request, tag_name=None):
     """Badges list page"""
     query_string = request.GET.get('q', None)
     if query_string is not None:
         sort_order = request.GET.get('sort', 'created')
         queryset = Badge.objects.search(query_string, sort_order)
-    else: 
+    elif taggit and tag_name:
+        tag = get_object_or_404(Tag, name=tag_name)
+        queryset = (Badge.objects.filter(tags__in=[tag]).distinct())
+    else:
         queryset = Badge.objects.order_by('-modified').all()
     return object_list(request, queryset,
         paginate_by=BADGE_PAGE_SIZE, allow_empty=True,
         extra_context=dict(
+            tag_name=tag_name,
             query_string=query_string
         ),
         template_object_name='badge',

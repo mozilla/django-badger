@@ -9,6 +9,8 @@ from .feeds import AwardsRecentFeed, AwardsByUserFeed, AwardsByBadgeFeed
 
 urlpatterns = patterns('badger.views',
     url(r'^$', 'badges_list', name='badger.badges_list'),
+    url(r'^tag/(?P<tag_name>[^/]+)/?$', 'badges_list',
+        name='badger.badges_list'),
     url(r'^awards/?', 'awards_list',
         name='badger.awards_list'),
     url(r'^badge/(?P<slug>[^/]+)/awards/?$', 'awards_list',

@@ -13,7 +13,7 @@ from urlparse import urljoin
 from django.conf import settings
 
 from django.db import models
-from django.db.models import signals, Q
+from django.db.models import signals, Q, Count
 from django.db.models.fields.files import FieldFile, ImageFieldFile
 from django.core.mail import send_mail
 from django.core.exceptions import ValidationError
@@ -25,6 +25,7 @@ from django.contrib.auth.models import User, AnonymousUser
 from django.contrib.sites.models import Site
 from django.contrib.auth.signals import user_logged_in
 from django.dispatch import receiver
+from django.contrib.contenttypes.models import ContentType
 
 from django.template import Context
 from django.template.loader import render_to_string
@@ -45,6 +46,13 @@ try:
     from PIL import Image
 except ImportError:
     import Image
+
+try:
+    import taggit
+    from taggit.managers import TaggableManager
+    from taggit.models import Tag, TaggedItem
+except:
+    taggit = None
 
 if "notification" in settings.INSTALLED_APPS:
     from notification import models as notification
@@ -269,6 +277,36 @@ class BadgeManager(models.Manager, SearchManagerMixin):
             return True
         return False
 
+    def top_tags(self, limit=10):
+        """Assemble list of top-used tags"""
+        if not taggit:
+            return []
+
+        # TODO: There has got to be a better way to do this. I got lost in
+        # Django model bits, though.
+        
+        # Gather list of tags sorted by use frequency
+        ct = ContentType.objects.get_for_model(Badge)
+        tag_counts = (TaggedItem.objects
+            .filter(content_type=ct)
+            .values('tag')
+            .annotate(count=Count('id'))
+            .order_by('-count'))
+
+        # Gather set of tag IDs from list
+        tag_ids = set(x['tag'] for x in tag_counts)
+        
+        # Gather and map tag objects to IDs
+        tags_by_id = dict((x.pk, x) 
+            for x in Tag.objects.filter(pk__in=tag_ids))
+        
+        # Join tag objects up with counts
+        tags_with_counts = [
+            dict(count=x['count'], tag=tags_by_id[x['tag']])
+            for x in tag_counts]
+
+        return tags_with_counts
+
 
 class Badge(models.Model):
     """Representation of a badge"""
@@ -292,6 +330,10 @@ class Badge(models.Model):
     unique = models.BooleanField(default=False,
             help_text="Should awards of this badge be restricted to "
                       "one-per-person?")
+
+    if taggit:
+        tags = TaggableManager()
+
     creator = models.ForeignKey(User, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, blank=False)
     modified = models.DateTimeField(auto_now=True, blank=False)

@@ -13,12 +13,11 @@
         * should be able to self-destruct after the end-time of an event
         * scheduled cron task to delete expired
 
-* Tags for badges?
-    * Geeky, but hashtags are in popular use now
-    * Data visualization on badge tag page
-        * how many awards per badge, maybe some nice pie charts
-        * who's being awarded?
-        * who's authored badges?
+* Data visualization on badge tag page
+    * recent awards for badges matched by tag
+    * how many awards per badge, maybe some nice pie charts
+    * who's being awarded?
+    * who's authored badges?
 
 * Track which awards have been pushed to the Backpack, offer to push those in
   need on visit to profile.
@@ -67,8 +66,6 @@
 * Nomination description / explanation field
 
 * Thumbnail sizing on image uploads for badges and profile avatars
-
-* Search-driven badge awarding (rather than drop down)
 
 * Get more Hypermedia API flavor
     * Accept: application/json along with .json extension
