@@ -13,21 +13,21 @@
 {% block content %}
 <section class="row-fluid">
 
-    <section class="award span3">
+    <section class="award span4">
         <header class="page-header">
             <h2>{{ _('Award detail') }}</h2>
         </header>
         {% include "badger/includes/award_full.html" %}
         {% if award.user == request.user %}
             <form class="obi_issuer">
-                <button class="issue">{{_("Add this badge to your Open Badge Backpack")}}</button>
+                <button class="btn issue">{{_("Add this badge to your Open Badge Backpack")}}</button>
             </form>
         {% endif %}
     </section>
 
-    <section class="badge span9">
+    <section class="badge span8">
         <header class="page-header">
-            <h2>{{_("Badge")}}</h2>
+            <h2 class="badge-title">{{ _("Badge: {badge_title}") | f(badge_title=badge.title) }}</h2>
         </header>
         {% include "badger/includes/badge_full.html" %}
     </section>

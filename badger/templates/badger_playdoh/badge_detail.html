@@ -5,25 +5,25 @@
 {% block extrahead %}
     <link rel="alternate" type="application/atom+xml"
         title="{{ _('Recent awards') }}"
-        href="{{ url('badger.feeds.awards_by_badge', 'atom', badge.slug) }}" />
+        href="{{ url('badger.feeds.awards_by_badge', format='atom', slug=badge.slug) }}" />
     <link rel="alternate" type="application/json"
         title="{{ _('{title} (JSON)') | f(title=badge) }}"
-        href="{{ url('badger.detail_json', badge.slug) }}" />
+        href="{{ url('badger.detail_json', slug=badge.slug) }}" />
 {% endblock %}
 
 {% block content %}
 
 <section class="row-fluid">
 
-    <section class="span3" id="detail">
+    <section class="span4" id="detail">
         <header class="page-header">
-            <h2>{{ _('Badge detail') }}</h2>
+            <h2 class="badge-title">{{ _("Badge: {badge_title}") | f(badge_title=badge.title) }}</h2>
         </header>
         {% include "badger/includes/badge_full.html" %}
     </section>
 
     {% if award_list %}
-    <section class="span9" id="recent_awardees" class="item_flow">
+    <section class="span8" id="recent_awardees" class="item_flow">
         <header class="page-header">
             <h2>
                 <span>{{ _("Recent awards") }}</span>

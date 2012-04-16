@@ -6,7 +6,7 @@
 
 <section class="row-fluid">
 
-    <section class="span3">
+    <section class="span4">
     
         <header class="page-header">
             <h2>{{ _("Award Claim") }}</h2>
@@ -28,7 +28,7 @@
                 <h3>{{ _("Grant") }}</h3>
                 <p>{{ _("You can grant this award to someone else") }}
                 {{ grant_form.as_p() }}
-                <input type="submit" class="submit" value="{{ _("Grant this award") }}">
+                <input type="submit" class="btn btn-large btn-primary submit" value="{{ _("Grant this award") }}">
             </form>
         {% endif %}
 
@@ -48,19 +48,14 @@
             {% else %}
                 <p>{{ _("You can claim this award for yourself") }}</p>
             {% endif %}
-            <input type="submit" class="submit" value="{{ _("Claim this award") }}">
+            <input type="submit" class="btn btn-large btn-primary submit" value="{{ _("Claim this award") }}">
         </form>
-
-        <div>
-            {% set self_url = request.build_absolute_uri(deferred_award.get_claim_url()) %}
-            {{ qr_code_image(self_url, alt="Scan to claim!", size="200") }}
-        </div>
 
     </section>
 
-    <section class="span9" id="detail">
+    <section class="span8" id="detail">
         <header class="page-header">
-            <h2>{{ _('Badge') }}</h2>
+            <h2>{{ _("Badge: {badge_title}") | f(badge_title=badge.title) }}</h2>
         </header>
         {% include "badger/includes/badge_full.html" %}
     </section>

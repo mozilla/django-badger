@@ -1,0 +1,57 @@
+{% extends "badger/base.html" %}
+
+{% block pageid %}manage_claims{% endblock %}
+
+{% block extrahead %}
+{% endblock %}
+
+{% block content %}
+<section class="row-fluid">
+
+    <section class="claims_list span4">
+        <header class="page-header">
+            <h2>{{ _("Manage claim codes") }}</h2>
+        </header>
+        <form id="create_claims" method="POST" action="">
+            {{ csrf() }}
+            <input type="hidden" name="is_generate" value="1" />
+            <input type="submit" class="btn btn-large btn-primary submit" value="{{ _("Generate") }}">
+            <select name="amount">
+                {% for x in (5, 10, 25, 50, 100) %}
+                    <option value="{{ x }}">{{ x }} claim codes</option>
+                {% endfor %}
+            </select>
+        </form>
+        <ul class="claim_groups">
+            {% for item in claim_groups %}
+                <li>
+                    <form class="delete_claim" method="POST" action="">
+                        {{ csrf() }}
+                        <input type="hidden" name="is_delete" value="1" />
+                        <input type="hidden" name="claim_group" value="{{ item.claim_group }}" />
+                        <input type="submit" class="btn btn-danger submit" value="{{ _("Delete") }}">
+                    </form>
+                    &#8212;
+                    <a class="btn" target="_blank" href="{{ url('badger.claims_list', badge.slug, item.claim_group) }}">
+                        <strong class="modified">{{ item.modified }}</strong>
+                        &#8212;
+                        <span class="count">{{ item.count }} claim codes</span>
+                    </a>
+                </li>
+            {% else %}
+                <li>No claim code groups available.</li>
+            {% endfor %}
+        </ul>
+    </section>
+
+    <section class="badge span8">
+        <header class="page-header">
+            <h2 class="badge-title">{{ _("Badge: {badge_title}") | f(badge_title=badge.title) }}</h2>
+        </header>
+        {% include "badger/includes/badge_full.html" %}
+    </section>
+
+</section>
+
+
+{% endblock %}
