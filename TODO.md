@@ -2,16 +2,19 @@
 
 ### Core
 
+* Expiration time on DeferredAward
+    * should be able to self-destruct after the end-time of an event
+    * scheduled cron task to delete expired
+
+* View badge claim detail page without need for login
+
+* Badge delegates, expressed as groups
+
 * Check up on errors in image upload process, particularly for size.
 
-* Claim codes
-    * claim code management for badge owner
-        * Tool to mass-generate single-use claim codes
-        * Page to list all self-owned deferred awards for a badge
-            * Printable stylesheet, make easily cut-out physical claim tickets
-    * Expiration time on DeferredAward
-        * should be able to self-destruct after the end-time of an event
-        * scheduled cron task to delete expired
+* Allow users to ignore, reject, delete, hide awards
+
+* Delete badges?
 
 * Data visualization on badge tag page
     * recent awards for badges matched by tag
@@ -21,8 +24,6 @@
 
 * Track which awards have been pushed to the Backpack, offer to push those in
   need on visit to profile.
-
-* Allow users to ignore, reject, delete, hide awards
 
 * Fewer public displays for non-multiplayer
     * Front page is user's profile by default.

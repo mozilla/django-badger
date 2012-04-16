@@ -56,7 +56,7 @@ class BadgerViewsTest(BadgerTestCase):
         doc = pq(r.content)
 
         eq_('badge_detail', doc.find('body').attr('id'))
-        eq_(badge.title, doc.find('.badge .title').text())
+        eq_(1, doc.find('.badge-title:contains("%s")' % badge.title).length)
         eq_(badge.description, doc.find('.badge .description').text())
 
         # Now, take a look at the JSON format
@@ -85,7 +85,7 @@ class BadgerViewsTest(BadgerTestCase):
 
         eq_('award_detail', doc.find('body').attr('id'))
         eq_(1, doc.find('.awarded_to .username:contains("%s")' % user2.username).length)
-        eq_(1, doc.find('.badge .title:contains("%s")' % b1.title).length)
+        eq_(1, doc.find('.badge-title:contains("%s")' % b1.title).length)
 
         # Now, take a look at the JSON format
         url = reverse('badger.award_detail_json', args=(b1.slug, award.pk,))
@@ -120,8 +120,7 @@ class BadgerViewsTest(BadgerTestCase):
         eq_('badge_awards_by_user', doc.find('body').attr('id'))
         eq_(3, doc.find('.badge').length)
         for b in (b1, b2, b3):
-            eq_(1, doc.find('.badge .title:contains("%s")' % b.title)
-                      .length)
+            eq_(1, doc.find('.badge .title:contains("%s")' % b.title).length)
 
     def test_awards_by_badge(self):
         """Can view awards by badge"""

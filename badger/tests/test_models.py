@@ -1,5 +1,6 @@
 from os.path import dirname
 import logging
+import time
 
 try:
     from PIL import Image
@@ -209,11 +210,11 @@ class BadgerDeferredAwardTest(BadgerTestCase):
         da = DeferredAward(badge=badge1)
         da.save()
         code = da.claim_code
-        
+
         eq_(1, DeferredAward.objects.filter(claim_code=code).count())
         DeferredAward.objects.claim_by_code(awardee, code)
         eq_(0, DeferredAward.objects.filter(claim_code=code).count())
-        
+
         ok_(badge1.is_awarded_to(awardee))
 
     def test_claim_by_email(self):
@@ -240,7 +241,7 @@ class BadgerDeferredAwardTest(BadgerTestCase):
                     found = True
             ok_(found, '%s should have been found in subject' %
                        deferred.badge.title)
-        
+
         # Register an awardee user with the email address, but the badge should
         # not have been awarded yet.
         awardee = self._get_user(username='winner2', email=deferred_email)
@@ -255,7 +256,7 @@ class BadgerDeferredAwardTest(BadgerTestCase):
         # After claiming, the awards should exist.
         for badge in badges:
             ok_(badge.is_awarded_to(awardee))
-    
+
     def test_reusable_claim(self):
         """Can repeatedly claim a reusable deferred award"""
         user = self._get_user()
@@ -269,14 +270,14 @@ class BadgerDeferredAwardTest(BadgerTestCase):
         da = DeferredAward(badge=badge1, reusable=True)
         da.save()
         code = da.claim_code
-        
+
         for i in range(0, 5):
             eq_(1, DeferredAward.objects.filter(claim_code=code).count())
             DeferredAward.objects.claim_by_code(awardee, code)
-        
+
         ok_(badge1.is_awarded_to(awardee))
         eq_(5, Award.objects.filter(badge=badge1, user=awardee).count())
-    
+
     def test_disallowed_claim(self):
         """Deferred award created by someone not allowed to award a badge
         cannot be claimed"""
@@ -293,11 +294,11 @@ class BadgerDeferredAwardTest(BadgerTestCase):
         da = DeferredAward(badge=badge1, creator=random_guy)
         da.save()
         code = da.claim_code
-        
+
         eq_(1, DeferredAward.objects.filter(claim_code=code).count())
         result = DeferredAward.objects.claim_by_code(awardee, code)
         eq_(0, DeferredAward.objects.filter(claim_code=code).count())
-        
+
         ok_(not badge1.is_awarded_to(awardee))
 
     def test_granted_claim(self):
@@ -308,7 +309,7 @@ class BadgerDeferredAwardTest(BadgerTestCase):
         random_guy = self._get_user(username='random_guy',
                                     email='random_guy@example.com',
                                     is_superuser=False)
-        staff_person = self._get_user(username='staff_person', 
+        staff_person = self._get_user(username='staff_person',
                                       email='staff@example.com',
                                       is_staff=True)
         grantee_email = 'winner@example.com'
@@ -378,3 +379,42 @@ class BadgerDeferredAwardTest(BadgerTestCase):
             is_ok = True
 
         ok_(is_ok, "Permission should be required for granting")
+
+    def test_mass_generate_claim_codes(self):
+        """Claim codes can be generated in mass for a badge"""
+        # Assemble the characters involved...
+        creator = self._get_user()
+        random_guy = self._get_user(username='random_guy',
+                                    email='random_guy@example.com',
+                                    is_superuser=False)
+        staff_person = self._get_user(username='staff_person',
+                                      email='staff@example.com',
+                                      is_staff=True)
+
+        # Create a consumable award claim
+        badge1 = self._get_badge(title="Test A", creator=creator)
+        eq_(0, len(badge1.claim_groups))
+
+        # Generate a number of groups of varying size
+        num_awards = (10, 20, 40, 80, 100)
+        num_groups = len(num_awards)
+        groups_generated = dict()
+        for x in range(0, num_groups):
+            num = num_awards[x]
+            cg = badge1.generate_deferred_awards(user=creator, amount=num)
+            time.sleep(1.0)
+            groups_generated[cg] = num
+            eq_(num, DeferredAward.objects.filter(claim_group=cg).count())
+
+        # Ensure the expected claim groups are available
+        eq_(num_groups, len(badge1.claim_groups))
+        for item in badge1.claim_groups:
+            cg = item['claim_group']
+            eq_(groups_generated[cg], item['count'])
+
+        # Delete deferred awards found in the first claim group
+        cg_1 = badge1.claim_groups[0]['claim_group']
+        badge1.delete_claim_group(user=creator, claim_group=cg_1)
+
+        # Assert that the claim group is gone, and now there's one less.
+        eq_(num_groups - 1, len(badge1.claim_groups))

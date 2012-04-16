@@ -102,8 +102,8 @@ claim_code_link.short_description = "Claim Code"
 
 
 class DeferredAwardAdmin(admin.ModelAdmin):
-    list_display = ('id', claim_code_link, badge_link, 'email', 'reusable',
-                    'creator', 'created', 'modified',)
+    list_display = ('id', claim_code_link, 'claim_group', badge_link, 'email',
+                    'reusable', 'creator', 'created', 'modified',)
     list_display_links = ('id',)
     list_filter = ('reusable', )    
     fields = ('badge', 'claim_code', 'email', 'reusable', 'description',)

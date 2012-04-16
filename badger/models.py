@@ -13,7 +13,7 @@ from urlparse import urljoin
 from django.conf import settings
 
 from django.db import models
-from django.db.models import signals, Q, Count
+from django.db.models import signals, Q, Count, Max
 from django.db.models.fields.files import FieldFile, ImageFieldFile
 from django.core.mail import send_mail
 from django.core.exceptions import ValidationError
@@ -266,6 +266,10 @@ class BadgeAlreadyAwardedException(BadgeException):
     """Attempt to award a unique badge twice."""
 
 
+class BadgeDeferredAwardManagementNotAllowedException(BadgeException):
+    """Attempt to manage deferred awards not allowed."""
+
+
 class BadgeManager(models.Manager, SearchManagerMixin):
     """Manager for Badge model objects"""
     search_fields = ('title', 'slug', 'description', )
@@ -341,6 +345,10 @@ class Badge(models.Model):
     class Meta:
         unique_together = ('title', 'slug')
         ordering = ['-modified', '-created']
+        permissions = (
+            ("manage_deferredawards",
+             "Can manage deferred awards for this badge"),
+        )
 
     get_permissions_for = get_permissions_for
 
@@ -394,6 +402,35 @@ class Badge(models.Model):
         # TODO: List of delegates for whom awarding is allowed
 
         return False
+
+    def allows_manage_deferred_awards_by(self, user):
+        """Can this user manage deferred awards"""
+        if user.has_perm('badger.manage_deferredawards'):
+            return True
+        if user == self.creator:
+            return True
+        return False
+
+    def generate_deferred_awards(self, user, amount=10):
+        """Generate a number of deferred awards with a claim group code"""
+        if not self.allows_manage_deferred_awards_by(user):
+            raise BadgeDeferredAwardManagementNotAllowedException()
+        return (DeferredAward.objects.generate(self, user, amount))
+
+    def get_claim_group(self, claim_group):
+        """Get all the deferred awards for a claim group code"""
+        return DeferredAward.objects.filter(claim_group=claim_group)
+
+    def delete_claim_group(self, user, claim_group):
+        """Delete all the deferred awards for a claim group code"""
+        if not self.allows_manage_deferred_awards_by(user):
+            raise BadgeDeferredAwardManagementNotAllowedException()
+        self.get_claim_group(claim_group).delete()
+
+    @property
+    def claim_groups(self):
+        """Produce a list of claim group IDs available"""
+        return DeferredAward.objects.get_claim_groups(badge=self)
 
     def award_to(self, awardee=None, email=None, awarder=None):
         """Award this badge to the awardee on the awarder's behalf"""
@@ -724,6 +761,23 @@ class Progress(models.Model):
 
 class DeferredAwardManager(models.Manager):
 
+    def get_claim_groups(self, badge):
+        """Build a list of all known claim group IDs for a badge"""
+        qs = (self.filter(badge=badge)
+                    .values('claim_group').distinct().all()
+                    .annotate(modified=Max('modified'), count=Count('id')))
+        return [x
+                for x in qs
+                if x['claim_group']]
+
+    def generate(self, badge, user=None, amount=10):
+        """Generate a number of deferred awards for a badge"""
+        claim_group = '%s-%s' % (time(), random.randint(0, 10000))
+        for i in range(0, amount):
+            (DeferredAward(badge=badge, creator=user, 
+                           claim_group=claim_group).save())
+        return claim_group
+
     def claim_by_email(self, awardee):
         """Claim all deferred awards that match the awardee's email"""
         return self._claim_qs(awardee, self.filter(email=awardee.email))
@@ -757,6 +811,8 @@ class DeferredAward(models.Model):
     email = models.EmailField(blank=True, null=True, db_index=True)
     claim_code = models.CharField(max_length=CLAIM_CODE_LENGTH,
             default=make_random_code, unique=True, db_index=True)
+    claim_group = models.CharField(max_length=32, blank=True, null=True,
+            db_index=True)
     creator = models.ForeignKey(User, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True, blank=False)
     modified = models.DateTimeField(auto_now=True, blank=False)

@@ -215,6 +215,49 @@ def claim_deferred_award(request, claim_code=None):
     ), context_instance=RequestContext(request))
 
 
+@require_http_methods(['GET', 'POST'])
+@login_required
+def claims_list(request, slug, claim_group):
+    badge = get_object_or_404(Badge, slug=slug)
+    if not badge.allows_manage_deferred_awards_by(request.user):
+        return HttpResponseForbidden()
+
+    deferred_awards = badge.get_claim_group(claim_group) 
+
+    return render_to_response('badger/claims_list.html', dict(
+        badge=badge, claim_group=claim_group,
+        deferred_awards=deferred_awards
+    ), context_instance=RequestContext(request))
+
+
+@require_http_methods(['GET', 'POST'])
+@login_required
+def manage_claims(request, slug):
+    badge = get_object_or_404(Badge, slug=slug)
+    if not badge.allows_manage_deferred_awards_by(request.user):
+        return HttpResponseForbidden()
+
+    if request.method == "POST":
+
+        if request.POST.get('is_generate', None):
+            amount = request.POST.get('amount', 10)
+            cg = badge.generate_deferred_awards(user=request.user,
+                                                amount=int(amount))
+
+        if request.POST.get('is_delete', None):
+            group = request.POST.get('claim_group')
+            badge.delete_claim_group(request.user, group)
+
+        url = reverse('badger.views.manage_claims', kwargs=dict(slug=slug))
+        return HttpResponseRedirect(url)
+
+    claim_groups = badge.claim_groups
+
+    return render_to_response('badger/manage_claims.html', dict(
+        badge=badge, claim_groups=claim_groups
+    ), context_instance=RequestContext(request))
+
+
 @require_GET
 def awards_by_user(request, username):
     """Badge awards by user"""
