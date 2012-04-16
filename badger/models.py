@@ -275,6 +275,8 @@ class BadgeManager(models.Manager, SearchManagerMixin):
     search_fields = ('title', 'slug', 'description', )
 
     def allows_add_by(self, user):
+        if user.is_anonymous():
+            return False
         if getattr(settings, "BADGER_ALLOW_ADD_BY_ANYONE", False):
             return True
         if user.has_perm('badger.add_badge'):
@@ -384,6 +386,8 @@ class Badge(models.Model):
         return True
 
     def allows_edit_by(self, user):
+        if user.is_anonymous():
+            return False
         if user.has_perm('badger.change_badge'):
             return True
         if user == self.creator:
@@ -394,6 +398,8 @@ class Badge(models.Model):
         """Is award_to() allowed for this user?"""
         if None == user:
             return True
+        if user.is_anonymous():
+            return False
         if user.is_staff or user.is_superuser:
             return True
         if user == self.creator:
@@ -405,6 +411,8 @@ class Badge(models.Model):
 
     def allows_manage_deferred_awards_by(self, user):
         """Can this user manage deferred awards"""
+        if user.is_anonymous():
+            return False
         if user.has_perm('badger.manage_deferredawards'):
             return True
         if user == self.creator:
@@ -831,6 +839,8 @@ class DeferredAward(models.Model):
         return True
 
     def allows_claim_by(self, user):
+        if user.is_anonymous():
+            return False
         # TODO: Need some logic here, someday.
         # TODO: Could enforce that the user.email == self.email, but I want to
         # allow for people with multiple email addresses. That is, I get an
@@ -839,6 +849,8 @@ class DeferredAward(models.Model):
         return True
 
     def allows_grant_by(self, user):
+        if user.is_anonymous():
+            return False
         if user.has_perm('badger.grant_deferredaward'):
             return True
         if self.badge.allows_award_to(user):
