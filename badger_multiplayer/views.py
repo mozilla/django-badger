@@ -61,6 +61,7 @@ def create(request):
 
     if request.method != "POST":
         form = BadgeNewForm()
+        form.initial['tags'] = request.GET.get('tags', '')
     else:
         form = BadgeNewForm(request.POST, request.FILES)
         if form.is_valid():
