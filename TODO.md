@@ -2,19 +2,22 @@
 
 ### Core
 
+* Allow users to ignore, reject, delete, hide awards
+
+* Delete badges
+    * Destroy all awards along with it.
+    * Require confirmation if there are awards (ie. a list of awards? a count?)
+
 * Expiration time on DeferredAward
     * should be able to self-destruct after the end-time of an event
     * scheduled cron task to delete expired
 
 * View badge claim detail page without need for login
+    * So non-members can see their award online without ever claiming.
 
 * Badge delegates, expressed as groups
 
 * Check up on errors in image upload process, particularly for size.
-
-* Allow users to ignore, reject, delete, hide awards
-
-* Delete badges?
 
 * Data visualization on badge tag page
     * recent awards for badges matched by tag
