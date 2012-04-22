@@ -216,12 +216,17 @@ def claim_deferred_award(request, claim_code=None):
 
 @require_http_methods(['GET', 'POST'])
 @login_required
-def claims_list(request, slug, claim_group):
+def claims_list(request, slug, claim_group, format="html"):
     badge = get_object_or_404(Badge, slug=slug)
     if not badge.allows_manage_deferred_awards_by(request.user):
         return HttpResponseForbidden()
 
     deferred_awards = badge.get_claim_group(claim_group) 
+
+    if format == "pdf":
+        from badger.printing import render_claims_to_pdf
+        return render_claims_to_pdf(request, slug, claim_group,
+                                    deferred_awards)
 
     return render_to_response('badger/claims_list.html', dict(
         badge=badge, claim_group=claim_group,
