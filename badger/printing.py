@@ -13,8 +13,8 @@ from reportlab.pdfgen import canvas
 from reportlab.lib import pagesizes
 from reportlab.lib.units import inch
 from reportlab.platypus import (
-    SimpleDocTemplate, BaseDocTemplate, Paragraph, Spacer, PageBreak, 
-    Frame, FrameBreak, PageTemplate, Image, Table)
+    SimpleDocTemplate, BaseDocTemplate, Paragraph, Preformatted, Spacer,
+    PageBreak, Frame, FrameBreak, PageTemplate, Image, Table)
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.rl_config import defaultPageSize 
 from reportlab.lib.units import inch 
@@ -40,19 +40,20 @@ rows = 10
 
 
 def render_claims_to_pdf(request, slug, claim_group, deferred_awards):
-    response = HttpResponse(content_type='application/pdf; charset=utf-8')
-    response['Content-Disposition'] = ('attachment; filename="%s-%s.pdf"' %
-            (slug.encode('utf-8', 'replace'), claim_group))
-    doc = BaseDocTemplate(response, pageSize=pagesizes.letter,
-            topMargin=top_margin, leftMargin=left_margin)
-
     debug = (request.GET.get('debug', False) is not False)
+
+    response = HttpResponse(content_type='application/pdf; charset=utf-8')
+    if not debug:
+        # If debugging, don't force download.
+        response['Content-Disposition'] = ('attachment; filename="%s-%s.pdf"' %
+                (slug.encode('utf-8', 'replace'), claim_group))
+
+    doc = BaseDocTemplate(response, pageSize=pagesizes.letter,
+            topMargin=top_margin, leftMargin=left_margin,
+            allowSplitting=1)
     
-    # TODO: Turn off the boundaries, once we're done tweaking the layout to
-    # match label sheets
-    # if debug: show_boundary = 1
-    # else: show_boundary = 0
-    show_boundary = 1
+    if debug: show_boundary = 1
+    else: show_boundary = 0
 
     # Build frames for labels in the template
     frames = []
@@ -130,14 +131,19 @@ def render_claims_to_pdf(request, slug, claim_group, deferred_awards):
     return response
 
 
-def resize_para(str, max_size=11.0, min_size=2.0, max_width=(0.3125*inch),
+def resize_para(str, max_size=10.0, min_size=2.0, max_width=(1.25*inch),
                 font_name='Helvetica', alignment=TA_CENTER):
+    """Produce a paragraph, reducing font size until it fits in the max width"""
     size = max_size
     while size > min_size:
-        para = Paragraph(str, ParagraphStyle(name='Size %s' % size,
-            alignment=alignment, fontName=font_name, fontSize=size,
-            leading=size+0.25))
+        # HACK: Use a preformatted object so that minWidth() fomes up with
+        # non-wrapped width. This just feels so dirty, dirty, but it works
+        style = ParagraphStyle(name='Size %s' % size,
+                               alignment=alignment, fontName=font_name,
+                               fontSize=size, leading=size+0.25)
+        para = Preformatted(str, style)
         if para.minWidth() <= max_width:
+            para = Paragraph(str, style)
             break
         size -= 0.125
     return para
