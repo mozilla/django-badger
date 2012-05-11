@@ -67,20 +67,26 @@ def home(request):
 
 def badges_list(request, tag_name=None):
     """Badges list page"""
+    awards_list = None
     query_string = request.GET.get('q', None)
     if query_string is not None:
         sort_order = request.GET.get('sort', 'created')
         queryset = Badge.objects.search(query_string, sort_order)
+        # TODO: Is this the most efficient query?
+        award_list = (Award.objects.filter(badge__in=queryset))
     elif taggit and tag_name:
         tag = get_object_or_404(Tag, name=tag_name)
         queryset = (Badge.objects.filter(tags__in=[tag]).distinct())
+        # TODO: Is this the most efficient query?
+        award_list = (Award.objects.filter(badge__in=queryset))
     else:
         queryset = Badge.objects.order_by('-modified').all()
     return object_list(request, queryset,
         paginate_by=BADGE_PAGE_SIZE, allow_empty=True,
         extra_context=dict(
             tag_name=tag_name,
-            query_string=query_string
+            query_string=query_string,
+            award_list=award_list,
         ),
         template_object_name='badge',
         template_name='badger/badges_list.html')

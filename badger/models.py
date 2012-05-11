@@ -283,7 +283,7 @@ class BadgeManager(models.Manager, SearchManagerMixin):
             return True
         return False
 
-    def top_tags(self, limit=10):
+    def top_tags(self, limit=12):
         """Assemble list of top-used tags"""
         if not taggit:
             return []
