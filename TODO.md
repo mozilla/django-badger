@@ -2,6 +2,11 @@
 
 ### Core
 
+* Store OBI JSON assersions in filesystem, instead of served at dynamic URL
+
+* Switch to Amazon S3 storage for images and OBI JSON assertions, so that they
+  can stay hosted if ever the DJango site itself needs to be taken offline.
+
 * Allow users to ignore, reject, delete, hide awards
 
 * Delete badges
