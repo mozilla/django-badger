@@ -67,7 +67,7 @@ def home(request):
 
 def badges_list(request, tag_name=None):
     """Badges list page"""
-    awards_list = None
+    award_list = None
     query_string = request.GET.get('q', None)
     if query_string is not None:
         sort_order = request.GET.get('sort', 'created')
