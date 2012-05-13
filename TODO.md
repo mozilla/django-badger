@@ -5,13 +5,11 @@
 * Store OBI JSON assersions in filesystem, instead of served at dynamic URL
 
 * Switch to Amazon S3 storage for images and OBI JSON assertions, so that they
-  can stay hosted if ever the DJango site itself needs to be taken offline.
+  can stay hosted if ever the Django site itself needs to be taken offline.
+
+* Add a feed for recent awards for badges tagged or matching search query
 
 * Allow users to ignore, reject, delete, hide awards
-
-* Delete badges
-    * Destroy all awards along with it.
-    * Require confirmation if there are awards (ie. a list of awards? a count?)
 
 * Expiration time on DeferredAward
     * should be able to self-destruct after the end-time of an event
