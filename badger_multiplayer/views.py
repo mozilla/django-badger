@@ -104,6 +104,26 @@ def edit(request, slug):
 
 @require_http_methods(['GET', 'POST'])
 @login_required
+def delete(request, slug):
+    """Delete a badge"""
+    badge = get_object_or_404(Badge, slug=slug)
+    if not badge.allows_delete_by(request.user):
+        return HttpResponseForbidden()
+
+    awards_count = badge.award_set.count()
+
+    if request.method == "POST":
+        messages.info(request, _('Badge "%s" deleted.') % badge.title)
+        badge.delete()
+        return HttpResponseRedirect(reverse('badger.views.badges_list'))
+
+    return render_to_response('badger_multiplayer/badge_delete.html', dict(
+        badge=badge, awards_count=awards_count,
+    ), context_instance=RequestContext(request))
+
+
+@require_http_methods(['GET', 'POST'])
+@login_required
 def nomination_detail(request, slug, id, format="html"):
     """Show details on a nomination, provide for approval and acceptance"""
     badge = get_object_or_404(Badge, slug=slug)
