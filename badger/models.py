@@ -394,6 +394,15 @@ class Badge(models.Model):
             return True
         return False
 
+    def allows_delete_by(self, user):
+        if user.is_anonymous():
+            return False
+        if user.has_perm('badger.change_badge'):
+            return True
+        if user == self.creator:
+            return True
+        return False
+
     def allows_award_to(self, user):
         """Is award_to() allowed for this user?"""
         if None == user:
