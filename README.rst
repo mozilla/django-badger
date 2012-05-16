@@ -26,14 +26,14 @@ offer) the following:
 Installation
 ------------
 
-- TBD, see `badger2 <https://github.com/lmorchard/badger2>`_ for an example
+- TBD, see `badg.us <https://github.com/lmorchard/badg.us>`_ for an example
   site setup
 - ``pip install git://github.com/lmorchard/django-badger.git#egg=django-badger``
 
 Settings
 --------
 
-- TBD, see `badger2 <https://github.com/lmorchard/badger2>`_ for an example
+- TBD, see `badg.us <https://github.com/lmorchard/badg.us>`_ for an example
   site setup
 - TBD, see ``badger/tests/badger_example/badges.py`` for an example.
 
@@ -64,7 +64,7 @@ Awarding badges
 Testing
 -------
 
-- TBD, see `badger2 <https://github.com/lmorchard/badger2>`_ for an example
+- TBD, see `badg.us <https://github.com/lmorchard/badg.us>`_ for an example
   site setup
 
 
@@ -76,14 +76,6 @@ Here are other apps in the Badger family, either in progress or proposed:
 `django-badger-multiplayer <https://github.com/lmorchard/django-badger-multiplayer>`_
     Badges for and by everyone. Augments ``django-badger`` with features to
     make badge creation, nomination, and awarding a multiplayer game.
-
-`django-badger-api <https://github.com/lmorchard/django-badger-api>`_
-    Augments ``django-badger`` with a REST API and OAuth so external scripts
-    and bots can issue awards and nominations in response to events monitored
-    in custom ways. Also, opens the way for things like mobile apps, etc.
-
-    (This app hasn't been started yet, and it's possible that it may evaporate
-    and/or just be integrated into `django-badger` as a hypermedia API.)
 
 If you want to federate or share badges, you should check out
 the `Mozilla Open Badges <https://github.com/mozilla/openbadges>`_ project.
