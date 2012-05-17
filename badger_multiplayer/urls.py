@@ -5,6 +5,7 @@ from django.views.generic.list_detail import object_list
 from django.views.generic.simple import direct_to_template
 
 from .feeds import BadgesRecentFeed, BadgesByUserFeed
+from . import views
 
 
 urlpatterns = patterns('badger_multiplayer.views',

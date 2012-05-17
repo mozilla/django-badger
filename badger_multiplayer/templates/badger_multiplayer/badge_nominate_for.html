@@ -4,19 +4,29 @@
 
 {% block content %}
 
-<h2>Submit badge nominations</h2>
+<section class="row-fluid">
 
-<form id="nominate_badge" method="POST" action="" enctype="multipart/form-data">
-    {{ csrf() }}
-    <ul>
-        {{ form.as_ul() }}
-        <li><input type="submit" class="submit" value="Submit nominations"></li>
-    </ul>
-</form>
+    <section class="span4" id="detail">
+        <header class="page-header">
+            <h2>{{ _("Badge: {badge_title}") | f(badge_title=badge.title) }}</h2>
+        </header>
+        {% include "badger/includes/badge_full.html" %}
+    </section>
 
-<section class="badge">
-    <h3>Badge</h3>
-    {% include "badger/includes/badge_full.html" %}
+    <section class="span8">
+        <header class="page-header">
+            <h2>{{ _("Submit badge nominations") }}</h2>
+        </header>
+
+        <form id="nominate_badge" method="POST" action="" enctype="multipart/form-data">
+            {{ csrf() }}
+            <ul>
+                {{ form.as_ul() }}
+                <li><input type="submit" class="btn btn-large btn-primary submit" value="{{ _("Submit nominations") }}"></li>
+            </ul>
+        </form>
+    </section>
+
 </section>
 
 {% endblock %}

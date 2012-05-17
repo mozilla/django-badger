@@ -30,9 +30,13 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 
+from django.dispatch import receiver
+
 from badger.models import (Award, Progress,
         BadgerException, BadgeAlreadyAwardedException,
         BadgeAwardNotAllowedException)
+
+from badger.views import (detail_needs_sections)
 
 from badger_multiplayer.models import (Badge, Nomination,
         NominationApproveNotAllowedException,
@@ -144,6 +148,17 @@ def nomination_detail(request, slug, id, format="html"):
     return render_to_response('badger_multiplayer/nomination_detail.html',
                               dict(badge=badge, nomination=nomination,),
                               context_instance=RequestContext(request))
+
+
+@receiver(detail_needs_sections)
+def _detail_nominate_form(sender, **kwargs):
+    badge, request = kwargs['badge'], kwargs['request']
+    if badge.allows_nominate_for(request.user):
+        return ('nominate', dict(
+            form=BadgeSubmitNominationForm()
+        ))
+    else:
+        return None
 
 
 @require_http_methods(['GET', 'POST'])

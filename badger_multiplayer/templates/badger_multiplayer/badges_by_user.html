@@ -10,7 +10,7 @@
 
 {% block content %}
 <section class="badge_list">
-    <h2>Badges created by {{ user }}</h2>
+    <h2>{{ _("Badges created by {user}") | f(user=user) }}</h2>
     {% include "badger/includes/badges_list.html" %}
 </section>
 {% endblock %}

@@ -1,6 +1,11 @@
-{% if badge.allows_nominate_for(request.user) %}
-    <li><a class="nominate_badge" href="{{ url('badger_multiplayer.views.nominate_for', badge.slug) }}">{{ _('Submit nomination') }}</a></li>
+{% if badge.allows_delete_by(request.user) %}
+    <li><a class="btn btn-large btn-danger delete_badge" href="{{ url('badger_multiplayer.views.delete', badge.slug) }}">{{ _('Delete badge') }}</a></li>
 {% endif %}
 {% if badge.allows_edit_by(request.user) %}
-    <li><a class="edit_badge" href="{{ url('badger_multiplayer.views.edit', badge.slug) }}">{{ _('Edit badge') }}</a></li>
+    <li><a class="btn btn-large btn-primary edit_badge" href="{{ url('badger_multiplayer.views.edit', badge.slug) }}">{{ _('Edit badge') }}</a></li>
 {% endif %}
+{#
+{% if badge.allows_nominate_for(request.user) %}
+    <li><a class="btn btn-large btn-primary nominate_badge" href="{{ url('badger_multiplayer.views.nominate_for', badge.slug) }}">{{ _('Submit nominations') }}</a></li>
+{% endif %}
+#}

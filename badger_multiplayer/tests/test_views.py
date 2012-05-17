@@ -81,7 +81,7 @@ class BadgerViewsTest(BadgerTestCase):
         doc = pq(r.content)
 
         eq_('badge_detail', doc.find('body').attr('id'))
-        eq_(badge_title, doc.find('.badge .title').text())
+        ok_(badge_title in doc.find('.badge-title').text())
         eq_(badge_desc, doc.find('.badge .description').text())
 
         slug = doc.find('.badge').attr('data-slug')
@@ -121,7 +121,7 @@ class BadgerViewsTest(BadgerTestCase):
         doc = pq(r.content)
 
         eq_('badge_detail', doc.find('body').attr('id'))
-        eq_(badge_title, doc.find('.badge .title').text())
+        ok_(badge_title in doc.find('.badge-title').text())
         eq_(badge_desc, doc.find('.badge .description').text())
 
         slug = doc.find('.badge').attr('data-slug')

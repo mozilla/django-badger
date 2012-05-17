@@ -3,56 +3,63 @@
 {% block pageid %}nomination_detail{% endblock %}
 
 {% block content %}
+<section class="row-fluid">
 
-<section class="nomination">
-    <h2>Nomination</h2>
-    <dl>
-        {% set show_approve = not nomination.is_approved() and nomination.allows_approve_by(request.user) %}
-        {% set show_accept = not nomination.is_accepted() and nomination.allows_accept(request.user) %}
-        {% if show_approve or show_accept %}
-            <dt>Actions:</dt><dd><ul>
-                {% if show_approve %}
-                    <li><form method="POST">
-                        {{ csrf() }}
-                        <input type="hidden" name="action" value="approve_by" />
-                        <button>{{ _('Approve nomination') }}</button>
-                    </form></li>
-                {% endif %}
-                {% if show_accept %}
-                    <li><form method="POST">
-                        {{ csrf() }}
-                        <input type="hidden" name="action" value="accept" />
-                        <button>{{ _('Accept nomination') }}</button>
-                    </form></li>
-                {% endif %}
-            </ul></dd>
-        {% endif %}
-        {% if nomination.award %}
-            <dt>Award:</dt>
-                <dd><a href="{{ nomination.award.get_absolute_url() }}">{{ nomination.award }}</a></dd>
-        {% endif %}
-        <dt>Accepted?:</dt>
-            <dd>{{ nomination.accepted and "Yes" or "No" }}</dd>
-        <dt>Approved?:</dt>
-            <dd>{{ nomination.approver and "Yes" or "No" }}</dd>
-        <dt>Nominee:</dt>
-            <dd><a href="{{ nomination.nominee.get_absolute_url() }}">{{ nomination.nominee }}</a></dd>
-        <dt>Nominator:</dt>
-            <dd><a href="{{ nomination.creator.get_absolute_url() }}">{{ nomination.creator }}</a></dd>
-        {% if nomination.approver %}
-            <dt>Approver:</dt>
-                <dd><a href="{{ nomination.approver.get_absolute_url() }}">{{ nomination.approver }}</a></dd>
-        {% endif %}
-        <dt>Created:</dt>
-            <dd>{{ nomination.created }}</dd>
-        <dt>Modified:</dt>
-            <dd>{{ nomination.modified }}</dd>
-    </dl>
-</section>
+    <section class="badge span4">
+        <header class="page-header">
+            <h2>{{ _("Badge: {badge_title}") | f(badge_title=badge.title) }}</h2>
+        </header>
+        {% include "badger/includes/badge_full.html" %}
+    </section>
 
-<section class="badge">
-    <h3>Badge</h3>
-    {% include "badger/includes/badge_full.html" %}
+    <section class="nomination span8">
+        <header class="page-header">
+            <h2>{{ _("Nomination detail") }}</h2>
+        </header>
+        <dl class="nomination">
+            {% set show_approve = not nomination.is_approved() and nomination.allows_approve_by(request.user) %}
+            {% set show_accept = not nomination.is_accepted() and nomination.allows_accept(request.user) %}
+            {% if show_approve or show_accept %}
+                <dt>{{ _("Actions:") }}</dt><dd><ul class="btn-list">
+                    {% if show_approve %}
+                    <li><form method="POST">
+                            {{ csrf() }}
+                            <input type="hidden" name="action" value="approve_by" />
+                            <button class="btn btn-large btn-primary">{{ _('Approve nomination') }}</button>
+                        </form></li>
+                    {% endif %}
+                    {% if show_accept %}
+                        <li><form method="POST">
+                            {{ csrf() }}
+                            <input type="hidden" name="action" value="accept" />
+                            <button class="btn btn-large btn-primary">{{ _('Accept nomination') }}</button>
+                        </form></li>
+                    {% endif %}
+                </ul></dd>
+            {% endif %}
+            {% if nomination.award %}
+                <dt>{{ _("Award:") }}</dt>
+                    <dd><a href="{{ nomination.award.get_absolute_url() }}">{{ nomination.award }}</a></dd>
+            {% endif %}
+            <dt>{{ _("Accepted?:") }}</dt>
+                <dd>{{ nomination.accepted and _("Yes") or _("No") }}</dd>
+            <dt>{{ _("Approved?:") }}</dt>
+                <dd>{{ nomination.approver and _("Yes") or _("No") }}</dd>
+            <dt>{{ _("Nominee:") }}</dt>
+                <dd><a href="{{ nomination.nominee.get_absolute_url() }}"><img src="{{ user_avatar(nomination.nominee) }}" class="avatar" alt="{{ nomination.nominee }}" width="24" height="24" />{{ nomination.nominee }}</a></dd>
+            <dt>{{ _("Nominator:") }}</dt>
+                <dd><a href="{{ nomination.creator.get_absolute_url() }}"><img src="{{ user_avatar(nomination.creator) }}" class="avatar" alt="{{ nomination.creator }}" width="24" height="24" />{{ nomination.creator }}</a></dd>
+            {% if nomination.approver %}
+                <dt>{{ _("Approver:") }}</dt>
+                    <dd><a href="{{ nomination.approver.get_absolute_url() }}"><img src="{{ user_avatar(nomination.approver) }}" class="avatar" alt="{{ nomination.approver }}" width="24" height="24" />{{ nomination.approver }}</a></dd>
+            {% endif %}
+            <dt>{{ _("Created:") }}</dt>
+                <dd>{{ nomination.created }}</dd>
+            <dt>{{ _("Modified:") }}</dt>
+                <dd>{{ nomination.modified }}</dd>
+        </dl>
+    </section>
+
 </section>
 
 {% endblock %}
