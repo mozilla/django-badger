@@ -258,15 +258,19 @@ class BadgerViewsTest(BadgerTestCase):
         r = self.client.get(url, follow=False)
         eq_(200, r.status_code)
 
-        # But, attempting to GET with the claim param should require login.
-        r = self.client.get('%s?claim' % url, follow=False)
+        # But, attempting to claim the award should require login
+        r = self.client.post(reverse('badger.views.claim_deferred_award'), dict(
+            code=da.claim_code,
+        ), follow=False)
         eq_(302, r.status_code)
         ok_('login' in r['Location'])
 
         # So, try logging in and fetch the immediate-claim URL
         user2 = self._get_user(username="awardee", email=deferred_email)
         self.client.login(username="awardee", password="trustno1")
-        r = self.client.get('%s?claim' % url, follow=False)
+        r = self.client.post(reverse('badger.views.claim_deferred_award'), dict(
+            code=da.claim_code,
+        ), follow=False)
         eq_(302, r.status_code)
         ok_('awards' in r['Location'])
 

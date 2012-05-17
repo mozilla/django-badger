@@ -197,16 +197,12 @@ def _do_claim(request, deferred_award):
 def claim_deferred_award(request, claim_code=None):
     """Deferred award detail view"""
     if not claim_code:
-        claim_code = request.GET.get('code', '').strip()
+        claim_code = request.REQUEST.get('code', '').strip()
     deferred_award = get_object_or_404(DeferredAward, claim_code=claim_code)
     if not deferred_award.allows_detail_by(request.user):
         return HttpResponseForbidden('Claim detail denied')
 
     if request.method != "POST":
-        if request.GET.get('claim', False) is not False:
-            # HACK: ?claim parameter is a shortcut to immediate claim.
-            # Dirty and not idempotent, but oh well.
-            return _do_claim(request, deferred_award)
         grant_form = DeferredAwardGrantForm()
     else:
         grant_form = DeferredAwardGrantForm(request.POST, request.FILES)
