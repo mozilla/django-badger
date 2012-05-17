@@ -29,4 +29,6 @@
 
     {% endfor %}
 </ul>
-{% include "badger/includes/pagination.html" %}
+{% if not hide_pagination %}
+    {% include "badger/includes/pagination.html" %}
+{% endif %}

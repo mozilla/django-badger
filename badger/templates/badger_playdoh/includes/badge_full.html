@@ -10,11 +10,15 @@
         <dt>{{_("Image:")}}</dt>
             <dd class="image"><a href="{{ badge.get_absolute_url() }}" class="image"><img src="{{ badge.image.url }}" width="256" height="256" /></a></dd>
     {% endif %}
+    {% if badge.description %}
+        <dt>{{_("Description:")}}</dt>
+            <dd class="description">{{ badge.description }}</dd>
+    {% endif %}
     {% if badge.tags and badge.tags.count %}
         <dt>{{ _("Tags:") }}</dt>
         <dd><ul class="tags">
             {% for tag in badge.tags.all() %}
-                <li><a class="tag" href="{{ url('badger.badges_list', tag_name=tag.name) }}">{{ tag.name }}</a></li>
+                <li><a class="tag" href="{{ url('badger.badges_list', tag_name=tag.name) }}"><i class="icon-tag icon-white"></i> {{ tag.name }}</a></li>
             {% endfor %}
         </ul></dd>
     {% endif %}
@@ -25,17 +29,7 @@
         {% for module in modules %}
             {% include module ~ "/includes/badge_full_actions.html" %}
         {% endfor %}
-        {% if badge.allows_award_to(request.user) %}
-            <li><a class="btn btn-large btn-primary award_badge" href="{{ url('badger.views.award_badge', badge.slug) }}">{{ _('Issue awards') }}</a></li>
-        {% endif %}
-        {% if badge.allows_manage_deferred_awards_by(request.user) %}
-            <li><a class="btn btn-large btn-primary manage_claims" href="{{ url('badger.views.manage_claims', badge.slug) }}">{{ _('Manage claim codes') }}</a></li>
-        {% endif %}
-    </ul></dd>
-    {% if badge.description %}
-        <dt>{{_("Description:")}}</dt>
-            <dd class="description">{{ badge.description }}</dd>
-    {% endif %}
+    </ul><br /></dd>
     <dt>{{_("Creator:")}}</dt>
         <dd><a href="{{ badge.creator.get_absolute_url() }}"><img src="{{ user_avatar(badge.creator) }}" class="avatar" alt="{{ badge.creator }}" width="28" height="28" />{{ badge.creator }}</a></dd>
     <dt>{{_("Created:")}}</dt>

@@ -428,11 +428,11 @@ class Badge(models.Model):
             return True
         return False
 
-    def generate_deferred_awards(self, user, amount=10):
+    def generate_deferred_awards(self, user, amount=10, reusable=False):
         """Generate a number of deferred awards with a claim group code"""
         if not self.allows_manage_deferred_awards_by(user):
             raise BadgeDeferredAwardManagementNotAllowedException()
-        return (DeferredAward.objects.generate(self, user, amount))
+        return (DeferredAward.objects.generate(self, user, amount, reusable))
 
     def get_claim_group(self, claim_group):
         """Get all the deferred awards for a claim group code"""
@@ -787,11 +787,11 @@ class DeferredAwardManager(models.Manager):
                 for x in qs
                 if x['claim_group']]
 
-    def generate(self, badge, user=None, amount=10):
+    def generate(self, badge, user=None, amount=10, reusable=False):
         """Generate a number of deferred awards for a badge"""
         claim_group = '%s-%s' % (time(), random.randint(0, 10000))
         for i in range(0, amount):
-            (DeferredAward(badge=badge, creator=user, 
+            (DeferredAward(badge=badge, creator=user, reusable=reusable,
                            claim_group=claim_group).save())
         return claim_group
 

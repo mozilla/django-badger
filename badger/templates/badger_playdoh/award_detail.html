@@ -13,7 +13,14 @@
 {% block content %}
 <section class="row-fluid">
 
-    <section class="award span4">
+    <section class="badge span4">
+        <header class="page-header">
+            <h2 class="badge-title">{{ _("Badge: {badge_title}") | f(badge_title=badge.title) }}</h2>
+        </header>
+        {% include "badger/includes/badge_full.html" %}
+    </section>
+
+    <section class="award span8">
         <header class="page-header">
             <h2>{{ _('Award detail') }}</h2>
         </header>
@@ -23,13 +30,6 @@
                 <button class="btn issue">{{_("Add this badge to your Open Badge Backpack")}}</button>
             </form>
         {% endif %}
-    </section>
-
-    <section class="badge span8">
-        <header class="page-header">
-            <h2 class="badge-title">{{ _("Badge: {badge_title}") | f(badge_title=badge.title) }}</h2>
-        </header>
-        {% include "badger/includes/badge_full.html" %}
     </section>
 
 </section>

@@ -3,30 +3,37 @@
 {% block pageid %}badges{% endblock %}
 
 {% block content %}
-{% if request.user.is_authenticated() %}
-<section id="things_to_do">
-    
-</section>
-{% endif %}
 
 <section class="badges_list" class="item_flow">
     <header class="page-header">
         <h2>
             {% if tag_name %}
-                <span>{{ _('Badges tagged "{tag_name}"') | f(tag_name=tag_name) }}</span>
+            <span>{% trans %}Badges tagged <a href="" class="tag"><i class="icon-tag icon-white"></i> {{tag_name}}</a>{% endtrans %}</span>
                 {% if badger_allows_add_by(request.user) %}
-                    <small>(<a class="action" href="{{ url('badger_multiplayer.views.create') | urlparams(tags=tag_name) }}">{{ _('Create new badge') }}</a>)</small>
+                    <small>
+                        <a class="action btn btn-large btn-primary" href="{{ url('badger_multiplayer.views.create') | urlparams(tags=tag_name) }}">{{ _('Create new badge') }}</a>
+                    </small>
                 {% endif %}
             {% elif query_string %}
                 <span>{{ _('Badges matching "{query_string}"') | f(query_string=query_string) }}</span>
             {% else %}
-                <span>{{ _("Badges") }}</span>
+                <span>{{ _("All badges") }}</span>
                 {% if badger_allows_add_by(request.user) %}
-                    <small>(<a class="action" href="{{ url('badger_multiplayer.views.create') }}">{{ _('Create new badge') }}</a>)</small>
+                    <small>
+                        <a class="action btn btn-primary" href="{{ url('badger_multiplayer.views.create') }}">{{ _('Create new badge') }}</a>
+                    </small>
                 {% endif %}
             {% endif %}
         </h2>
     </header>
     {% include "badger/includes/badges_list.html" %}
+
+    {% if award_list %}
+        <h2>{{ _('Recent awards for these badges') }}</h2>
+        {% set award_list = award_list[:12] %}
+        {% set hide_pagination = True %}
+        {% include "badger/includes/awards_list.html" %}
+    {% endif %}
+
 </section>
 {% endblock %}

@@ -32,6 +32,9 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 
+from django.dispatch import receiver
+from django.dispatch import Signal
+
 try:
     import taggit
     from taggit.models import Tag, TaggedItem
@@ -50,8 +53,10 @@ except ImportError:
 
 from .forms import (BadgeAwardForm, DeferredAwardGrantForm)
 
-BADGE_PAGE_SIZE = 21
+BADGE_PAGE_SIZE = 20
 MAX_RECENT = 15
+
+detail_needs_sections = Signal(providing_args=['request', 'badge'])
 
 
 def home(request):
@@ -92,7 +97,7 @@ def badges_list(request, tag_name=None):
         template_name='badger/badges_list.html')
 
 
-@require_http_methods(['HEAD', 'GET'])
+@require_http_methods(['HEAD', 'GET', 'POST'])
 def detail(request, slug, format="html"):
     """Badge detail view"""
     badge = get_object_or_404(Badge, slug=slug)
@@ -102,6 +107,32 @@ def detail(request, slug, format="html"):
     awards = (Award.objects.filter(badge=badge)
                            .order_by('-created'))[:MAX_RECENT]
 
+    results = detail_needs_sections.send_robust(sender=badge,
+                request=request, badge=badge)
+    sections = dict((x[1][0], x[1][1]) for x in results if x[1])
+
+    if request.method == "POST":
+
+        if request.POST.get('is_generate', None):
+            if not badge.allows_manage_deferred_awards_by(request.user):
+                return HttpResponseForbidden('Claim generate denied')
+            amount = int(request.POST.get('amount', 10))
+            reusable = (amount == 1)
+            cg = badge.generate_deferred_awards(user=request.user,
+                                                amount=amount,
+                                                reusable=reusable)
+
+        if request.POST.get('is_delete', None):
+            if not badge.allows_manage_deferred_awards_by(request.user):
+                return HttpResponseForbidden('Claim delete denied')
+            group = request.POST.get('claim_group')
+            badge.delete_claim_group(request.user, group)
+
+        url = reverse('badger.views.detail', kwargs=dict(slug=slug))
+        return HttpResponseRedirect(url)
+
+    claim_groups = badge.claim_groups
+
     if format == 'json':
         data = badge.as_obi_serialization(request)
         resp = HttpResponse(simplejson.dumps(data))
@@ -109,8 +140,20 @@ def detail(request, slug, format="html"):
         return resp
     else:
         return render_to_response('badger/badge_detail.html', dict(
-            badge=badge, award_list=awards,
+            badge=badge, award_list=awards, sections=sections,
+            claim_groups=claim_groups
         ), context_instance=RequestContext(request))
+
+
+@receiver(detail_needs_sections)
+def _detail_award_form(sender, **kwargs):
+    badge, request = kwargs['badge'], kwargs['request']
+    if badge.allows_detail_by(request.user):
+        return ('award', dict(
+            form=BadgeAwardForm()
+        ))
+    else:
+        return None
 
 
 @require_http_methods(['GET', 'POST'])
@@ -242,34 +285,6 @@ def claims_list(request, slug, claim_group, format="html"):
     return render_to_response('badger/claims_list.html', dict(
         badge=badge, claim_group=claim_group,
         deferred_awards=deferred_awards
-    ), context_instance=RequestContext(request))
-
-
-@require_http_methods(['GET', 'POST'])
-@login_required
-def manage_claims(request, slug):
-    badge = get_object_or_404(Badge, slug=slug)
-    if not badge.allows_manage_deferred_awards_by(request.user):
-        return HttpResponseForbidden()
-
-    if request.method == "POST":
-
-        if request.POST.get('is_generate', None):
-            amount = request.POST.get('amount', 10)
-            cg = badge.generate_deferred_awards(user=request.user,
-                                                amount=int(amount))
-
-        if request.POST.get('is_delete', None):
-            group = request.POST.get('claim_group')
-            badge.delete_claim_group(request.user, group)
-
-        url = reverse('badger.views.manage_claims', kwargs=dict(slug=slug))
-        return HttpResponseRedirect(url)
-
-    claim_groups = badge.claim_groups
-
-    return render_to_response('badger/manage_claims.html', dict(
-        badge=badge, claim_groups=claim_groups
     ), context_instance=RequestContext(request))
 
 

@@ -5,6 +5,7 @@ from django.views.generic.list_detail import object_list
 from django.views.generic.simple import direct_to_template
 
 from .feeds import AwardsRecentFeed, AwardsByUserFeed, AwardsByBadgeFeed
+from . import views
 
 
 urlpatterns = patterns('badger.views',
@@ -20,8 +21,6 @@ urlpatterns = patterns('badger.views',
         name='badger.award_detail_json'),
     url(r'^badge/(?P<slug>[^/]+)/awards/(?P<id>[^/]+)/?$', 'award_detail',
         name='badger.award_detail'),
-    url(r'^badge/(?P<slug>[^/]+)/claims/?$', 'manage_claims',
-        name='badger.manage_claims'),
     url(r'^badge/(?P<slug>[^/]+)/claims/(?P<claim_group>.+)\.pdf$', 'claims_list',
         kwargs=dict(format='pdf'),
         name='badger.claims_list_pdf'),

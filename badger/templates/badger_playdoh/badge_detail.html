@@ -23,29 +23,108 @@
     </section>
 
     {% if award_list %}
-    <section class="span8" id="recent_awardees" class="item_flow">
-        <header class="page-header">
-            <h2>
-                <span>{{ _("Recent awards") }}</span>
-                <small>(
-                    <a href="{{ url('badger.views.awards_list', badge.slug) }}">{{ _("More...") }}</a>
-                    <a href="{{ url('badger.feeds.awards_by_badge', 'atom', badge.slug) }}"><img src="{{MEDIA_URL}}/img/feed-icon-14x14.png" /></a>
-                )</small>
-            </h2>
-        </header>
-        <ul class="awardees clearfix">
-            {% for award in award_list %}
-                <li class="awardee">
-                    <a href="{{ award.get_absolute_url() }}" class="avatar_image"><img src="{{ user_avatar(award.user) }}"
-                        alt="{{ award.badge.title }}" width="128" height="128" /></a>            
-                    <a href="{{ award.get_absolute_url() }}" class="label">
-                        <span class="user">{{ award.user }}</span></a>
-                </li>
-            {% endfor %}
-        </ul>
+    <section class="span4">
+        
+        <section id="recent_awardees" class="item_flow">
+            <header class="page-header">
+                <h2>
+                    <span>{{ _("Recent awards") }}</span>
+                    <small>(
+                        <a href="{{ url('badger.views.awards_list', badge.slug) }}">{{ _("More...") }}</a>
+                        <a href="{{ url('badger.feeds.awards_by_badge', 'atom', badge.slug) }}"><img src="{{MEDIA_URL}}/img/feed-icon-14x14.png" /></a>
+                    )</small>
+                </h2>
+            </header>
+            <ul class="awardees clearfix">
+                {% for award in award_list %}
+                    <li class="awardee">
+                        <a href="{{ award.get_absolute_url() }}" class="avatar_image"><img src="{{ user_avatar(award.user) }}"
+                            alt="{{ award.badge.title }}" width="128" height="128" /></a>            
+                        <a href="{{ award.get_absolute_url() }}" class="label">
+                            <span class="user">{{ award.user }}</span></a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </section>
+
+    </section>
+    {% endif %}
+
+    <section class="span4">
+
+        {# TODO: Can this be done extensibly? with a registry? #}
+        {% set modules = [ "badger_multiplayer" ] %}
+        {% for module in modules %}
+            {% include module ~ "/includes/badge_detail_actions.html" %}
+        {% endfor %}
+
+        {% if badge.allows_award_to(request.user) %}
+            <section>
+                <header class="page-header">
+                    <h2>{{ _("Issue awards by email") }}</h2>
+                </header>
+                <form id="award_badge" method="POST"
+                      action="{{ url('badger.views.award_badge', slug=badge.slug) }}">
+                    {{ csrf() }}
+                    <ul>
+                        {{ sections.award.form.as_ul() }}
+                        <li><input type="submit" class="btn btn-large btn-primary submit" value="{{ _("Issue badge awards") }}"></li>
+                    </ul>
+                </form>
+            </section>
+        {% endif %}
+
+        {% if badge.allows_manage_deferred_awards_by(request.user) %}
+            <section class="claims_list">
+                <header class="page-header">
+                    <h2>{{ _("Issue awards with claim codes") }}</h2>
+                </header>
+                <form id="create_claims" method="POST" action="">
+                    {{ csrf() }}
+                    <input type="hidden" name="is_generate" value="1" />
+                    <select name="amount">
+                        <option value="1">1 reusable claim code</option>
+                        {% for x in (6, 15, 30, 60, 90, 120, 150) %}
+                            <option value="{{ x }}">{{ _('{num} single-use claim codes') | f(num=x) }}</option>
+                        {% endfor %}
+                    </select>
+                    <input type="submit" class="btn btn-large btn-primary submit" value="{{ _("Generate") }}">
+                </form>
+                <ul class="claim_groups">
+                    {% for item in claim_groups %}
+                        <li>
+                            <form class="delete_claim" method="POST" action="">
+                                {{ csrf() }}
+                                <input type="hidden" name="is_delete" value="1" />
+                                <input type="hidden" name="claim_group" value="{{ item.claim_group }}" />
+                                <input type="submit" class="btn btn-danger submit" value="{{ _("Delete") }}">
+                            </form>
+                            &#8212;
+                            {% if item.count > 1 %}
+                                <a class="btn" target="_blank" href="{{ url('badger.claims_list', badge.slug, item.claim_group) }}">
+                                    <strong class="modified">{{ item.modified }}</strong>
+                                    &#8212;
+                                    <span class="count">{{ _('{count} single-use codes') | f(count=item.count) }}</span>
+                                </a>
+                                &#8212;
+                                <a class="btn btn-success" 
+                                    title="{{ _("Download claim codes as printable PDF") }}"
+                                    href="{{ url('badger.claims_list_pdf', slug=badge.slug, claim_group=item.claim_group) }}">{{ _("PDF") }}</a>
+                            {% else %}
+                                <a class="btn" target="_blank" href="{{ url('badger.claims_list', badge.slug, item.claim_group) }}">
+                                    <strong class="modified">{{ item.modified }}</strong>
+                                    &#8212;
+                                    <span class="count">{{ _('1 reusable code') }}</span>
+                                </a>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endif %}
+
     </section>
 
 </section>
-{% endif %}
 
 {% endblock %}
