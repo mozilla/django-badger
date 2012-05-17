@@ -215,8 +215,8 @@ class BadgerViewsTest(BadgerTestCase):
         ok_(b1.is_awarded_to(user3))
         eq_(1, DeferredAward.objects.filter(email=user4_email).count())
 
-    def test_issue_deferred_award(self):
-        """Deferred award for a badge can be issued to an email address."""
+    def test_deferred_award_claim_on_login(self):
+        """Ensure that a deferred award gets claimed on login."""
         deferred_email = "awardee@example.com"
         user1 = self._get_user(username="creator", email="creator@example.com")
         b1 = Badge.objects.create(creator=user1, title="Badge to defer")
@@ -242,6 +242,34 @@ class BadgerViewsTest(BadgerTestCase):
         self.client.login(username="awardee", password="trustno1")
         r = self.client.get(reverse('badger.views.detail',
             args=(b1.slug,)), follow=True)
+        ok_(b1.is_awarded_to(user2))
+
+    def test_deferred_award_immediate_claim(self):
+        """Ensure that a deferred award can be immediately claimed rather than viewing detail"""
+        deferred_email = "awardee@example.com"
+        user1 = self._get_user(username="creator", email="creator@example.com")
+        b1 = Badge.objects.create(creator=user1, title="Badge to defer")
+        
+        da = DeferredAward(badge=b1, creator=user1)
+        da.save()
+        url = da.get_claim_url()
+
+        # Just viewing the claim URL shouldn't require login.
+        r = self.client.get(url, follow=False)
+        eq_(200, r.status_code)
+
+        # But, attempting to GET with the claim param should require login.
+        r = self.client.get('%s?claim' % url, follow=False)
+        eq_(302, r.status_code)
+        ok_('login' in r['Location'])
+
+        # So, try logging in and fetch the immediate-claim URL
+        user2 = self._get_user(username="awardee", email=deferred_email)
+        self.client.login(username="awardee", password="trustno1")
+        r = self.client.get('%s?claim' % url, follow=False)
+        eq_(302, r.status_code)
+        ok_('awards' in r['Location'])
+
         ok_(b1.is_awarded_to(user2))
 
     def test_grant_deferred_award(self):

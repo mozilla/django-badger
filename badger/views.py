@@ -181,6 +181,18 @@ def award_detail(request, slug, id, format="html"):
         ), context_instance=RequestContext(request))
 
 
+@login_required
+def _do_claim(request, deferred_award):
+    """Perform claim of a deferred award"""
+    if not deferred_award.allows_claim_by(request.user):
+        return HttpResponseForbidden('Claim denied')
+    award = deferred_award.claim(request.user)
+    if award:
+        url = reverse('badger.views.award_detail',
+                      args=(award.badge.slug, award.id,))
+        return HttpResponseRedirect(url)
+
+
 @require_http_methods(['GET', 'POST'])
 def claim_deferred_award(request, claim_code=None):
     """Deferred award detail view"""
@@ -191,18 +203,15 @@ def claim_deferred_award(request, claim_code=None):
         return HttpResponseForbidden('Claim detail denied')
 
     if request.method != "POST":
+        if request.GET.get('claim', False) is not False:
+            # HACK: ?claim parameter is a shortcut to immediate claim.
+            # Dirty and not idempotent, but oh well.
+            return _do_claim(request, deferred_award)
         grant_form = DeferredAwardGrantForm()
     else:
         grant_form = DeferredAwardGrantForm(request.POST, request.FILES)
-        is_grant = request.POST.get('is_grant', None)
-        if not is_grant:
-            if not deferred_award.allows_claim_by(request.user):
-                return HttpResponseForbidden('Claim denied')
-            award = deferred_award.claim(request.user)
-            if award:
-                url = reverse('badger.views.award_detail',
-                              args=(award.badge.slug, award.id,))
-                return HttpResponseRedirect(url)
+        if not request.POST.get('is_grant', False) is not False:
+            return _do_claim(request, deferred_award)
         else:
             if not deferred_award.allows_grant_by(request.user):
                 return HttpResponseForbidden('Grant denied')
