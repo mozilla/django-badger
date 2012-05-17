@@ -263,7 +263,7 @@ class BadgerDeferredAwardTest(BadgerTestCase):
         awardee = self._get_user(username='winner1',
                                  email='winner@example.com')
 
-        badge1 = self._get_badge(title="Test A", creator=user)
+        badge1 = self._get_badge(title="Test A", creator=user, unique=False)
 
         ok_(not badge1.is_awarded_to(awardee))
 

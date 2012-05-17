@@ -80,11 +80,12 @@ class BadgerTestCase(test.TestCase):
         return user
 
     def _get_badge(self, title="Test Badge",
-            description="This is a test badge", creator=None):
+            description="This is a test badge", creator=None, unique=True):
         if creator is None:
             creator = self.user_1
         elif creator is False:
             creator = None
         (badge, created) = Badge.objects.get_or_create(title=title,
-                defaults=dict(description=description, creator=creator))
+                defaults=dict(description=description, creator=creator,
+                              unique=unique))
         return badge
