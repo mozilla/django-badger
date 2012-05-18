@@ -59,6 +59,11 @@ if "notification" in settings.INSTALLED_APPS:
 else:
     notification = None
 
+if "badger_multiplayer" in settings.INSTALLED_APPS:
+    import badger_multiplayer
+else:
+    badger_multiplayer = None
+
 from .signals import (badge_will_be_awarded, badge_was_awarded)
 
 
@@ -337,6 +342,13 @@ class Badge(models.Model):
             help_text="Should awards of this badge be restricted to "
                       "one-per-person?")
 
+    if badger_multiplayer:
+        # HACK: This belongs in the badger_multiplayer model, ugh
+        # https://github.com/lmorchard/django-badger/issues/15
+        nominations_accepted = models.BooleanField(default=True,
+                help_text="Does this badge accept nominations from "
+                          "other users?")
+
     if taggit:
         tags = TaggableManager(blank=True)
 
@@ -380,6 +392,11 @@ class Badge(models.Model):
                 notification.send([self.creator], 'badge_edited', 
                                   dict(badge=self,
                                        protocol=DEFAULT_HTTP_PROTOCOL))
+
+    def delete(self, **kwargs):
+        """Make sure deletes cascade to awards"""
+        self.award_set.all().delete()
+        super(Badge, self).delete(**kwargs)
 
     def allows_detail_by(self, user):
         # TODO: Need some logic here, someday.
