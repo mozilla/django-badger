@@ -40,6 +40,8 @@ class Badge(badger.models.Badge):
 
     def allows_nominate_for(self, user):
         """Is nominate_for() allowed for this user?"""
+        if not self.nominations_accepted:
+            return False
         if None == user:
             return True
         if user.is_anonymous():

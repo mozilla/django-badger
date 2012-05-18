@@ -27,7 +27,8 @@ class BadgeEditForm(MyModelForm):
 
     class Meta:
         model = Badge
-        fields = ('title', 'image', 'description', 'tags', 'unique',)
+        fields = ('title', 'image', 'description', 'tags', 'unique',
+                  'nominations_accepted',)
 
     required_css_class = "required"
     error_css_class = "error"
