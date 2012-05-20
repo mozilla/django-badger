@@ -69,6 +69,6 @@ class BadgeNewForm(BadgeEditForm):
 
 class BadgeSubmitNominationForm(MyForm):
     """Form to submit badge nominations"""
-    emails = MultiEmailField(max_emails=10,
+    emails = MultiEmailField(max_items=10,
             help_text="Enter up to 10 email addresses for badge award "
                       "nominees")
