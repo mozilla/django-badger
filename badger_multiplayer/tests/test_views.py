@@ -130,6 +130,29 @@ class BadgerViewsTest(BadgerTestCase):
         eq_(badge_title, badge.title)
         eq_(badge_desc, badge.description)
 
+    def test_edit_preserves_creator(self):
+        """Edit preserves the original creator of the badge (bugfix)"""
+        orig_user = self._get_user(username='orig_user')
+        badge = Badge(creator=orig_user, title="Test 3",
+                      description="Another test")
+        badge.save()
+
+        edit_user = self._get_user(username='edit_user')
+        edit_user.is_superuser = True
+        edit_user.save()
+
+        self.client.login(username="edit_user", password="trustno1")
+        edit_url = reverse('badger_multiplayer.views.edit',
+                args=(badge.slug,))
+        r = self.client.post(edit_url, dict(
+            title='New Title',
+        ), follow=True)
+        doc = pq(r.content)
+
+        # The badge's creator should not have changed to the editing user.
+        badge_after = Badge.objects.get(pk=badge.pk)
+        ok_(badge_after.creator.pk != edit_user.pk)
+
     def test_delete(self):
         """Can delete badge"""
         user = self._get_user()

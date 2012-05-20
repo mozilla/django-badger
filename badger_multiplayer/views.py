@@ -95,7 +95,6 @@ def edit(request, slug):
         form = BadgeEditForm(request.POST, request.FILES, instance=badge)
         if form.is_valid():
             new_sub = form.save(commit=False)
-            new_sub.creator = request.user
             new_sub.save()
             form.save_m2m()
             return HttpResponseRedirect(reverse(
