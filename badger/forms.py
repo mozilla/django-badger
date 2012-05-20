@@ -60,48 +60,63 @@ class MyForm(forms.Form):
             errors_on_separate_row=False)
 
 
-class MultiEmailField(forms.Field):
-    """Form field which accepts multiple email addresses""" 
+class MultipleItemsField(forms.Field):
+    """Form field which accepts multiple text items"""
     # Based on https://docs.djangoproject.com/en/dev/ref/forms/validation/
     #          #form-field-default-cleaning
     widget = Textarea
 
     def __init__(self, **kwargs):
-        self.max_emails = kwargs.get('max_emails', 10)
-        del kwargs['max_emails']
-        super(MultiEmailField, self).__init__(**kwargs)
+        self.max_items = kwargs.get('max_items', 10)
+        if 'max_items' in kwargs: del kwargs['max_items']
+        self.separator_re = re.compile(r'[,;\s]+')
+        if 'separator_re' in kwargs: del kwargs['separator_re']
+        super(MultipleItemsField, self).__init__(**kwargs)
 
     def to_python(self, value):
         "Normalize data to a list of strings."
         if not value:
             return []
-        return EMAIL_SEPARATOR_RE.split(value)
+        return self.separator_re.split(value)
+
+    def validate_item(self, item):
+        return True
 
     def validate(self, value):
-        "Check if value consists only of valid emails."
-        super(MultiEmailField, self).validate(value)
+        "Check if value consists only of valid items."
+        super(MultipleItemsField, self).validate(value)
 
-        # Enforce max number of email addresses
-        if len(value) > self.max_emails:
+        # Enforce max number of items
+        if len(value) > self.max_items:
             raise ValidationError(
                 _('%s items entered, only %s allowed') %
-                (len(value), self.max_emails))
+                (len(value), self.max_items))
         
-        # Validate each of the addresses, 
-        for email in value:
-            if not email:
+        # Validate each of the items
+        invalid_items = []
+        for item in value:
+            if not item:
                 continue
             try:
-                validate_email(email)
+                self.validate_item(item)
             except ValidationError, e:
-                raise ValidationError(_('%s is not a valid email address') %
-                                      (email,))
+                invalid_items.append(item)
+
+        if len(invalid_items) > 0:
+            raise ValidationError(_('These items were invalid: %s') %
+                                  (u', '.join(invalid_items),))
+
+
+class MultiEmailField(MultipleItemsField):
+    """Form field which accepts multiple email addresses""" 
+    def validate_item(self, item):
+        validate_email(item)
 
 
 class BadgeAwardForm(MyForm):
     """Form to create either a real or deferred badge award"""
     # TODO: Needs a captcha?
-    emails = MultiEmailField(max_emails=10,
+    emails = MultiEmailField(max_items=10,
             help_text="Enter up to 10 email addresses for badge award "
                       "recipients")
 
@@ -110,3 +125,21 @@ class DeferredAwardGrantForm(MyForm):
     """Form to grant a deferred badge award"""
     # TODO: Needs a captcha?
     email = forms.EmailField()
+
+
+class MultipleClaimCodesField(MultipleItemsField):
+    """Form field which accepts multiple DeferredAward claim codes"""
+    def validate_item(self, item):
+        from badger.models import DeferredAward
+        try:
+            DeferredAward.objects.get(claim_code=item)
+            return True
+        except DeferredAward.DoesNotExist:
+            raise ValidationError(_("No such claim code, %s" % item))
+
+
+class DeferredAwardMultipleGrantForm(MyForm):
+    email = forms.EmailField(
+            help_text="Email address to which claims should be granted")
+    claim_codes = MultipleClaimCodesField(
+            help_text="Comma- or space-separated list of badge claim codes")

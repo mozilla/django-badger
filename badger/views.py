@@ -51,7 +51,8 @@ try:
 except ImportError:
     from badger.models import Badge, Award, DeferredAward
 
-from .forms import (BadgeAwardForm, DeferredAwardGrantForm)
+from .forms import (BadgeAwardForm, DeferredAwardGrantForm,
+                    DeferredAwardMultipleGrantForm)
 
 BADGE_PAGE_SIZE = 20
 MAX_RECENT = 15
@@ -305,4 +306,35 @@ def awards_by_badge(request, slug):
     awards = Award.objects.filter(badge=badge)
     return render_to_response('badger/awards_by_badge.html', dict(
         badge=badge, awards=awards,
+    ), context_instance=RequestContext(request))
+
+@require_http_methods(['GET', 'POST'])
+@login_required
+def staff_tools(request):
+    """HACK: This page offers miscellaneous tools useful to event staff.
+    Will go away in the future, addressed by:
+    https://github.com/lmorchard/django-badger/issues/35
+    """
+    if not (request.user.is_staff or request.user.is_superuser):
+        return HttpResponseForbidden()
+
+    if request.method != "POST":
+        grant_form = DeferredAwardMultipleGrantForm()
+    else:
+        if request.REQUEST.get('is_grant', False) is not False:
+            grant_form = DeferredAwardMultipleGrantForm(request.POST, request.FILES)
+            if grant_form.is_valid():
+                email = grant_form.cleaned_data['email']
+                codes = grant_form.cleaned_data['claim_codes']
+                for claim_code in codes:
+                    da = DeferredAward.objects.get(claim_code=claim_code)
+                    da.grant_to(email, request.user)
+                    messages.info(request, _('Badge "%s" granted to %s' %
+                                             (da.badge, email)))
+                url = reverse('badger.views.staff_tools')
+                return HttpResponseRedirect(url)
+
+
+    return render_to_response('badger/staff_tools.html', dict(
+        grant_form=grant_form
     ), context_instance=RequestContext(request))

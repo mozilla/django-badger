@@ -1,0 +1,22 @@
+{% extends "badger/base.html" %}
+
+{% block pageid %}staff_tools{% endblock %}
+
+{% block extrahead %}
+{% endblock %}
+
+{% block content %}
+<section class="grant-multiple">
+    <header class="page-header">
+        <h2>Grant multiple claim codes</h2>
+    </header>
+    <form id="grant_multiple" method="POST" action="" enctype="multipart/form-data">
+        {{ csrf() }}
+        <input type="hidden" name="is_grant" value="1" />
+        <ul>
+            {{ grant_form.as_ul() }}
+            <li><input type="submit" class="btn btn-large btn-primary submit" value="{{ _("Grant badge claims") }}"></li>
+        </ul>
+    </form>
+</section>
+{% endblock %}

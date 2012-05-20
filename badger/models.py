@@ -288,6 +288,13 @@ class BadgeManager(models.Manager, SearchManagerMixin):
             return True
         return False
 
+    def allows_grant_by(self, user):
+        if user.is_anonymous():
+            return False
+        if user.has_perm('badger.grant_deferredaward'):
+            return True
+        return False
+
     def top_tags(self, limit=12):
         """Assemble list of top-used tags"""
         if not taggit:
@@ -339,14 +346,14 @@ class Badge(models.Model):
     # TODO: Rename? Eventually we'll want a globally-unique badge. That is, one
     # unique award for one person for the whole site.
     unique = models.BooleanField(default=True,
-            help_text="Should awards of this badge be restricted to "
+            help_text="Should awards of this badge be limited to "
                       "one-per-person?")
 
     if badger_multiplayer:
         # HACK: This belongs in the badger_multiplayer model, ugh
         # https://github.com/lmorchard/django-badger/issues/15
         nominations_accepted = models.BooleanField(default=True,
-                help_text="Does this badge accept nominations from "
+                help_text="Should this badge accept nominations from " 
                           "other users?")
 
     if taggit:
