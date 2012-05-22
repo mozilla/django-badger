@@ -9,12 +9,12 @@ try:
 except ImportError:
     from StringIO import StringIO
 
-from reportlab.pdfgen import canvas
 from reportlab.lib import pagesizes
 from reportlab.lib.units import inch
 from reportlab.platypus import (
     SimpleDocTemplate, BaseDocTemplate, Paragraph, Preformatted, Spacer,
     PageBreak, Frame, FrameBreak, PageTemplate, Image, Table)
+from reportlab.platypus.doctemplate import LayoutError
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.rl_config import defaultPageSize 
 from reportlab.lib.units import inch 
@@ -29,14 +29,17 @@ from django.utils.html import conditional_escape
 
 # Constants hard-coded to print onto Avery 5630 or Avery 5260 labels
 # TODO: Make formats / templates switchable
-top_margin = (0.5 * inch)
-left_margin = (0.1875 * inch)
-width = 2.52 * inch
+top_margin = 0.5 * inch
+bottom_margin = 0.5 * inch
+left_margin = 0.1875 * inch
+right_margin = 0.1875 * inch
+width = 2.625 * inch
 height = 1.0 * inch
 vertical_spacing = 0 * inch
-horizontal_spacing = 0.10 * inch
+horizontal_spacing = 0.125 * inch
 columns = 3
 rows = 10
+page_size = (8.5 * inch, 11.0 * inch)
 
 
 def render_claims_to_pdf(request, slug, claim_group, deferred_awards):
@@ -48,9 +51,29 @@ def render_claims_to_pdf(request, slug, claim_group, deferred_awards):
         response['Content-Disposition'] = ('attachment; filename="%s-%s.pdf"' %
                 (slug.encode('utf-8', 'replace'), claim_group))
 
-    doc = BaseDocTemplate(response, pageSize=pagesizes.letter,
-            topMargin=top_margin, leftMargin=left_margin,
-            allowSplitting=1)
+    # HACK: If layout fails, it's most likely because of the title.  I am so
+    # ashamed of this, but this reduces the size of badge image and title by 5%
+    # for each error, until the error goes away. For the love of Bob, fix this
+    # good & proper.
+    scale_factor = 1.0
+    while scale_factor > 0.1:
+        try:
+            fout = StringIO()
+            _real_render(request, fout, slug, claim_group, deferred_awards,
+                         debug, scale_factor)
+            break
+        except LayoutError, e:
+            scale_factor -= 0.05
+
+    response.write(fout.getvalue())
+    return response
+
+
+def _real_render(request, stream, slug, claim_group, deferred_awards, debug,
+                 scale_factor=1.0):
+    """Render the pages of badge codes."""
+    doc = BaseDocTemplate(stream, topMargin=0, bottomMargin=0,
+                          leftMargin=0, rightMargin=0, allowSplitting=0)
     
     if debug: show_boundary = 1
     else: show_boundary = 0
@@ -59,24 +82,18 @@ def render_claims_to_pdf(request, slug, claim_group, deferred_awards):
     frames = []
     for r_idx in range(0, rows):
         for c_idx in range(0, columns):
+            left_pos = left_margin + (c_idx * (width + horizontal_spacing))
+            top_pos = (top_margin + (r_idx * (height + vertical_spacing)))
             frames.append(Frame(
-                left_margin + (c_idx * (width + horizontal_spacing)),
-                doc.height - (r_idx * (height + vertical_spacing)),
-                width, height,
+                left_pos, top_pos, width, height,
                 leftPadding=0, rightPadding=0,
                 bottomPadding=0, topPadding=0,
                 showBoundary=show_boundary
             ))
 
     # Add the template to the page.
-    template = PageTemplate(frames=frames)
+    template = PageTemplate(pagesize=page_size, frames=frames)
     doc.addPageTemplates(template)
-
-    # Build some common styles
-    style = ParagraphStyle(name='normal', alignment=TA_CENTER,
-        fontName='Helvetica', fontSize=9, leading=9)
-    code_style = ParagraphStyle(name='code', alignment=TA_CENTER,
-        fontName='Courier', fontSize=9.5, leading=9.5)
 
     # Fill out the template with claim codes.
     items = []
@@ -84,14 +101,16 @@ def render_claims_to_pdf(request, slug, claim_group, deferred_awards):
         badge = da.badge
         award_url = request.build_absolute_uri(da.get_claim_url())
 
-        badge_img = StringIO(badge.image.file.read())
+        image_fin = badge.image.file
+        image_fin.open()
+        badge_img = StringIO(image_fin.read())
 
         # TODO: Stop abusing the Google Charts API and get our own QR code
         # baking on premises.
         try:
-            qr_url = ("http://chart.apis.google.com/chart?%s" %
-                urllib.urlencode({'chs':'%sx%s' % (250, 250), 
-                                  'cht':'qr', 'chl':award_url, 'choe':'UTF-8'}))
+            qr_url = ("http://api.qrserver.com/v1/create-qr-code/?%s" %
+                urllib.urlencode({'size':'%sx%s' % (250, 250), 
+                                  'data':award_url}))
             qr_img = StringIO(urllib2.urlopen(qr_url).read())
         except Exception, e:
             return HttpResponse('QR code generation failed: %s' % e,
@@ -100,17 +119,19 @@ def render_claims_to_pdf(request, slug, claim_group, deferred_awards):
         # Build the badge label out as a table...
         table_data = (
             (
-                Image(badge_img, 0.6 * inch, 0.6 * inch),
-                Image(qr_img, 0.6 * inch, 0.6 * inch)
-            ),
-            (
-                # Use resize_para to shrink the font size as title gets longer.
-                resize_para(badge.title),
                 (
-                    resize_para(request.build_absolute_uri('/'),
-                                max_width=0.85 * inch),
-                    Paragraph(da.claim_code.upper(), code_style),
-                )
+                    Image(badge_img, 0.75 * inch * scale_factor, 0.75 * inch * scale_factor),
+                    resize_para(badge.title, max_width=1.75 * inch * scale_factor),
+                ),
+                (
+                    Image(qr_img, 0.6 * inch, 0.6 * inch),
+                    Paragraph(request.build_absolute_uri('/'), ParagraphStyle(
+                        name='normal', alignment=TA_CENTER,
+                        fontName='Helvetica', fontSize=8, leading=8)),
+                    Paragraph(da.claim_code.upper(), ParagraphStyle(
+                        name='code', alignment=TA_CENTER,
+                        fontName='Courier', fontSize=11, leading=11)),
+                ),
             ),
         )
 
@@ -127,8 +148,6 @@ def render_claims_to_pdf(request, slug, claim_group, deferred_awards):
         items.append(FrameBreak())
 
     doc.build(items)
-
-    return response
 
 
 def resize_para(str, max_size=10.0, min_size=2.0, max_width=(1.25*inch),
