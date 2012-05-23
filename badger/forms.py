@@ -77,7 +77,8 @@ class MultipleItemsField(forms.Field):
         "Normalize data to a list of strings."
         if not value:
             return []
-        return self.separator_re.split(value)
+        items = self.separator_re.split(value)
+        return [i.strip() for i in items if i.strip()]
 
     def validate_item(self, item):
         return True
@@ -95,8 +96,6 @@ class MultipleItemsField(forms.Field):
         # Validate each of the items
         invalid_items = []
         for item in value:
-            if not item:
-                continue
             try:
                 self.validate_item(item)
             except ValidationError, e:
