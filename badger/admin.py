@@ -106,7 +106,8 @@ class DeferredAwardAdmin(admin.ModelAdmin):
                     'reusable', 'creator', 'created', 'modified',)
     list_display_links = ('id',)
     list_filter = ('reusable', )    
-    fields = ('badge', 'claim_code', 'email', 'reusable', 'description',)
+    fields = ('badge', 'claim_group', 'claim_code', 'email', 'reusable',
+              'description',)
     readonly_fields = ('created', 'modified')
     search_fields = ("badge__title", "badge__slug", "badge__description",)
 
