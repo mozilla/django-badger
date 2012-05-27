@@ -1,6 +1,7 @@
 import logging
 import re
 import random
+import hashlib
 
 from datetime import datetime, timedelta, tzinfo
 from time import time, gmtime, strftime
@@ -667,8 +668,16 @@ class Award(models.Model):
             }
 
         # see: https://github.com/brianlovesdata/openbadges/wiki/Assertions
+        # TODO: This salt is stable, and the badge.pk is generally not
+        # disclosed anywhere, but is it obscured enough?
+        hash_salt = (hashlib.md5('%s-%s' % (self.badge.pk, self.pk))
+                            .hexdigest())
+        recipient_text = '%s%s' % (self.user.email, hash_salt)
+        recipient_hash = ('sha256$%s' % hashlib.sha256(recipient_text)
+                                               .hexdigest())
         assertion = {
-            "recipient": self.user.email,
+            "recipient": recipient_hash,
+            "salt": hash_salt,
             "evidence": urljoin(base_url, self.get_absolute_url()),
             # TODO: implement award expiration
             # "expires": self.expires.strftime('%Y-%m-%d'),
