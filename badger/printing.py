@@ -121,21 +121,21 @@ def render_label(request, c, metrics, da):
              badge_image_width, qr_code_height)
 
     c.saveState()
-    c.rotate(90)
+    c.rotate(-90)
 
     code_height = qr_code_height * (0.45)
     claim_height = qr_code_height - code_height
 
     c.setFont("Courier", code_height)
-    c.drawCentredString(badge_image_width / 2.0,
-                        0 - metrics['width'] + claim_height,
+    c.drawCentredString(0 - (badge_image_width / 2.0),
+                        metrics['height'] - code_height,
                         da.claim_code)
     
     text = """
         <font name="Helvetica">Claim at</font> <font name="Courier">%s</font>
     """ % (settings.SITE_TITLE)
     fit_text(c, text,
-             0.0, 0-(1.5 * inch),
+             0 - badge_image_height, badge_image_width,
              badge_image_width, claim_height)
     
     c.restoreState()

@@ -834,7 +834,9 @@ class DeferredAwardManager(models.Manager):
 
 
 def make_random_code():
-    s = '0123456789abcdefghijklmnopqrstuvwxyz'
+    """Generare a random code, using a set of alphanumeric characters that
+    attempts to avoid ambiguously similar shapes."""
+    s = '3479acefhjkmnprtuvwxy'
     return ''.join([random.choice(s) for x in range(CLAIM_CODE_LENGTH)])
 
 
