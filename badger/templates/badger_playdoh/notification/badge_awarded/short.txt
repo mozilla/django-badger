@@ -1,1 +1,1 @@
-{% trans %}{{ notice }}{% endtrans %}
+{% trans badge_title=award.badge.title %}Badge awarded: {{ badge_title }}{% endtrans %}

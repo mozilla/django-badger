@@ -1,12 +1,10 @@
-{% trans domain=current_site.domain,
-            protocol=(protocol or 'http'),
-            badge_url=badge.get_absolute_url(),
-            badge_title=badge.title %}
+{% set domain=current_site.domain %}
+{% set protocol=(protocol or 'http') %}
+{% set badge_url=badge.get_absolute_url() %}
+{% set badge_title=badge.title %}
+{% trans %}The badge "{{ badge_title }}" was edited.{% endtrans %}
 
-The badge {{ badge_title }} was edited.
 
-Review the changes here:
+{% trans %}Review the changes here:{% endtrans %}
 
     {{ protocol }}://{{ domain }}{{ badge_url }}
-
-{% endtrans %}

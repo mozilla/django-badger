@@ -3,8 +3,6 @@
             award_url=award.get_absolute_url(),
             user_name=award.user, 
             user_url=award.user.get_absolute_url() %}
-
 You were <a href="{{ award_url }}">awarded</a> the badge 
 <a href="{{ badge_url }}">{{ badge_title }}</a>.
-
 {% endtrans %}

@@ -1,7 +1,5 @@
-{% trans %}You have received the following notice from {{ current_site }}:{% endtrans %}
+{{ message|safe }}
 
-
-{{ message }}
-
+--
 {% trans %}To see other notices or change how you receive notifications,
 please go to {{ notices_url }}{% endtrans %}

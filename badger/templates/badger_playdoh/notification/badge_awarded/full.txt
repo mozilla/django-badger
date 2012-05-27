@@ -1,15 +1,11 @@
-{% trans domain=current_site.domain, 
-            badge_url=award.badge.get_absolute_url(),
-            badge_title=award.badge.title,
-            award_url=award.get_absolute_url(),
-            protocol=(protocol or 'http'),
-            user_name=award.user,
-            user_url=award.user.get_absolute_url() %}
+{% set badge_title=award.badge.title %}
+{% set user_name=award.user %}
+{% set domain=current_site.domain %}
+{% set protocol=(protocol or 'http') %}
+{% set award_url=award.get_absolute_url() %}
+{% trans %}The badge "{{ badge_title }}" was awarded to {{ user_name }}.{% endtrans %}
 
-The badge {{ badge_title }} was awarded to {{ user_name }}.
 
-Check out the details, here:
+{% trans %}Check out the details, here:{% endtrans %}
 
     {{ protocol }}://{{ domain }}{{ award_url }}
-    
-{% endtrans %}

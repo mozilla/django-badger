@@ -1,17 +1,13 @@
-{% trans domain=current_site.domain,
-         protocol=(protocol or 'http'),
-         badge_url=nomination.badge.get_absolute_url(),
-         badge_title=nomination.badge.title,
-         nomination_url=nomination.get_absolute_url(),
-         user_name=nomination.nominee,
-         user_url=nomination.nominee.get_absolute_url(),
-         approver_user_name=nomination.approver,
-         approver_url=nomination.approver.get_absolute_url() %}
+{% set approver_user_name=nomination.approver %}
+{% set user_name=nomination.nominee %}
+{% set badge_title=nomination.badge.title %}
+{% set domain=current_site.domain %}
+{% set protocol=(protocol or 'http') %}
+{% set nomination_url=nomination.get_absolute_url() %}
+{% trans %}{{ approver_user_name }} approved the nomination of {{ user_name }}
+for the badge "{{ badge_title }}".{% endtrans %}
 
-{{ approver_user_name }} approved the nomination of {{ user_name }} for the badge {{ badge_title }}.
 
-Check out the details, here:
+{% trans %}Check out the details, here:{% endtrans %}
 
     {{ protocol }}://{{ domain }}{{ nomination_url }}
-    
-{% endtrans %}
