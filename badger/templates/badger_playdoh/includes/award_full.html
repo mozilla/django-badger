@@ -1,4 +1,6 @@
 <dl class="award">
+    <dt>{{_("Issued on:")}}</dt>
+        <dd class="issued">{{ award.created }}</dd>
     <dt>{{_("Awarded to:")}}</dt>
         <dd class="awarded_to"><a href="{{ award.user.get_absolute_url() }}"
            class="username"><img src="{{ user_avatar(award.user) }}" class="avatar"
@@ -7,8 +9,4 @@
         <dd class="awarded_by"><a href="{{ award.creator.get_absolute_url() }}" 
             class="username"><img src="{{ user_avatar(award.creator) }}" class="avatar"
                 alt="{{ award.creator}}" width="28" height="28" />{{ award.creator }}</a></dd>
-    <dt>{{_("Issued on:")}}</dt>
-        <dd class="issued">{{ award.created }}</dd>
 </dl>
-
-<a href="{{ award.get_absolute_url() }}" class="avatar_image"></a>

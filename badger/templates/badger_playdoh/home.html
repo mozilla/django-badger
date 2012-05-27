@@ -14,18 +14,21 @@
 {% block content %}
 
 <section class="home-intro hero-unit">
-    <h1><span>{{ _("Welcome to badg.us!") }}</span></h1>
+    <h1><span>{{ _("Welcome to {site_title}!") | f(site_title=settings.SITE_TITLE) }}</span></h1>
 
     <div class="row-fluid">
 
         <section class="item span4">
             <section class="blurb">
-                <p>This is a service for <a href="http://decafbad.com/2010/07/badger-article/">making and awarding badges</a>.
-                    It's <a href="https://github.com/lmorchard/django-badger">Open&nbsp;Source</a> and experimental!</p>
+                <p>This is an <a href="https://github.com/lmorchard/django-badger">Open&nbsp;Source</a> 
+                    service for <a href="http://decafbad.com/2010/07/badger-article/">making and awarding badges</a>.
+                    Any <a href="https://github.com/lmorchard/badg.us/wiki/FAQ">questions</a>?
+                    Check <a href="https://github.com/lmorchard/badg.us/wiki/FAQ">the FAQ</a>!
+                </p>
             </section>
             <section class="action">
                 {% if request.user.is_authenticated() %}
-                    <p><a class="action btn btn-success btn-large" href="{{ request.user.get_absolute_url() }}">{{ _("☺  View your profile") }}</a></p>
+                    <p><a class="action btn btn-info btn-large" href="{{ request.user.get_absolute_url() }}">{{ _("☺  View your profile") }}</a></p>
                 {% else %}
                     {% block signin %}
                     <form class="browserid" action="{{url('browserid_verify')}}" method="POST">
@@ -47,7 +50,7 @@
         <section class="item span4">
             <section class="blurb">
                 <h3>{{ _("Have a claim code?") }}</h3>
-                <p>{{ _("Type it here to claim your award:") }}</p>
+                <p>{{ _("Type it here to claim your badge:") }}</p>
             </section>
             <section class="action">
                 <form class="claim" method="POST" action="{{ url('badger.views.claim_deferred_award') }}">
@@ -56,7 +59,7 @@
                            name="code" id="intro_code" 
                            placeholder="enter claim code" 
                            value="{{ request.GET.get('code','') }}" />
-                    <input type="submit" class="action btn btn-info btn-large" value="{{ _('Claim award from code') }}" />
+                    <input type="submit" class="action btn btn-success btn-large" value="{{ _('Claim award from code') }}" />
                 </form>
             </section>
         </section>

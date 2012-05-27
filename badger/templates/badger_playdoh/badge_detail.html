@@ -1,5 +1,7 @@
 {% extends "badger/base.html" %}
 
+{% set badge_url = request.build_absolute_uri(badge.get_absolute_url()) %}
+
 {% block pageid %}badge_detail{% endblock %}
 
 {% block extrahead %}
@@ -9,6 +11,18 @@
     <link rel="alternate" type="application/json"
         title="{{ _('{title} (JSON)') | f(title=badge) }}"
         href="{{ url('badger.detail_json', slug=badge.slug) }}" />
+
+     <meta property="og:type" content="article"> 
+     <meta property="og:url" content="{{ badge_url }}">
+     <meta property="og:site_name" content="{{ settings.SITE_TITLE }}">
+     <meta property="og:image" content="{{ request.build_absolute_uri(badge.image.url) }}">
+     <meta property="og:title" content="{{ badge.title }}">
+     <meta property="og:description" content="{{ badge.description }}"> 
+     <meta property="article:published_time" content="{{ badge.modified.isoformat() }}Z"> 
+     <meta property="article:author" content="{{ badge.creator }}">
+     {% for tag in badge.tags.all() %}
+     <meta property="article:tag" content="{{ tag.name }}">
+     {% endfor %}
 {% endblock %}
 
 {% block content %}
@@ -28,7 +42,7 @@
         <section id="recent_awardees" class="item_flow">
             <header class="page-header">
                 <h2>
-                    <span>{{ _("Recent awards") }}</span>
+                    <span>{{ _("Recent badge awards") }}</span>
                     <small>(
                         <a href="{{ url('badger.views.awards_list', badge.slug) }}">{{ _("More...") }}</a>
                         <a href="{{ url('badger.feeds.awards_by_badge', 'atom', badge.slug) }}"><img src="{{MEDIA_URL}}/img/feed-icon-14x14.png" /></a>
@@ -61,7 +75,7 @@
         {% if badge.allows_award_to(request.user) %}
             <section>
                 <header class="page-header">
-                    <h2>{{ _("Issue awards by email") }}</h2>
+                    <h2>{{ _("Issue badge awards by email") }}</h2>
                 </header>
                 <form id="award_badge" method="POST"
                       action="{{ url('badger.views.award_badge', slug=badge.slug) }}">
@@ -77,14 +91,15 @@
         {% if badge.allows_manage_deferred_awards_by(request.user) %}
             <section class="claims_list">
                 <header class="page-header">
-                    <h2>{{ _("Issue awards with claim codes") }}</h2>
+                    <h2>{{ _("Issue badge awards with claim codes") }}</h2>
+                    <p>PDF prints sheets of <a href="https://www.google.com/search?q=Avery+22805" target="_blank">Avery 22805 labels</a>, 24 per page</p>
                 </header>
                 <form id="create_claims" method="POST" action="">
                     {{ csrf() }}
                     <input type="hidden" name="is_generate" value="1" />
                     <select name="amount">
                         <option value="1">1 reusable claim code</option>
-                        {% for x in (6, 15, 30, 60, 90, 120, 150) %}
+                        {% for x in (6, 12, 24, 48, 72, 96, 120, 144,) %}
                             <option value="{{ x }}">{{ _('{num} single-use claim codes') | f(num=x) }}</option>
                         {% endfor %}
                     </select>
