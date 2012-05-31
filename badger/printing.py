@@ -47,6 +47,8 @@ def render_claims_to_pdf(request, slug, claim_group, deferred_awards):
         horizontal_spacing=((5.0/16.0) * inch),
         vertical_spacing=((13.0/64.0) * inch),
 
+        qr_edge_padding=2,
+
         width=(1.5 * inch),
         height=(1.5 * inch),
     )
@@ -90,7 +92,7 @@ def render_claims_to_pdf(request, slug, claim_group, deferred_awards):
                     continue
 
                 c.saveState()
-                render_label(request, c, metrics, da)
+                render_label(request, c, metrics, da, debug)
                 c.restoreState()
 
                 dx = (metrics['width'] + metrics['horizontal_spacing'])
@@ -106,7 +108,7 @@ def render_claims_to_pdf(request, slug, claim_group, deferred_awards):
     return response
 
 
-def render_label(request, c, metrics, da):
+def render_label(request, c, metrics, da, debug):
     """Render a single label"""
     badge = da.badge
 
@@ -115,6 +117,15 @@ def render_label(request, c, metrics, da):
 
     qr_code_width = metrics['width'] - badge_image_width
     qr_code_height = metrics['height'] - badge_image_height
+
+    if debug:
+        # Draw some layout lines on debug.
+        c.setLineWidth(0.3)
+        c.rect(0, 0, metrics['width'], metrics['height'])
+        c.rect(badge_image_width, badge_image_height,
+                qr_code_width, qr_code_height) 
+        c.rect(0, 0, badge_image_width, badge_image_height)
+
 
     fit_text(c, da.badge.title,
              0.0, badge_image_height,
@@ -153,15 +164,13 @@ def render_label(request, c, metrics, da):
         qr_url = ("http://api.qrserver.com/v1/create-qr-code/?%s" %
             urllib.urlencode({'size':'%sx%s' % (500, 500), 
                               'data':award_url}))
-        #qr_url = ("http://chart.apis.google.com/chart?%s" %
-        #     urllib.urlencode({'chs':'%sx%s' % (250, 250), 
-        #                       'cht':'qr', 'chl':award_url, 'choe':'UTF-8'}))
 
         qr_img = ImageReader(StringIO(urllib2.urlopen(qr_url).read()))
 
         c.drawImage(qr_img, 
                     badge_image_width, badge_image_height,
-                    qr_code_width, qr_code_height)
+                    qr_code_width - metrics['qr_edge_padding'],
+                    qr_code_height - metrics['qr_edge_padding'])
 
     except Exception, e:
         # Ignore issues in drawing the QR code - maybe show an error?
