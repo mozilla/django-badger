@@ -43,6 +43,9 @@ def render_claims_to_pdf(request, slug, claim_group, deferred_awards):
 
         top_margin=(0.5 * inch),
         left_margin=((25.0/32.0) * inch),
+
+        qr_overlap=((1.0/32.0) * inch),
+        padding=((1.0/16.0) * inch),
         
         horizontal_spacing=((5.0/16.0) * inch),
         vertical_spacing=((13.0/64.0) * inch),
@@ -117,30 +120,31 @@ def render_label(request, c, metrics, da, badge_img, debug):
     """Render a single label"""
     badge = da.badge
 
-    badge_image_width = 1.1 * inch
-    badge_image_height = 1.1 * inch
+    badge_image_width = (1.0 + (1.0/64.0)) * inch
+    badge_image_height = (1.0 + (1.0/64.0)) * inch
 
-    qr_code_width = metrics['width'] - badge_image_width
-    qr_code_height = metrics['height'] - badge_image_height
+    qr_left = badge_image_width - metrics['qr_overlap']
+    qr_bottom = badge_image_height - metrics['qr_overlap']
+    qr_width = metrics['width'] - qr_left
+    qr_height = metrics['height'] - qr_bottom
 
-    if debug:
+    if False and debug:
         # Draw some layout lines on debug.
         c.setLineWidth(0.3)
         c.rect(0, 0, metrics['width'], metrics['height'])
-        c.rect(badge_image_width, badge_image_height,
-                qr_code_width, qr_code_height) 
+        c.rect(qr_left, qr_bottom, qr_width, qr_height)
         c.rect(0, 0, badge_image_width, badge_image_height)
 
 
     fit_text(c, da.badge.title,
              0.0, badge_image_height,
-             badge_image_width, qr_code_height)
+             badge_image_width, qr_height)
 
     c.saveState()
     c.rotate(-90)
 
-    code_height = qr_code_height * (0.45)
-    claim_height = qr_code_height - code_height
+    code_height = qr_height * (0.45)
+    claim_height = qr_height - code_height
 
     c.setFont("Courier", code_height)
     c.drawCentredString(0 - (badge_image_width / 2.0),
@@ -155,10 +159,6 @@ def render_label(request, c, metrics, da, badge_img, debug):
              badge_image_width, claim_height)
     
     c.restoreState()
-    
-    c.drawImage(badge_img, 
-                0.0 * inch, 0.0 * inch,
-                badge_image_width, badge_image_height)
 
     # Attempt to build a QR code image for the claim URL
     claim_url = request.build_absolute_uri(da.get_claim_url())
@@ -167,7 +167,13 @@ def render_label(request, c, metrics, da, badge_img, debug):
         # Try using PyQRNative: http://code.google.com/p/pyqrnative/
         # badg.us should have this in vendor-local
         from PyQRNative import QRCode, QRErrorCorrectLevel
-        qr = QRCode(3, QRErrorCorrectLevel.L) # TODO: Good-enough settings?
+        # TODO: Good-enough settings?
+        if len(claim_url) < 20:
+            qr = QRCode(3, QRErrorCorrectLevel.L)
+        elif len(claim_url) < 50:
+            qr = QRCode(4, QRErrorCorrectLevel.L)
+        else:
+            qr = QRCode(10, QRErrorCorrectLevel.L)
         qr.addData(claim_url)
         qr.make()
         qr_img = ImageReader(qr.makeImage())
@@ -187,9 +193,11 @@ def render_label(request, c, metrics, da, badge_img, debug):
             pass
 
     if qr_img:
-        c.drawImage(qr_img, 
-                    badge_image_width, badge_image_height,
-                    qr_code_width, qr_code_height)
+        c.drawImage(qr_img, qr_left, qr_bottom, qr_width, qr_height)
+
+    c.drawImage(badge_img, 
+                0.0 * inch, 0.0 * inch,
+                badge_image_width, badge_image_height)
 
 
 def fit_text(c, text, x, y, max_w, max_h, font_name='Helvetica', 
