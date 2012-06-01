@@ -277,7 +277,7 @@ def claim_deferred_award(request, claim_code=None):
         if awards_ct > 0:
             return _redirect_to_claimed_awards(awards, awards_ct)
         else:
-            return Http404('No such claim code, %s' % claim_code)
+            raise Http404('No such claim code, %s' % claim_code)
 
     if not deferred_award.allows_detail_by(request.user):
         return HttpResponseForbidden('Claim detail denied')
