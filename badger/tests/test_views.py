@@ -1,4 +1,5 @@
 import logging
+import hashlib
 
 from django.conf import settings
 
@@ -92,7 +93,14 @@ class BadgerViewsTest(BadgerTestCase):
         r = self.client.get(url, follow=True)
 
         data = simplejson.loads(r.content)
-        eq_(award.user.email, data['recipient'])
+
+        hash_salt = (hashlib.md5('%s-%s' % (award.badge.pk, award.pk))
+                            .hexdigest())
+        recipient_text = '%s%s' % (award.user.email, hash_salt)
+        recipient_hash = ('sha256$%s' % hashlib.sha256(recipient_text)
+                                               .hexdigest())
+
+        eq_(recipient_hash, data['recipient'])
         eq_('http://testserver%s' % award.get_absolute_url(), 
             data['evidence'])
         eq_(award.badge.title, data['badge']['name'])
@@ -245,7 +253,8 @@ class BadgerViewsTest(BadgerTestCase):
         ok_(b1.is_awarded_to(user2))
 
     def test_deferred_award_immediate_claim(self):
-        """Ensure that a deferred award can be immediately claimed rather than viewing detail"""
+        """Ensure that a deferred award can be immediately claimed rather than
+        viewing detail"""
         deferred_email = "awardee@example.com"
         user1 = self._get_user(username="creator", email="creator@example.com")
         b1 = Badge.objects.create(creator=user1, title="Badge to defer")
@@ -275,6 +284,36 @@ class BadgerViewsTest(BadgerTestCase):
         ok_('awards' in r['Location'])
 
         ok_(b1.is_awarded_to(user2))
+
+    def test_claim_code_shows_awards_after_claim(self):
+        """Claim code URL should lead to award detail or list after claim"""
+        user1 = self._get_user(username="creator",
+                               email="creator@example.com")
+        user2 = self._get_user(username="awardee",
+                               email="awardee@example.com")
+        b1 = Badge.objects.create(creator=user1, unique=False,
+                                  title="Badge for claim viewing")
+        da = DeferredAward(badge=b1, creator=user1, reusable=True)
+        da.save()
+
+        url = reverse('badger.views.claim_deferred_award',
+                      args=(da.claim_code,))
+
+        # First claim leads to a single award detail page.
+        award = da.claim(user2)
+        r = self.client.get(url, follow=False)
+        eq_(302, r.status_code)
+        award_url = reverse('badger.views.award_detail',
+                            args=(award.badge.slug, award.pk))
+        ok_(award_url in r['Location'])
+
+        # Second claim leads to a list of awards.
+        award = da.claim(user2)
+        r = self.client.get(url, follow=False)
+        eq_(302, r.status_code)
+        list_url = reverse('badger.views.awards_list',
+                            args=(award.badge.slug,))
+        ok_(list_url in r['Location'])
 
     def test_grant_deferred_award(self):
         """Deferred award for a badge can be granted to an email address."""

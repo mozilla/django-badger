@@ -217,6 +217,10 @@ class BadgerDeferredAwardTest(BadgerTestCase):
 
         ok_(badge1.is_awarded_to(awardee))
 
+        # Ensure the award was marked with the claim code.
+        award = Award.objects.get(claim_code=code)
+        eq_(award.badge.pk, badge1.pk)
+
     def test_claim_by_email(self):
         """Can claim all deferred awards by email address"""
         deferred_email = 'winner@example.com'

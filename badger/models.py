@@ -590,6 +590,9 @@ class Award(models.Model):
     image = models.ImageField(blank=True, null=True,
                               storage=BADGE_UPLOADS_FS,
                               upload_to=mk_upload_to('image','png'))
+    claim_code = models.CharField(max_length=32, blank=True,
+            default='', unique=False, db_index=True,
+            help_text="Code used to claim this award")
     user = models.ForeignKey(User, related_name="award_user")
     creator = models.ForeignKey(User, related_name="award_creator",
                                 blank=True, null=True)
@@ -861,7 +864,7 @@ class DeferredAward(models.Model):
     description = models.TextField(blank=True)
     reusable = models.BooleanField(default=False)
     email = models.EmailField(blank=True, null=True, db_index=True)
-    claim_code = models.CharField(max_length=CLAIM_CODE_LENGTH,
+    claim_code = models.CharField(max_length=32,
             default=make_random_code, unique=True, db_index=True)
     claim_group = models.CharField(max_length=32, blank=True, null=True,
             db_index=True)
@@ -932,6 +935,8 @@ class DeferredAward(models.Model):
         """Claim the deferred award for the given user"""
         try:
             award = self.badge.award_to(awardee=awardee, awarder=self.creator)
+            award.claim_code = self.claim_code
+            award.save()
         except (BadgeAlreadyAwardedException,
                 BadgeAwardNotAllowedException), e:
             # Just swallow up and ignore any issues in awarding.

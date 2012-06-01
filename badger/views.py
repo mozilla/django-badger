@@ -4,7 +4,7 @@ import random
 from django.conf import settings
 
 from django.http import (HttpResponseRedirect, HttpResponse,
-        HttpResponseForbidden, HttpResponseNotFound)
+        HttpResponseForbidden, HttpResponseNotFound, Http404)
 
 from django.utils import simplejson
 
@@ -13,7 +13,9 @@ from django.template import RequestContext
 from django.template.defaultfilters import slugify
 
 try:
-    from commons.urlresolvers import reverse
+    from funfactory.urlresolvers import (get_url_prefix, Prefixer, reverse,
+                                         set_url_prefix)
+    from tower import activate
 except ImportError, e:
     from django.core.urlresolvers import reverse
 
@@ -237,12 +239,46 @@ def _do_claim(request, deferred_award):
         return HttpResponseRedirect(url)
 
 
+def _redirect_to_claimed_awards(self, awards, awards_ct):
+    # Has this claim code already been used for awards?
+    # If so, then a GET redirects to an award detail or list
+    if awards_ct == 1:
+        award = awards[0]
+        url = reverse('badger.views.award_detail',
+                      args=(award.badge.slug, award.id,))
+        return HttpResponseRedirect(url)
+    elif awards_ct > 1:
+        award = awards[0]
+        url = reverse('badger.views.awards_list',
+                      args=(award.badge.slug,))
+        return HttpResponseRedirect(url)
+
+
 @require_http_methods(['GET', 'POST'])
 def claim_deferred_award(request, claim_code=None):
     """Deferred award detail view"""
     if not claim_code:
         claim_code = request.REQUEST.get('code', '').strip()
-    deferred_award = get_object_or_404(DeferredAward, claim_code=claim_code)
+
+    # Look for any awards that match this claim code.
+    awards = Award.objects.filter(claim_code=claim_code)
+    awards_ct = awards.count()
+
+    # If this is a GET and there are awards matching the claim code, redirect
+    # to the awards.
+    if request.method == "GET" and awards_ct > 0:
+        return _redirect_to_claimed_awards(awards, awards_ct)
+
+    # Try fetching a DeferredAward matching the claim code. If none found, then
+    # make one last effort to redirect a POST to awards. Otherwise, 404
+    try:
+        deferred_award = DeferredAward.objects.get(claim_code=claim_code)
+    except DeferredAward.DoesNotExist:
+        if awards_ct > 0:
+            return _redirect_to_claimed_awards(awards, awards_ct)
+        else:
+            return Http404('No such claim code, %s' % claim_code)
+
     if not deferred_award.allows_detail_by(request.user):
         return HttpResponseForbidden('Claim detail denied')
 
