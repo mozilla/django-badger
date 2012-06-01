@@ -84,9 +84,9 @@ badge_link.short_description = 'Badge'
 
 
 class AwardAdmin(admin.ModelAdmin):
-    list_display = (show_unicode, badge_link, show_image, 'user', 'creator',
-                    'created', )
-    fields = ('badge', 'user', 'creator', )
+    list_display = (show_unicode, badge_link, show_image, 'claim_code', 'user',
+                    'creator', 'created', )
+    fields = ('badge', 'claim_code', 'user', 'creator', )
     search_fields = ("badge__title", "badge__slug", "badge__description",)
 
 
