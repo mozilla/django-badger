@@ -239,7 +239,7 @@ def _do_claim(request, deferred_award):
         return HttpResponseRedirect(url)
 
 
-def _redirect_to_claimed_awards(self, awards, awards_ct):
+def _redirect_to_claimed_awards(awards, awards_ct):
     # Has this claim code already been used for awards?
     # If so, then a GET redirects to an award detail or list
     if awards_ct == 1:
