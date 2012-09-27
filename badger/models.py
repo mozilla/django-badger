@@ -338,7 +338,7 @@ class Badge(models.Model):
     description = models.TextField(blank=True,
             help_text="Longer description of the badge and its criteria")
     image = models.ImageField(blank=True, null=True,
-        storage=BADGE_UPLOADS_FS, upload_to=mk_upload_to('image','png'),
+            storage=BADGE_UPLOADS_FS, upload_to=mk_upload_to('image','png'),
             help_text="Upload an image to represent the badge")
     prerequisites = models.ManyToManyField('self', symmetrical=False,
             blank=True, null=True,
@@ -353,7 +353,7 @@ class Badge(models.Model):
     if badger_multiplayer:
         # HACK: This belongs in the badger_multiplayer model, ugh
         # https://github.com/lmorchard/django-badger/issues/15
-        nominations_accepted = models.BooleanField(default=True, blank=True,
+        nominations_accepted = models.BooleanField(default=True,
                 help_text="Should this badge accept nominations from " 
                           "other users?")
 
