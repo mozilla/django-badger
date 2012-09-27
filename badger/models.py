@@ -353,7 +353,7 @@ class Badge(models.Model):
     if badger_multiplayer:
         # HACK: This belongs in the badger_multiplayer model, ugh
         # https://github.com/lmorchard/django-badger/issues/15
-        nominations_accepted = models.BooleanField(default=True,
+        nominations_accepted = models.BooleanField(default=True, blank=True,
                 help_text="Should this badge accept nominations from " 
                           "other users?")
 
