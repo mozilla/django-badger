@@ -606,7 +606,7 @@ class Award(models.Model):
         ordering = ['-modified', '-created']
 
     def __unicode__(self):
-        by = self.creator and (' by %s' % self.creator) or ''
+        by = self.creator and (u' by %s' % self.creator) or u''
         return u'Award of %s to %s%s' % (self.badge, self.user, by)
 
     @models.permalink
