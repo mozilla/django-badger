@@ -296,7 +296,7 @@ class BadgeManager(models.Manager, SearchManagerMixin):
             return True
         return False
 
-    def top_tags(self, min_count=2, limit=12):
+    def top_tags(self, min_count=2, limit=20):
         """Assemble list of top-used tags"""
         if not taggit:
             return []
@@ -310,7 +310,7 @@ class BadgeManager(models.Manager, SearchManagerMixin):
             .values('tag')
             .annotate(count=Count('id'))
             .filter(content_type=ct, count__gte=min_count)
-            .order_by('-count'))
+            .order_by('-count'))[:limit]
 
         # Gather set of tag IDs from list
         tag_ids = set(x['tag'] for x in tag_counts)
