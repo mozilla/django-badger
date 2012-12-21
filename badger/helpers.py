@@ -22,15 +22,8 @@ import jinja2
 from jinja2 import evalcontextfilter, Markup, escape
 from jingo import register, env
 
-from .models import (Progress,
-        BadgeAwardNotAllowedException)
-
-# TODO: Is there an extensible way to do this, where "add-ons" introduce proxy
-# model objects?
-try:
-    from badger_multiplayer.models import Badge, Award
-except ImportError:
-    from badger.models import Badge, Award
+from .models import (Badge, Award, Nomination, Progress,
+                     BadgeAwardNotAllowedException)
 
 
 @register.function
@@ -72,9 +65,22 @@ def badger_allows_add_by(user):
 
 @register.function
 def qr_code_image(value, alt=None, size=150):
+    # TODO: Bake our own QR codes, someday soon!
     url = conditional_escape("http://chart.apis.google.com/chart?%s" % \
             urllib.urlencode({'chs':'%sx%s' % (size, size), 'cht':'qr', 'chl':value, 'choe':'UTF-8'}))
     alt = conditional_escape(alt or value)
     
     return Markup(u"""<img class="qrcode" src="%s" width="%s" height="%s" alt="%s" />""" %
                   (url, size, size, alt))
+
+
+@register.function
+def nominations_pending_approval(user):
+    return Nomination.objects.filter(badge__creator=user,
+                                     approver__isnull=True)
+
+@register.function
+def nominations_pending_acceptance(user):
+    return Nomination.objects.filter(nominee=user,
+                                     approver__isnull=False,
+                                     accepted=False)

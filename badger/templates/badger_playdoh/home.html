@@ -8,7 +8,7 @@
         href="{{ url('badger.feeds.awards_recent', 'atom') }}" />
     <link rel="alternate" type="application/atom+xml"
         title="{{ _('Recently created badges') }}"
-        href="{{ url('badger_multiplayer.feeds.badges_recent', 'atom') }}" />
+        href="{{ url('badger.feeds.badges_recent', 'atom') }}" />
 {% endblock %}
 
 {% block content %}
@@ -20,10 +20,11 @@
 
         <section class="item span4">
             <section class="blurb">
-                <p>This is an <a href="https://github.com/lmorchard/django-badger">Open&nbsp;Source</a> 
-                    service for <a href="http://decafbad.com/2010/07/badger-article/">making and awarding badges</a>.
-                    Any <a href="https://github.com/lmorchard/badg.us/wiki/FAQ">questions</a>?
+                <p>This is an experimental service
+                    for <a href="http://decafbad.com/2010/07/badger-article/">badges</a>,
+                    powered by <a href="https://github.com/lmorchard/django-badger">Open&nbsp;Source</a>.
                     Check <a href="https://github.com/lmorchard/badg.us/wiki/FAQ">the FAQ</a>!
+                    Submit <a href="http://goo.gl/mod/Umab">suggestions</a>!
                 </p>
             </section>
             <section class="action">
@@ -70,7 +71,7 @@
                 <p>{{ _("Click here to start:") }}</p>
             </section>
             <section class="action">
-                <p><a class="action btn btn-primary btn-large" href="{{ url('badger_multiplayer.views.create') }}">{{ _("✸ Create a new badge") }}</a></p>
+                <p><a class="action btn btn-primary btn-large" href="{{ url('badger.views.create') }}">{{ _("✸ Create a new badge") }}</a></p>
             </section>
         </section>
 
@@ -97,7 +98,7 @@
                 <span>{{ _("Recently created badges") }}</span>
                 <small>
                     <a href="{{ url('badger.views.badges_list') }}">{{ _("More...") }}</a>
-                    <a href="{{ url('badger_multiplayer.feeds.badges_recent', 'atom') }}"><img alt="{{ _("Atom feed") }}" src="{{MEDIA_URL}}/img/feed-icon-14x14.png" /></a>
+                    <a href="{{ url('badger.feeds.badges_recent', 'atom') }}"><img alt="{{ _("Atom feed") }}" src="{{MEDIA_URL}}/img/feed-icon-14x14.png" /></a>
                 </small>
             </h2>
         </header>

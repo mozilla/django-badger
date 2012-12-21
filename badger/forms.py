@@ -6,7 +6,8 @@ from django.conf import settings
 from django import forms
 from django.db import models
 from django.contrib.auth.models import User, AnonymousUser
-from django.forms import CharField, Textarea, ValidationError
+from django.forms import FileField, CharField, Textarea, ValidationError
+from django.forms.widgets import ClearableFileInput
 from django.utils.translation import ugettext as _
 from django.core.validators import validate_email
 
@@ -15,14 +16,12 @@ try:
 except ImportError, e:
     from django.utils.translation import ugettext_lazy as _
 
-from badger.models import (Award)
+from badger.models import Award, Badge, Nomination
 
-# TODO: Is there an extensible way to do this, where "add-ons" introduce proxy
-# model objects?
 try:
-    from badger_multiplayer.models import Badge
-except ImportError:
-    from badger.models import Badge
+    from taggit.managers import TaggableManager
+except:
+    TaggableManager = None
 
 
 EMAIL_SEPARATOR_RE = re.compile(r'[,;\s]+')
@@ -142,3 +141,47 @@ class DeferredAwardMultipleGrantForm(MyForm):
             help_text="Email address to which claims should be granted")
     claim_codes = MultipleClaimCodesField(
             help_text="Comma- or space-separated list of badge claim codes")
+
+
+class BadgeEditForm(MyModelForm):
+
+    class Meta:
+        model = Badge
+        fields = ('title', 'image', 'description', 'tags', 'unique',
+                  'nominations_accepted',)
+
+    required_css_class = "required"
+    error_css_class = "error"
+
+    def __init__(self, *args, **kwargs):
+        super(BadgeEditForm, self).__init__(*args, **kwargs)
+
+        # HACK: inject new templates into the image field, monkeypatched
+        # without creating a subclass
+        self.fields['image'].widget.template_with_clear = u'''
+            <p class="clear">%(clear)s
+                <label for="%(clear_checkbox_id)s">%(clear_checkbox_label)s</label></p>
+        '''
+        self.fields['image'].widget.template_with_initial = u'''
+            <div class="clearablefileinput">
+                <p>%(initial_text)s: %(initial)s</p>
+                %(clear_template)s
+                <p>%(input_text)s: %(input)s</p>
+            </div>
+        '''
+
+
+class BadgeNewForm(BadgeEditForm):
+
+    class Meta(BadgeEditForm.Meta):
+        pass
+
+    def __init__(self, *args, **kwargs):
+        super(BadgeNewForm, self).__init__(*args, **kwargs)
+
+
+class BadgeSubmitNominationForm(MyForm):
+    """Form to submit badge nominations"""
+    emails = MultiEmailField(max_items=10,
+            help_text="Enter up to 10 email addresses for badge award "
+                      "nominees")

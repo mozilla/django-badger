@@ -6,7 +6,14 @@
 
 <section class="row-fluid">
 
-    <section class="span4">
+    <section class="span4" id="detail">
+        <header class="page-header">
+            <h2>{{ _("Badge: {badge_title}") | f(badge_title=badge.title) }}</h2>
+        </header>
+        {% include "badger/includes/badge_full.html" %}
+    </section>
+
+    <section class="span8">
         <header class="page-header">
             <h2>{{ _("Delete badge") }}</h2>
         </header>
@@ -30,13 +37,6 @@
                 <li><input type="submit" class="btn btn-large btn-danger submit" value="{{ _("Delete badge") }}"></li>
             </ul>
         </form>
-    </section>
-
-    <section class="span8" id="detail">
-        <header class="page-header">
-            <h2>{{ _("Badge: {badge_title}") | f(badge_title=badge.title) }}</h2>
-        </header>
-        {% include "badger/includes/badge_full.html" %}
     </section>
 
 </section>

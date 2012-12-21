@@ -16,12 +16,16 @@ offer) the following:
 - Basic badges, managed by the site owner in code and via Django admin.
 - Badge awards, triggered in response to signal-based events with code
   collected in per-app ``badges.py`` modules.
+- Views and models that enable users to create their own badges and nominate
+  each other for awards.
 - Meta-badges, for which an award is automatically issued when a complete set
   of prerequisite badge awards have been collected.
 - Progress tracking, for which an award is issued when a user metric reaches
   100% of some goal, or in response to some other custom logic.
 - Activity streams of badge awards.
 
+If you want to federate or share badges, you should check out
+the `Mozilla Open Badges <https://github.com/mozilla/openbadges>`_ project.
 
 Installation
 ------------
@@ -66,18 +70,5 @@ Testing
 
 - TBD, see `badg.us <https://github.com/lmorchard/badg.us>`_ for an example
   site setup
-
-
-Other Badger apps
------------------
-
-Here are other apps in the Badger family, either in progress or proposed:
-
-`django-badger-multiplayer <https://github.com/lmorchard/django-badger-multiplayer>`_
-    Badges for and by everyone. Augments ``django-badger`` with features to
-    make badge creation, nomination, and awarding a multiplayer game.
-
-If you want to federate or share badges, you should check out
-the `Mozilla Open Badges <https://github.com/mozilla/openbadges>`_ project.
 
 .. vim:set tw=78 ai fo+=n fo-=l ft=rst:

@@ -27,6 +27,18 @@ if "notification" in settings.INSTALLED_APPS:
             #("award_declined", _("Badge award declined"),
             #    _("someone has declined an award for one of your badges")),
             # TODO: Notification on progress?
+            ("nomination_submitted", _("Nomination submitted"),
+                _("someone has submitted a nomination for one of your badges")),
+            ("nomination_approved", _("Nomination approved"),
+                _("a nomination you submitted for an award has been approved")),
+            #("nomination_rejected", _("Nomination rejected"),
+            #    _("a nomination you submitted for an award has been rejected")),
+            ("nomination_received", _("Nomination received"),
+                _("a nomination to award you a badge was approved")),
+            ("nomination_accepted", _("Nomination accepted"),
+                _("a nomination you submitted for an award has been accepted")),
+            #("nomination_declined", _("Nomination declined"),
+            #    _("a nomination you submitted for an award has been declined")),
         )
         for notice in notices:
             notification.create_notice_type(*notice)

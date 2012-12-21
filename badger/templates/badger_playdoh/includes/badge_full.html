@@ -1,27 +1,33 @@
+{% if award and award.image %}
+    {% set image_url = award.image.url %}
+{% elif badge.image %}
+    {% set image_url = badge.image.url %}
+{% else %}
+    {# TODO: Put the URL for default badge image in settings #}
+    {% set image_url = "/media/img/default-badge.png" %}
+{% endif %}
+{% if not award %}
 <ul class="btn-list">
-    {# TODO: Can this be done extensibly? with a registry? #}
-    {% set modules = [ "badger_multiplayer" ] %}
-    {% for module in modules %}
-        {% include module ~ "/includes/badge_full_actions.html" %}
-    {% endfor %}
+    {% if badge.allows_edit_by(request.user) %}
+        <li><a class="btn btn-large btn-primary edit_badge" href="{{ url('badger.views.edit', badge.slug) }}">{{ _('Edit badge') }}</a></li>
+    {% endif %}
+    {% if badge.allows_delete_by(request.user) %}
+        <li><a class="btn btn-large btn-danger delete_badge" href="{{ url('badger.views.delete', badge.slug) }}">{{ _('Delete badge') }}</a></li>
+    {% endif %}
 </ul>
+{% endif %}
 <dl class="badge" data-slug="{{ badge.slug }}">
     {% if badge_show_title %}
         <dt>{{_("Title:")}}</dt>
             <dd class="title"><strong>{{ badge.title }}</strong></dd>
     {% endif %}
-    {% if award and award.image %}
-        <dt>{{_("Image:")}}</dt>
-            <dd class="image"><a href="{{ badge.get_absolute_url() }}" class="image"><img src="{{ award.image.url }}" width="256" height="256" /></a></dd>
-    {% elif badge.image %}
-        <dt>{{_("Image:")}}</dt>
-            <dd class="image"><a href="{{ badge.get_absolute_url() }}" class="image"><img src="{{ badge.image.url }}" width="256" height="256" /></a></dd>
-    {% endif %}
+    <dt>{{_("Image:")}}</dt>
+        <dd class="image"><a href="{{ badge.get_absolute_url() }}" class="image"><img src="{{ image_url }}" width="256" height="256" /></a></dd>
     {% if badge.description %}
         <dt>{{_("Description:")}}</dt>
             <dd class="description">{{ badge.description }}</dd>
     {% endif %}
-    {% if badge.tags and badge.tags.count %}
+    {% if badge.tags and badge.tags.count() %}
         <dt>{{ _("Tags:") }}</dt>
         <dd><ul class="tags">
             {% for tag in badge.tags.all() %}
