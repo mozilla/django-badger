@@ -23,15 +23,10 @@ except ImportError, e:
     from django.core.urlresolvers import reverse
 
 from . import validate_jsonp
-from .models import (Progress, BadgeAwardNotAllowedException,
+from .models import (Badge, Award, Nomination, Progress,
+                     BadgeAwardNotAllowedException,
                      DEFAULT_BADGE_IMAGE)
 
-# TODO: Is there an extensible way to do this, where "add-ons" introduce proxy
-# model objects?
-try:
-    from badger_multiplayer.models import Badge, Award
-except ImportError:
-    from badger.models import Badge, Award
 
 MAX_FEED_ITEMS = getattr(settings, 'BADGER_MAX_FEED_ITEMS', 15)
 
@@ -215,4 +210,49 @@ class AwardsByBadgeFeed(AwardsFeed):
     def items(self, badge):
         return (Award.objects
                 .filter(badge=badge).order_by('-created')
+                .all()[:MAX_FEED_ITEMS])
+
+
+class BadgesJSONFeedGenerator(BaseJSONFeedGenerator):
+    pass
+
+
+class BadgesFeed(BaseFeed):
+    """Base class for all feeds listing badges"""
+    title = _('Recently created badges')
+
+    json_feed_generator = BadgesJSONFeedGenerator
+
+    def item_title(self, obj):
+        return obj.title
+
+    def item_link(self, obj):
+        return self.request.build_absolute_uri(
+            reverse('badger.views.detail',
+                    args=(obj.slug, )))
+
+
+class BadgesRecentFeed(BadgesFeed):
+
+    def items(self):
+        return (Badge.objects
+                .order_by('-created')
+                .all()[:MAX_FEED_ITEMS])
+
+
+class BadgesByUserFeed(BadgesFeed):
+    """Feed of badges recently created by a user"""
+
+    def get_object(self, request, format, username):
+        super(BadgesByUserFeed, self).get_object(request, format)
+        user = get_object_or_404(User, username=username)
+        self.title = _("Badges recently created by %s") % user.username
+        self.link = request.build_absolute_uri(
+            reverse('badger_multiplayer.views.badges_by_user', args=(user.username,)))
+        return user
+
+    def items(self, user):
+        return (Badge.objects
+                .filter(creator=user)
+                .order_by('-created')
                 .all()[:MAX_FEED_ITEMS])

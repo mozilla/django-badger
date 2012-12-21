@@ -1,0 +1,80 @@
+{% extends "badger/base.html" %}
+
+{% block pageid %}badge_create{% endblock %}
+
+{% block content %}
+
+<section>
+    <section class="row-fluid">
+        <section class="span6">
+            <header class="page-header">
+                <h2>{{ _("Create a badge") }}</h2>
+            </header>
+            <form id="create_badge" method="POST" action="" enctype="multipart/form-data">
+                {{ csrf() }}
+                <ul>
+                    {{ form.as_ul() }}
+                    <li><input type="submit" class="btn btn-large btn-primary submit" value="{{ _("Create badge") }}"></li>
+                </ul>
+            </form>
+        </section>
+        <section class="span6 sample-badge">
+            <header class="page-header">
+                <h2>Example badge:</h2>
+            </header>
+            <p>{% trans %}
+                This isn't a real badge, but it shows a few things you can do.
+            {% endtrans %}</p>
+            {# TODO: Put the URL for default badge image in settings #}
+            {% set image_url = "/media/img/default-badge.png" %}
+            <dl class="badge">
+                <dt>{{_("Title:")}}</dt>
+                    <dd class="title"><strong>{{ _('Test Badger') }}</strong>
+                    <p><i>{% trans %}
+                        Try to keep this to 5 words, or less.
+                    {% endtrans %}</i></p></dd>
+                <dt>{{_("Image:")}}</dt>
+                    <dd class="image"><span class="image"><img src="{{ image_url }}" width="256" height="256" /></span>
+                        <p><i>{% trans %}
+                            This should be a square image, around 256x256
+                            pixels. The system will automatically crop and
+                            resize images that fall outside these guidelines.
+                            Also, consider using simple artwork that stays
+                            distinctive at a variety of sizes and viewing
+                            distances. Lots of small details and words are hard
+                            to see when the badge image is either small or far
+                            away.
+                        {% endtrans %}</i></p>
+                    </dd>
+                <dt>{{_("Description:")}}</dt>
+                    <dd class="description">{{ _("For having qualities like a test pilot, but more badgery.") }}
+                        <p><i>{% trans %}
+                            Use this to describe why someone would earn this
+                            badge. Explain the conditions and criteria a person
+                            would need to satisfy to receive this badge as an
+                            award.
+                        {% endtrans %}</i></p>
+                    </dd>
+                <dt>{{ _("Tags:") }}</dt>
+                    <dd><ul class="tags">
+                        {% set tags = [ 'tests', 'A2makerfaire2012', 'badgers' ] %}
+                        {% for tag in tags %}
+                            <li><a class="tag" href="{{ url('badger.badges_list', tag_name=tag) }}"><i class="icon-tag icon-white"></i> {{ tag }}</a></li>
+                        {% endfor %}
+                        </ul>
+                        {% set example_tag_url = url('badger.badges_list', tag_name='a2makerfaire2012') %}
+                        <p><i>{% trans %}
+                            Use tags to group your badge with others. These are
+                            like <a href="https://support.twitter.com/articles/49309-what-are-hashtags-symbols" target="_blank">hashtags on Twitter</a>.
+                            These <a href="http://twitter.pbworks.com/w/page/1779812/Hashtags" target="_blank">are best used sparingly</a>:
+                            Try not to enter more than 2-5 concise topics or keywords. Events
+                            often use tags to help gather badges that will be
+                            offered (eg.  <a href="{{ example_tag_url }}" target="_blank">A2makerfaire2012</a>). 
+                        {% endtrans %}</i></p>
+                    </dd>
+            </dl>
+        </section>
+    </section>
+</section>
+
+{% endblock %}

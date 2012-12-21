@@ -5,7 +5,7 @@
 {% block extrahead %}
     <link rel="alternate" type="application/atom+xml"
         title="{{ _('Recent awards') }}"
-        href="{{ url('badger_multiplayer.feeds.badges_by_user', 'atom', user.username) }}" />
+        href="{{ url('badger.feeds.badges_by_user', 'atom', user.username) }}" />
 {% endblock %}
 
 {% block content %}

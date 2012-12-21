@@ -11,7 +11,7 @@
             <span>{% trans %}Badges tagged <a href="" class="tag"><i class="icon-tag icon-white"></i> {{tag_name}}</a>{% endtrans %}</span>
                 {% if badger_allows_add_by(request.user) %}
                     <small>
-                        <a class="action btn btn-large btn-primary" href="{{ url('badger_multiplayer.views.create') | urlparams(tags=tag_name) }}">{{ _('Create new badge') }}</a>
+                        <a class="action btn btn-large btn-primary" href="{{ url('badger.views.create') | urlparams(tags=tag_name) }}">{{ _('Create new badge') }}</a>
                     </small>
                 {% endif %}
             {% elif query_string %}
@@ -20,7 +20,7 @@
                 <span>{{ _("All badges") }}</span>
                 {% if badger_allows_add_by(request.user) %}
                     <small>
-                        <a class="action btn btn-primary" href="{{ url('badger_multiplayer.views.create') }}">{{ _('Create new badge') }}</a>
+                        <a class="action btn btn-primary" href="{{ url('badger.views.create') }}">{{ _('Create new badge') }}</a>
                     </small>
                 {% endif %}
             {% endif %}

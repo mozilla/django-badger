@@ -1,6 +1,12 @@
 {% extends "badger/base.html" %}
 
 {% set badge_url = request.build_absolute_uri(badge.get_absolute_url()) %}
+{% if badge.image %}
+    {% set image_url = badge.image.url %}
+{% else %}
+    {# TODO: Put the URL for default badge image in settings #}
+    {% set image_url = "/media/img/default-badge.png" %}
+{% endif %}
 
 {% block pageid %}badge_detail{% endblock %}
 
@@ -15,11 +21,11 @@
      <meta property="og:type" content="article"> 
      <meta property="og:url" content="{{ badge_url }}">
      <meta property="og:site_name" content="{{ settings.SITE_TITLE }}">
-     <meta property="og:image" content="{{ request.build_absolute_uri(badge.image.url) }}">
+     <meta property="og:image" content="{{ request.build_absolute_uri(image_url) }}">
      <meta property="og:title" content="{{ badge.title }}">
      <meta property="og:description" content="{{ badge.description }}"> 
      <meta property="article:published_time" content="{{ badge.modified.isoformat() }}Z"> 
-     <meta property="article:author" content="{{ badge.creator }}">
+     <meta property="article:author" content="{{ request.build_absolute_uri(url('profiles.profile_view', badge.creator.username)) }}">
      {% for tag in badge.tags.all() %}
      <meta property="article:tag" content="{{ tag.name }}">
      {% endfor %}
@@ -34,6 +40,24 @@
             <h2 class="badge-title">{{ _("Badge: {badge_title}") | f(badge_title=badge.title) }}</h2>
         </header>
         {% include "badger/includes/badge_full.html" %}
+        {% if not award %}
+        <dl class="share">
+            <dt>{{ _('Share:') }}</dt>
+            <dd><ul>
+                <li><a href="https://twitter.com/share" class="twitter-share-button" 
+                       data-text="&quot;{{ badge.title }}&quot; on {{ settings.SITE_TITLE }}!" 
+                       data-size="large"
+                       data-url="{{ badge_url }}" data-hashtags="badgus">...</a></li>
+
+                <li><div class="g-plus" data-href="{{ badge_url }}" data-action="share"
+                         data-annotation="bubble" data-height="24"></div></li>
+
+                <li><div class="fb-like" data-href="{{ badge_url }}" data-send="true"
+                         data-width="450" data-show-faces="false"></div></li>
+
+            </ul></dd>
+        </dl>
+        {% endif %}
     </section>
 
     {% if award_list %}
@@ -66,11 +90,21 @@
 
     <section class="span4">
 
-        {# TODO: Can this be done extensibly? with a registry? #}
-        {% set modules = [ "badger_multiplayer" ] %}
-        {% for module in modules %}
-            {% include module ~ "/includes/badge_detail_actions.html" %}
-        {% endfor %}
+        {% if badge.allows_nominate_for(request.user) %}
+            <section>
+                <header class="page-header">
+                    <h2>{{ _("Submit nominations by email") }}</h2>
+                </header>
+                <form id="award_badge" method="POST"
+                      action="{{ url('badger.views.nominate_for', slug=badge.slug) }}">
+                    {{ csrf() }}
+                    <ul>
+                        {{ sections.nominate.form.as_ul() }}
+                        <li><input type="submit" class="btn btn-large btn-primary submit" value="{{ _("Submit nominations") }}"></li>
+                    </ul>
+                </form>
+            </section>
+        {% endif %}
 
         {% if badge.allows_award_to(request.user) %}
             <section>
@@ -99,7 +133,7 @@
                     <input type="hidden" name="is_generate" value="1" />
                     <select name="amount">
                         <option value="1">1 reusable claim code</option>
-                        {% for x in (6, 12, 24, 48, 72, 96, 120, 144,) %}
+                        {% for x in (6, 12, 24, 48, 72, 96) %}
                             <option value="{{ x }}">{{ _('{num} single-use claim codes') | f(num=x) }}</option>
                         {% endfor %}
                     </select>
@@ -142,4 +176,34 @@
 
 </section>
 
+<div id="fb-root"></div>
+<script>
+  window.fbAsyncInit = function() {
+    FB.init({
+      appId      : '235454449896211', // App ID
+      channelUrl : '{{ request.build_absolute_uri('/media/fb-channel.html') }}', // Channel File
+      status     : true, // check login status
+      cookie     : true, // enable cookies to allow the server to access the session
+      xfbml      : true  // parse XFBML
+    });
+    // Additional initialization code here
+  };
+
+  // Load the SDK Asynchronously
+  (function(d){
+     var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
+     if (d.getElementById(id)) {return;}
+     js = d.createElement('script'); js.id = id; js.async = true;
+     js.src = "//connect.facebook.net/en_US/all.js";
+     ref.parentNode.insertBefore(js, ref);
+   }(document));
+</script>
+
+{% endblock %}
+
+{% block js %}
+    <script type="text/javascript"
+        src="//platform.twitter.com/widgets.js"></script>
+    <script type="text/javascript"
+        src="https://apis.google.com/js/plusone.js"></script>
 {% endblock %}

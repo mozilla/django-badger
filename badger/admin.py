@@ -9,7 +9,7 @@ try:
 except ImportError, e:
     from django.core.urlresolvers import reverse
 
-from .models import (Badge, Award, Progress, DeferredAward)
+from .models import (Badge, Award, Nomination, Progress, DeferredAward)
 
 
 UPLOADS_URL = getattr(settings, 'BADGER_UPLOADS_URL',
@@ -112,8 +112,24 @@ class DeferredAwardAdmin(admin.ModelAdmin):
     search_fields = ("badge__title", "badge__slug", "badge__description",)
 
 
+def award_link(self):
+    url = reverse('admin:badger_award_change', args=[self.award.id])
+    return '<a href="%s">%s</a>' % (url, self.award)
+
+award_link.allow_tags = True
+award_link.short_description = 'award'
+
+
+class NominationAdmin(admin.ModelAdmin):
+    list_display = ('id', show_unicode, award_link, 'accepted', 'nominee',
+                    'approver', 'creator', 'created', 'modified',)
+    list_filter = ('accepted',)
+    search_fields = ('badge__title', 'badge__slug', 'badge__description',)
+
+
 for x in ((Badge, BadgeAdmin),
           (Award, AwardAdmin),
+          (Nomination, NominationAdmin),
           (Progress, ProgressAdmin),
           (DeferredAward, DeferredAwardAdmin),):
     admin.site.register(*x)
