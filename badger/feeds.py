@@ -248,7 +248,7 @@ class BadgesByUserFeed(BadgesFeed):
         user = get_object_or_404(User, username=username)
         self.title = _("Badges recently created by %s") % user.username
         self.link = request.build_absolute_uri(
-            reverse('badger_multiplayer.views.badges_by_user', args=(user.username,)))
+            reverse('badger.views.badges_by_user', args=(user.username,)))
         return user
 
     def items(self, user):
