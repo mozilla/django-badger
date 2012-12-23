@@ -676,6 +676,17 @@ class Award(models.Model):
         # TODO: Need some logic here, someday.
         return True
 
+    def allows_delete_by(self, user):
+        if user.is_anonymous():
+            return False
+        if user == self.user:
+            return True
+        if user == self.creator:
+            return True
+        if user.has_perm('badger.change_award'):
+            return True
+        return False
+
     def save(self, *args, **kwargs):
 
         # Signals and some bits of logic only happen on a new award.

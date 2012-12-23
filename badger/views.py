@@ -284,6 +284,27 @@ def award_detail(request, slug, id, format="html"):
         ), context_instance=RequestContext(request))
 
 
+@require_http_methods(['GET', 'POST'])
+@login_required
+def award_delete(request, slug, id):
+    """Delete an award"""
+    badge = get_object_or_404(Badge, slug=slug)
+    award = get_object_or_404(Award, badge=badge, pk=id)
+    if not award.allows_delete_by(request.user):
+        return HttpResponseForbidden('Award delete forbidden')
+
+    if request.method == "POST":
+        messages.info(request, _('Award for badge "%s" deleted.') %
+                               badge.title)
+        award.delete()
+        url = reverse('badger.views.detail', kwargs=dict(slug=slug))
+        return HttpResponseRedirect(url)
+
+    return render_to_response('badger/award_delete.html', dict(
+        badge=badge, award=award
+    ), context_instance=RequestContext(request))
+
+
 @login_required
 def _do_claim(request, deferred_award):
     """Perform claim of a deferred award"""
