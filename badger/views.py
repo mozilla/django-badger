@@ -230,8 +230,10 @@ def award_badge(request, slug):
         form = BadgeAwardForm(request.POST, request.FILES)
         if form.is_valid():
             emails = form.cleaned_data['emails']
+            description = form.cleaned_data['description']
             for email in emails:
-                result = badge.award_to(email=email, awarder=request.user)
+                result = badge.award_to(email=email, awarder=request.user,
+                                        description=description)
                 if result:
                     if not hasattr(result, 'claim_code'):
                         messages.info(request, _('Award issued to %s') % email)

@@ -495,7 +495,8 @@ class Badge(models.Model):
         """Produce a list of claim group IDs available"""
         return DeferredAward.objects.get_claim_groups(badge=self)
 
-    def award_to(self, awardee=None, email=None, awarder=None):
+    def award_to(self, awardee=None, email=None, awarder=None,
+                 description=''):
         """Award this badge to the awardee on the awarder's behalf"""
         # If no awarder given, assume this is on the badge creator's behalf.
         if not awarder:
@@ -521,7 +522,9 @@ class Badge(models.Model):
         if self.unique and self.is_awarded_to(awardee):
             return Award.objects.filter(user=awardee, badge=self)[0]
 
-        award = Award.objects.create(user=awardee, badge=self, creator=awarder)
+        award = Award.objects.create(user=awardee, badge=self,
+                                     creator=awarder,
+                                     description=description)
 
         if notification:
             if self.creator:
@@ -641,6 +644,8 @@ class Award(models.Model):
     admin_objects = models.Manager()
     objects = AwardManager()
 
+    description = models.TextField(blank=True,
+            help_text="Explanation and evidence for the badge award")
     badge = models.ForeignKey(Badge)
     image = models.ImageField(blank=True, null=True,
                               storage=BADGE_UPLOADS_FS,

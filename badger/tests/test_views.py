@@ -155,6 +155,7 @@ class BadgerViewsTest(BadgerTestCase):
 
     def test_issue_award(self):
         """Badge creator can issue award to another user"""
+        SAMPLE_DESCRIPTION = u'This is a sample description'
         
         user1 = self._get_user(username="creator", email="creator@example.com")
         user2 = self._get_user(username="awardee", email="awardee@example.com")
@@ -177,15 +178,26 @@ class BadgerViewsTest(BadgerTestCase):
         form = doc('form#award_badge')
         eq_(1, form.length)
         eq_(1, form.find('*[name=emails]').length)
+        eq_(1, form.find('*[name=description]').length)
         eq_(1, form.find('input.submit,button.submit').length)
 
         r = self.client.post(url, dict(
             emails=user2.email,
+            description=SAMPLE_DESCRIPTION
         ), follow=False)
 
         ok_('award' in r['Location'])
 
         ok_(b1.is_awarded_to(user2))
+
+        award = Award.objects.filter(user=user2, badge=b1)[0]
+        eq_(SAMPLE_DESCRIPTION, award.description)
+        
+        r = self.client.get(award.get_absolute_url(), follow=True)
+        eq_(200, r.status_code)
+
+        doc = pq(r.content)
+        eq_(SAMPLE_DESCRIPTION, doc.find('.award .description').text())
 
     def test_issue_multiple_awards(self):
         """Multiple emails can be submitted at once to issue awards"""

@@ -117,6 +117,9 @@ class BadgeAwardForm(MyForm):
     emails = MultiEmailField(max_items=10,
             help_text="Enter up to 10 email addresses for badge award "
                       "recipients")
+    description = CharField(
+            widget=Textarea, required=False,
+            help_text="Explain why this badge should be awarded")
 
 
 class DeferredAwardGrantForm(MyForm):

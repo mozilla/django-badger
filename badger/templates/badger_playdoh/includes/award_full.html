@@ -12,4 +12,8 @@
                 alt="{{ award.creator }}" width="128" height="128" />{{ award.creator }}</a></dd>
     <dt>{{_("Awarded at:")}}</dt>
         <dd class="issued">{{ award.created }}</dd>
+    {% if award.description %}
+        <dt>{{_("Description:")}}</dt>
+        <dd class="description">{{ award.description }}</dd>
+    {% endif %}
 </dl>
