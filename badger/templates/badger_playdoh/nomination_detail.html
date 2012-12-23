@@ -18,7 +18,7 @@
         </header>
         <dl class="nomination">
             {% set show_approve = not nomination.is_approved() and nomination.allows_approve_by(request.user) %}
-            {% set show_accept = not nomination.is_accepted() and nomination.allows_accept(request.user) %}
+            {% set show_accept = nomination.is_approved() and not nomination.is_accepted() and nomination.allows_accept(request.user) %}
             {% if show_approve or show_accept %}
                 <dt>{{ _("Actions:") }}</dt><dd><ul class="btn-list">
                     {% if show_approve %}
@@ -32,7 +32,13 @@
                         <li><form method="POST">
                             {{ csrf() }}
                             <input type="hidden" name="action" value="accept" />
-                            <button class="btn btn-large btn-primary">{{ _('Accept nomination') }}</button>
+                            <button class="btn btn-large btn-primary">
+                                {% if request.user == nomination.user %}
+                                    {{ _('Accept your nomination') }}
+                                {% else %}
+                                    {{ _('Accept nomination on behalf of nominee') }}
+                                {% endif %}
+                            </button>
                         </form></li>
                     {% endif %}
                 </ul></dd>
