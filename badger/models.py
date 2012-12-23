@@ -623,7 +623,7 @@ class Badge(models.Model):
             "issuer": issuer
         }
 
-        image_url = self.image and self.image_url or DEFAULT_BADGE_IMAGE_URL
+        image_url = self.image and self.image.url or DEFAULT_BADGE_IMAGE_URL
         data['image'] = urljoin(base_url, image_url)
 
         return data
