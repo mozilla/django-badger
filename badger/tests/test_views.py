@@ -492,6 +492,33 @@ class BadgerViewsTest(BadgerTestCase):
         except Badge.DoesNotExist:
             ok_(True)
 
+    def test_delete_award(self):
+        """Can delete award"""
+        user = self._get_user()
+        badge = Badge(creator=user, title="Test III",
+                      description="Another test")
+        badge.save()
+
+        award = badge.award_to(user)
+
+        self.client.login(username="tester", password="trustno1")
+
+        r = self.client.get(reverse('badger.views.award_detail',
+            args=(badge.slug, award.id)), follow=True)
+        doc = pq(r.content)
+
+        eq_('award_detail', doc.find('body').attr('id'))
+        delete_url = doc.find('a.delete_award').attr('href')
+        ok_(delete_url is not None)
+
+        r = self.client.post(delete_url, {}, follow=True)
+
+        try:
+            award = Award.objects.get(pk=award.pk)
+            ok_(False)
+        except Award.DoesNotExist:
+            ok_(True)
+
     def _get_user(self, username="tester", email="tester@example.com",
             password="trustno1"):
         (user, created) = User.objects.get_or_create(username=username,
