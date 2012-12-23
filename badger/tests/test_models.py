@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from os.path import dirname
 import logging
 import time
@@ -21,7 +22,8 @@ from django.core import mail
 from nose.tools import assert_equal, with_setup, assert_false, eq_, ok_
 from nose.plugins.attrib import attr
 
-from django.template.defaultfilters import slugify
+#from django.template.defaultfilters import slugify
+from badger.models import slugify
 
 try:
     from funfactory.urlresolvers import reverse
@@ -61,6 +63,16 @@ class BadgerBadgeTest(BadgerTestCase):
         eq_(badge.created.year, badge.modified.year)
         eq_(badge.created.month, badge.modified.month)
         eq_(badge.created.day, badge.modified.day)
+
+    def test_unicode_slug(self):
+        """Issue #124: django slugify function turns up blank slugs"""
+        badge = self._get_badge()
+        badge.title = u'弁護士バッジ（レプリカ）'
+        badge.slug = ''
+        badge.save()
+
+        ok_(badge.slug != '')
+        eq_(slugify(badge.title), badge.slug)
 
     def test_award_badge(self):
         """Can award a badge to a user"""

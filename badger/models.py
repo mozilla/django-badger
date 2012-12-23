@@ -31,8 +31,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.template import Context
 from django.template.loader import render_to_string
 
-from django.template.defaultfilters import slugify
-
 try:
     from funfactory.urlresolvers import reverse
 except ImportError, e:
@@ -77,9 +75,6 @@ SITE_ISSUER = getattr(settings, 'BADGER_SITE_ISSUER', {
     "contact": "lorchard@mozilla.com"
 })
 
-DEFAULT_BADGE_IMAGE = getattr(settings, 'BADGER_DEFAULT_BADGE_IMAGE',
-    "%s/fixtures/default-badge.png" % dirname(__file__))
-
 # Set up a file system for badge uploads that can be kept separate from the
 # rest of /media if necessary. Lots of hackery to ensure sensible defaults.
 UPLOADS_ROOT = getattr(settings, 'BADGER_UPLOADS_ROOT',
@@ -88,6 +83,11 @@ UPLOADS_URL = getattr(settings, 'BADGER_UPLOADS_URL',
     urljoin(getattr(settings, 'MEDIA_URL', '/media/'), 'uploads/'))
 BADGE_UPLOADS_FS = FileSystemStorage(location=UPLOADS_ROOT,
                                      base_url=UPLOADS_URL)
+
+DEFAULT_BADGE_IMAGE = getattr(settings, 'BADGER_DEFAULT_BADGE_IMAGE',
+    "%s/fixtures/default-badge.png" % dirname(__file__))
+DEFAULT_BADGE_IMAGE_URL = getattr(settings, 'BADGER_DEFAULT_BADGE_IMAGE_URL',
+    urljoin(getattr(settings, 'MEDIA_URL', '/media/'), 'img/default-badge.png'))
 
 TIME_ZONE_OFFSET = getattr(settings, "TIME_ZONE_OFFSET", timedelta(0))
 
@@ -132,6 +132,32 @@ def scale_image(img_upload, img_max_size):
     img_data = new_img.getvalue()
 
     return ContentFile(img_data)
+
+
+# Taken from http://stackoverflow.com/a/4019144
+def slugify(txt):
+    """A custom version of slugify that retains non-ascii characters. The
+    purpose of this function in the application is to make URLs more readable
+    in a browser, so there are some added heuristics to retain as much of the
+    title meaning as possible while excluding characters that are troublesome
+    to read in URLs. For example, question marks will be seen in the browser
+    URL as %3F and are thereful unreadable. Although non-ascii characters will
+    also be hex-encoded in the raw URL, most browsers will display them as
+    human-readable glyphs in the address bar -- those should be kept in the
+    slug."""
+    # remove trailing whitespace
+    txt = txt.strip()
+    # remove spaces before and after dashes
+    txt = re.sub('\s*-\s*','-', txt, re.UNICODE)
+    # replace remaining spaces with underscores
+    txt = re.sub('[\s/]', '_', txt, re.UNICODE)
+    # replace colons between numbers with dashes
+    txt = re.sub('(\d):(\d)', r'\1-\2', txt, re.UNICODE)
+    # replace double quotes with single quotes
+    txt = re.sub('"', "'", txt, re.UNICODE)
+    # remove some characters altogether
+    txt = re.sub(r'[?,:!@#~`+=$%^&\\*()\[\]{}<>]','',txt, re.UNICODE)
+    return txt
 
 
 def get_permissions_for(self, user):
@@ -596,8 +622,10 @@ class Badge(models.Model):
             "criteria": urljoin(base_url, self.get_absolute_url()),
             "issuer": issuer
         }
-        if self.image:
-            data['image'] = urljoin(base_url, self.image.url)
+
+        image_url = self.image and self.image_url or DEFAULT_BADGE_IMAGE_URL
+        data['image'] = urljoin(base_url, image_url)
+
         return data
 
 
