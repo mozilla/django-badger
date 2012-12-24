@@ -15,3 +15,6 @@ nomination_was_approved = Signal(providing_args=["nomination"])
 
 nomination_will_be_accepted = Signal(providing_args=["nomination"])
 nomination_was_accepted = Signal(providing_args=["nomination"])
+
+nomination_will_be_rejected = Signal(providing_args=["nomination"])
+nomination_was_rejected = Signal(providing_args=["nomination"])

@@ -61,6 +61,7 @@ else:
 from .signals import (badge_will_be_awarded, badge_was_awarded, 
                       nomination_will_be_approved, nomination_was_approved,
                       nomination_will_be_accepted, nomination_was_accepted,
+                      nomination_will_be_rejected, nomination_was_rejected,
                       user_will_be_nominated, user_was_nominated)
 
 
@@ -1052,6 +1053,10 @@ class NominationAcceptNotAllowedException(NominationException):
     """Attempt to accept a nomination was disallowed"""
 
 
+class NominationRejectNotAllowedException(NominationException):
+    """Attempt to reject a nomination was disallowed"""
+
+
 class NominationManager(models.Manager):
     pass
 
@@ -1068,6 +1073,9 @@ class Nomination(models.Model):
             blank=True, null=True)
     approver = models.ForeignKey(User, related_name="nomination_approver",
             blank=True, null=True)
+    rejected_by = models.ForeignKey(User, related_name="nomination_rejected_by",
+            blank=True, null=True)
+    rejected_reason = models.TextField(blank=True)
     award = models.ForeignKey(Award, null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True, blank=False)
     modified = models.DateTimeField(auto_now=True, blank=False)
@@ -1096,15 +1104,8 @@ class Nomination(models.Model):
             user_will_be_nominated.send(sender=self.__class__,
                                         nomination=self)
 
-        if self.is_approved() and self.is_accepted():
-            # HACK: Convert the original-flavor Award into a multiplayer Award
-            # before assigning to self.
-            real_award = self.badge.award_to(self.nominee, self.approver)
-            award = Award()
-            award.__dict__ = real_award.__dict__
-            self.award = award
-            # This was the original code, which caused errors:
-            # self.award = self.badge.award_to(self.nominee, self.approver)
+        if self.is_approved and self.is_accepted:
+            self.award = self.badge.award_to(self.nominee, self.approver)
 
         super(Nomination, self).save(*args, **kwargs)
 
@@ -1124,7 +1125,14 @@ class Nomination(models.Model):
 
         return False
 
+    @property
+    def is_approved(self):
+        """Has this nomination been approved?"""
+        return self.approver is not None
+
     def allows_approve_by(self, user):
+        if self.is_approved or self.is_rejected:
+            return False
         if user.is_staff or user.is_superuser:
             return True
         if user == self.badge.creator:
@@ -1160,11 +1168,14 @@ class Nomination(models.Model):
         
         return self
 
-    def is_approved(self):
-        """Has this nomination been approved?"""
-        return self.approver is not None
+    @property
+    def is_accepted(self):
+        """Has this nomination been accepted?"""
+        return self.accepted
 
     def allows_accept(self, user):
+        if self.is_accepted or self.is_rejected:
+            return False
         if user.is_staff or user.is_superuser:
             return True
         if user == self.nominee:
@@ -1195,9 +1206,44 @@ class Nomination(models.Model):
         
         return self
 
-    def is_accepted(self):
-        """Has this nomination been accepted?"""
-        return self.accepted
+    @property
+    def is_rejected(self):
+        """Has this nomination been rejected?"""
+        return self.rejected_by is not None
+
+    def allows_reject_by(self, user):
+        if self.is_approved or self.is_rejected:
+            return False
+        if user.is_staff or user.is_superuser:
+            return True
+        if user == self.nominee:
+            return True
+        if user == self.badge.creator:
+            return True
+        return False
+
+    def reject_by(self, user, reason=''):
+        if not self.allows_reject_by(user):
+            raise NominationRejectNotAllowedException()
+        self.rejected_by = user
+        self.rejected_reason = reason
+        nomination_will_be_rejected.send(sender=self.__class__,
+                                         nomination=self)
+        self.save()
+        nomination_was_rejected.send(sender=self.__class__,
+                                     nomination=self)
+
+        if notification:
+            if self.badge.creator:
+                notification.send([self.badge.creator], 'nomination_rejected',
+                                  dict(nomination=self,
+                                       protocol=DEFAULT_HTTP_PROTOCOL))
+            if self.creator:
+                notification.send([self.creator], 'nomination_rejected',
+                                  dict(nomination=self,
+                                       protocol=DEFAULT_HTTP_PROTOCOL))
+        
+        return self
 
 
 @receiver(user_logged_in)

@@ -491,7 +491,6 @@ def nomination_detail(request, slug, id, format="html"):
                               context_instance=RequestContext(request))
 
 
-
 @require_http_methods(['GET', 'POST'])
 @login_required
 def nominate_for(request, slug):

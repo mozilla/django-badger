@@ -42,6 +42,7 @@ from badger.models import (Badge, Award, Nomination, Progress, DeferredAward,
         DeferredAwardGrantNotAllowedException,
         NominationApproveNotAllowedException,
         NominationAcceptNotAllowedException,
+        NominationRejectNotAllowedException,
         SITE_ISSUER)
 
 from badger.tests.badger_example.models import GuestbookEntry
@@ -444,6 +445,10 @@ class BadgerMultiplayerBadgeTest(BadgerTestCase):
         self.user_1 = self._get_user(username="user_1",
                 email="user_1@example.com", password="user_1_pass")
 
+        self.stranger = self._get_user(username="stranger",
+                email="stranger@example.com",
+                password="stranger_pass")
+
     def tearDown(self):
         Nomination.objects.all().delete()
         Award.objects.all().delete()
@@ -465,19 +470,25 @@ class BadgerMultiplayerBadgeTest(BadgerTestCase):
         """A nomination can be approved"""
         nomination = self._create_nomination()
 
-        ok_(not nomination.is_approved())
+        eq_(False, nomination.allows_approve_by(self.stranger))
+        eq_(True, nomination.allows_approve_by(nomination.badge.creator))
+
+        ok_(not nomination.is_approved)
         nomination.approve_by(nomination.badge.creator)
-        ok_(nomination.is_approved())
+        ok_(nomination.is_approved)
 
     def test_accept_nomination(self):
         """A nomination can be accepted"""
         nomination = self._create_nomination()
 
-        ok_(not nomination.is_accepted())
-        nomination.accept(nomination.nominee)
-        ok_(nomination.is_accepted())
+        eq_(False, nomination.allows_accept(self.stranger))
+        eq_(True, nomination.allows_accept(nomination.nominee))
 
-    def test_accept_nomination(self):
+        ok_(not nomination.is_accepted)
+        nomination.accept(nomination.nominee)
+        ok_(nomination.is_accepted)
+
+    def test_approve_accept_nomination(self):
         """A nomination that is approved and accepted results in an award"""
         nomination = self._create_nomination()
 
@@ -488,6 +499,28 @@ class BadgerMultiplayerBadgeTest(BadgerTestCase):
 
         ct = Award.objects.filter(nomination=nomination).count()
         eq_(1, ct, "There should be an award associated with the nomination")
+
+    def test_reject_nomination(self):
+        SAMPLE_REASON = "Just a test anyway"
+        nomination = self._create_nomination()
+        rejected_by = nomination.badge.creator
+
+        eq_(False, nomination.allows_reject_by(self.stranger))
+        eq_(True, nomination.allows_reject_by(nomination.badge.creator))
+        eq_(True, nomination.allows_reject_by(nomination.nominee))
+
+        nomination.reject_by(rejected_by, reason=SAMPLE_REASON)
+        eq_(rejected_by, nomination.rejected_by)
+        ok_(nomination.is_rejected)
+        eq_(SAMPLE_REASON, nomination.rejected_reason)
+
+        eq_(False, nomination.allows_reject_by(self.stranger))
+        eq_(False, nomination.allows_reject_by(nomination.badge.creator))
+        eq_(False, nomination.allows_reject_by(nomination.nominee))
+        eq_(False, nomination.allows_accept(self.stranger))
+        eq_(False, nomination.allows_accept(nomination.nominee))
+        eq_(False, nomination.allows_approve_by(self.stranger))
+        eq_(False, nomination.allows_approve_by(nomination.badge.creator))
 
     def test_disallowed_nomination_approval(self):
         """By default, only badge creator should be allowed to approve a
