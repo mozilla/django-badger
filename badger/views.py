@@ -45,6 +45,7 @@ except:
 
 from .models import (Badge, Award, Nomination, DeferredAward,
                      Progress, BadgeAwardNotAllowedException,
+                     BadgeAlreadyAwardedException,
                      NominationApproveNotAllowedException,
                      NominationAcceptNotAllowedException)
 from .forms import (BadgeAwardForm, DeferredAwardGrantForm,
@@ -482,6 +483,8 @@ def nomination_detail(request, slug, id, format="html"):
             nomination.approve_by(request.user)
         elif action == 'accept':
             nomination.accept(request.user)
+        elif action == 'reject_by':
+            nomination.reject_by(request.user)
         return HttpResponseRedirect(reverse(
                 'badger.views.nomination_detail',
                 args=(slug, id)))

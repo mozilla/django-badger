@@ -118,6 +118,7 @@ class BadgeAwardForm(MyForm):
             help_text="Enter up to 10 email addresses for badge award "
                       "recipients")
     description = CharField(
+            label='Explanation',
             widget=Textarea, required=False,
             help_text="Explain why this badge should be awarded")
 

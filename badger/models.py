@@ -32,6 +32,11 @@ from django.template import Context
 from django.template.loader import render_to_string
 
 try:
+    from tower import ugettext_lazy as _
+except ImportError, e:
+    from django.utils.translation import ugettext_lazy as _
+
+try:
     from funfactory.urlresolvers import reverse
 except ImportError, e:
     from django.core.urlresolvers import reverse
