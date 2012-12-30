@@ -7,7 +7,6 @@ from django import forms
 from django.db import models
 from django.contrib.auth.models import User, AnonymousUser
 from django.forms import FileField, CharField, Textarea, ValidationError
-from django.forms.widgets import ClearableFileInput
 from django.utils.translation import ugettext as _
 from django.core.validators import validate_email
 
@@ -151,8 +150,13 @@ class BadgeEditForm(MyModelForm):
 
     class Meta:
         model = Badge
-        fields = ('title', 'image', 'description', 'tags', 'unique',
-                  'nominations_accepted',)
+        try:
+            import taggit
+            fields = ('title', 'image', 'description', 'tags', 'unique',
+                      'nominations_accepted',)
+        except ImportError, e:
+            fields = ('title', 'image', 'description', 'unique',
+                      'nominations_accepted',)
 
     required_css_class = "required"
     error_css_class = "error"
