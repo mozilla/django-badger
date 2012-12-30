@@ -15,7 +15,8 @@ def autodiscover():
         mod = import_module(app)
         try:
             badges_mod = import_module('%s.badges' % app)
-            badges_mod.register_signals()
+            if hasattr(badges_mod, 'register_signals'):
+                badges_mod.register_signals()
         except ImportError:
             if module_has_submodule(mod, 'badges'):
                 raise

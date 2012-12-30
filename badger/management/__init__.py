@@ -37,15 +37,11 @@ if "notification" in settings.INSTALLED_APPS:
                 _("a nomination to award you a badge was approved")),
             ("nomination_accepted", _("Nomination accepted"),
                 _("a nomination you submitted for an award has been accepted")),
-            #("nomination_declined", _("Nomination declined"),
-            #    _("a nomination you submitted for an award has been declined")),
         )
         for notice in notices:
             notification.create_notice_type(*notice)
 
     signals.post_syncdb.connect(create_notice_types, sender=notification)
-else:
-    print "Skipping creation of NoticeTypes as notification app not found"
 
 
 def update_badges(overwrite=False):
@@ -57,7 +53,8 @@ def update_badges(overwrite=False):
             badges_mod = import_module('%s.badges' % app)
             fixture_label = '%s_badges' % app.replace('.','_')
             call_command('loaddata', fixture_label, verbosity=1)
-            badges_mod.update_badges(overwrite)
+            if hasattr(badges_mod, 'update_badges'):
+                badges_mod.update_badges(overwrite)
         except ImportError, e:
             if module_has_submodule(mod, 'badges'):
                 raise
