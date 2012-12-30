@@ -1,4 +1,4 @@
-{% extends "badger/base.html" %}
+{% extends "badger_playdoh/base.html" %}
 
 {% block pageid %}badges{% endblock %}
 
@@ -26,13 +26,13 @@
             {% endif %}
         </h2>
     </header>
-    {% include "badger/includes/badges_list.html" %}
+    {% include "badger_playdoh/includes/badges_list.html" %}
 
     {% if award_list %}
         <h2>{{ _('Recent awards for these badges') }}</h2>
         {% set award_list = award_list[:12] %}
         {% set hide_pagination = True %}
-        {% include "badger/includes/awards_list.html" %}
+        {% include "badger_playdoh/includes/awards_list.html" %}
     {% endif %}
 
 </section>

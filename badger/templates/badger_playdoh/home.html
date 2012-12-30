@@ -1,4 +1,4 @@
-{% extends "badger/base.html" %}
+{% extends "badger_playdoh/base.html" %}
 
 {% block pageid %}home{% endblock %}
 
@@ -104,7 +104,7 @@
         </header>
 
         {% set badge_list = badge_list[:12] %}
-        {% include "badger/includes/badges_list.html" %}
+        {% include "badger_playdoh/includes/badges_list.html" %}
     </section>
 
     <section id="recent_awards" class="span7 item_flow">
@@ -118,7 +118,7 @@
             </h2>
         </header>
         {% set award_list = award_list[:9] %}
-        {% include "badger/includes/awards_list.html" %}
+        {% include "badger_playdoh/includes/awards_list.html" %}
     </section>
 
 </section>

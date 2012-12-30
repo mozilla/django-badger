@@ -1,4 +1,4 @@
-{% extends "badger/base.html" %}
+{% extends "badger_playdoh/base.html" %}
 
 {% set badge_url = request.build_absolute_uri(badge.get_absolute_url()) %}
 {% if badge.image %}
@@ -39,7 +39,7 @@
         <header class="page-header">
             <h2 class="badge-title">{{ _("Badge: {badge_title}") | f(badge_title=badge.title) }}</h2>
         </header>
-        {% include "badger/includes/badge_full.html" %}
+        {% include "badger_playdoh/includes/badge_full.html" %}
         {% if not award %}
         <dl class="share">
             <dt>{{ _('Share:') }}</dt>

@@ -1,4 +1,4 @@
-{% extends "badger/base.html" %}
+{% extends "badger_playdoh/base.html" %}
 
 {% set user = award.user %}
 {% set award_url = request.build_absolute_uri(url('badger.views.award_detail', award.badge.slug, award.id)) %}
@@ -45,11 +45,11 @@
 <section class="row-fluid">
 
     <section class="badge span4">
-        {% include "badger/includes/badge_full.html" %}
+        {% include "badger_playdoh/includes/badge_full.html" %}
     </section>
 
     <section class="award span8">
-        {% include "badger/includes/award_full.html" %}
+        {% include "badger_playdoh/includes/award_full.html" %}
         <dl class="share">
             <dt>{{ _('Share:') }}</dt>
             <dd><ul>

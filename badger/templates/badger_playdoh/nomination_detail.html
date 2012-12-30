@@ -1,4 +1,4 @@
-{% extends "badger/base.html" %}
+{% extends "badger_playdoh/base.html" %}
 
 {% block pageid %}nomination_detail{% endblock %}
 
@@ -9,7 +9,7 @@
         <header class="page-header">
             <h2>{{ _("Badge: {badge_title}") | f(badge_title=badge.title) }}</h2>
         </header>
-        {% include "badger/includes/badge_full.html" %}
+        {% include "badger_playdoh/includes/badge_full.html" %}
     </section>
 
     <section class="nomination span8">

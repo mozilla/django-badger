@@ -1,4 +1,4 @@
-{% extends "badger/base.html" %}
+{% extends "badger_playdoh/base.html" %}
 
 {% block pageid %}badge_awards_by_badge{% endblock %}
 
@@ -15,7 +15,7 @@
         <header class="page-header">
             <h2>{{ _("Badge detail for {title}") | f(title=badge.title) }}</h2>
         </header>
-        {% include "badger/includes/badge_full.html" %}
+        {% include "badger_playdoh/includes/badge_full.html" %}
     </section>
 
     <section>
@@ -25,7 +25,7 @@
         <ul class="awards">
             {% for award in awards %}
             <li>
-                {% include "badger/includes/award_as_user.html" %}
+                {% include "badger_playdoh/includes/award_as_user.html" %}
             </li>
             {% endfor %}
         </ul>
