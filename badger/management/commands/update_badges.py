@@ -7,7 +7,7 @@ from django.db.models import get_apps, get_models, signals
 from django.utils.importlib import import_module
 
 from badger.models import Badge, Award, Progress
-from badger.management import update_badges, create_notice_types
+from badger.management import update_badges
 
 
 class Command(BaseCommand):
