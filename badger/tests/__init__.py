@@ -42,7 +42,6 @@ class BadgerTestCase(test.TestCase):
             self.old_locale = get_language()
             rf = RequestFactory()
             set_url_prefix(Prefixer(rf.get('/%s/' % (locale,))))
-            activate(locale)
 
         # Create a default user for tests
         self.user_1 = self._get_user(username="user_1",
@@ -66,7 +65,6 @@ class BadgerTestCase(test.TestCase):
         if get_url_prefix:
             # If we're in funfactoryland, back out of the locale tweaks
             set_url_prefix(self.old_prefix)
-            activate(self.old_locale)
 
     def _get_user(self, username="tester", email="tester@example.com",
             password="trustno1", is_staff=False, is_superuser=False):
