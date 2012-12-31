@@ -24,12 +24,18 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import simplejson as json
 from django.contrib.auth.models import User, AnonymousUser
 from django.contrib.sites.models import Site
-from django.contrib.auth.signals import user_logged_in
-from django.dispatch import receiver
 from django.contrib.contenttypes.models import ContentType
 
-from django.template import Context
+from django.template import Context, TemplateDoesNotExist
 from django.template.loader import render_to_string
+
+# HACK: Django 1.2 is missing receiver and user_logged_in
+try:
+    from django.dispatch import receiver
+    from django.contrib.auth.signals import user_logged_in
+except ImportError, e:
+    receiver = False
+    user_logged_in = False
 
 try:
     from tower import ugettext_lazy as _
@@ -68,7 +74,6 @@ from .signals import (badge_will_be_awarded, badge_was_awarded,
                       nomination_will_be_accepted, nomination_was_accepted,
                       nomination_will_be_rejected, nomination_was_rejected,
                       user_will_be_nominated, user_was_nominated)
-
 
 OBI_VERSION = "0.5.0"
 
@@ -799,8 +804,12 @@ class Award(models.Model):
         # see: http://blog.client9.com/2007/08/python-pil-and-png-metadata-take-2.html
         # see: https://github.com/mozilla/openbadges/blob/development/lib/baker.js
         # see: https://github.com/mozilla/openbadges/blob/development/controllers/baker.js
-        from PIL import PngImagePlugin
+        try:
+            from PIL import PngImagePlugin
+        except ImportError,e:
+            import PngImagePlugin
         meta = PngImagePlugin.PngInfo()
+
         # TODO: Will need this, if we stop doing hosted assertions
         # assertion = self.as_obi_assertion(request)
         # meta.add_text('openbadges', json.dumps(assertion))
@@ -1000,18 +1009,21 @@ class DeferredAward(models.Model):
         super(DeferredAward, self).save(**kwargs)
 
         if is_new and self.email:
-            # If this is new and there's an email, send an invite to claim.
-            context = Context(dict(
-                deferred_award=self,
-                badge=self.badge,
-                protocol=DEFAULT_HTTP_PROTOCOL,
-                current_site=Site.objects.get_current()
-            ))
-            tmpl_name = 'badger/deferred_award_%s.txt'
-            subject = render_to_string(tmpl_name % 'subject', {}, context)
-            body = render_to_string(tmpl_name % 'body', {}, context)
-            send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-                      [self.email], fail_silently=False)
+            try:
+                # If this is new and there's an email, send an invite to claim.
+                context = Context(dict(
+                    deferred_award=self,
+                    badge=self.badge,
+                    protocol=DEFAULT_HTTP_PROTOCOL,
+                    current_site=Site.objects.get_current()
+                ))
+                tmpl_name = 'badger/deferred_award_%s.txt'
+                subject = render_to_string(tmpl_name % 'subject', {}, context)
+                body = render_to_string(tmpl_name % 'body', {}, context)
+                send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                          [self.email], fail_silently=False)
+            except TemplateDoesNotExist, e:
+                pass
 
     def claim(self, awardee):
         """Claim the deferred award for the given user"""
@@ -1251,7 +1263,9 @@ class Nomination(models.Model):
         return self
 
 
-@receiver(user_logged_in)
-def claim_on_login(sender, request, user, **kwargs):
-    """When a user logs in, claim any deferred awards by email"""
-    DeferredAward.objects.claim_by_email(user)
+# HACK: Django 1.2 is missing receiver and user_logged_in
+if receiver and user_logged_in:
+    @receiver(user_logged_in)
+    def claim_on_login(sender, request, user, **kwargs):
+        """When a user logs in, claim any deferred awards by email"""
+        DeferredAward.objects.claim_by_email(user)
