@@ -32,6 +32,8 @@ def user_avatar(user, secure=False, size=256, rating='pg', default=''):
         profile = user.get_profile()
         if profile.avatar:
             return profile.avatar.url
+    except AttributeError:
+        pass
     except SiteProfileNotAvailable:
         pass
     except ObjectDoesNotExist:
