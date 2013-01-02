@@ -2,6 +2,9 @@
 django-badger
 =============
 
+.. image:: https://secure.travis-ci.org/lmorchard/django-badger.png?branch=master
+   :target: http://travis-ci.org/lmorchard/django-badger
+
 Badger is a family of Django apps intended to help introduce badges into your
 project, to track and award achievements by your users. This can be used to
 help encourage certain behaviors, recognize skills, or just generally

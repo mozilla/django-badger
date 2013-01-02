@@ -16,6 +16,23 @@ from django.utils.translation import ugettext_lazy as _
 
 register = template.Library()
 
+
+@register.filter
+def permissions_for(obj, user):
+    try:
+        return obj.get_permissions_for(user)
+    except:
+        return {}
+
+
+@register.filter
+def key(obj, name):
+    try:
+        return obj[name]
+    except:
+        return None
+
+
 @register.simple_tag
 def user_avatar(user, secure=False, size=256, rating='pg', default=''):
 

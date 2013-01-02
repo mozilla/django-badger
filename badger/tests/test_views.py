@@ -59,7 +59,7 @@ class BadgerViewsTest(BadgerTestCase):
         doc = pq(r.content)
 
         eq_('badge_detail', doc.find('body').attr('id'))
-        eq_(1, doc.find('.badge-title:contains("%s")' % badge.title).length)
+        eq_(1, doc.find('.badge .title:contains("%s")' % badge.title).length)
         eq_(badge.description, doc.find('.badge .description').text())
 
         # Now, take a look at the JSON format
@@ -87,8 +87,8 @@ class BadgerViewsTest(BadgerTestCase):
         doc = pq(r.content)
 
         eq_('award_detail', doc.find('body').attr('id'))
-        eq_(1, doc.find('.awarded_to .username:contains("%s")' % user2.username).length)
-        eq_(1, doc.find('.badge-title:contains("%s")' % b1.title).length)
+        eq_(1, doc.find('.award .awarded_to .username:contains("%s")' % user2.username).length)
+        eq_(1, doc.find('.badge .title:contains("%s")' % b1.title).length)
 
         # Now, take a look at the JSON format
         url = reverse('badger.award_detail_json', args=(b1.slug, award.pk,))
@@ -398,7 +398,7 @@ class BadgerViewsTest(BadgerTestCase):
         doc = pq(r.content)
 
         eq_('badge_detail', doc.find('body').attr('id'))
-        ok_(badge_title in doc.find('.badge-title').text())
+        ok_(badge_title in doc.find('.badge .title').text())
         eq_(badge_desc, doc.find('.badge .description').text())
 
         slug = doc.find('.badge').attr('data-slug')
@@ -438,7 +438,7 @@ class BadgerViewsTest(BadgerTestCase):
         doc = pq(r.content)
 
         eq_('badge_detail', doc.find('body').attr('id'))
-        ok_(badge_title in doc.find('.badge-title').text())
+        ok_(badge_title in doc.find('.badge .title').text())
         eq_(badge_desc, doc.find('.badge .description').text())
 
         slug = doc.find('.badge').attr('data-slug')

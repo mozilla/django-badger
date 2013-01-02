@@ -22,15 +22,11 @@ from badger.models import (Badge, Award, Progress, DeferredAward)
 
 class BadgerTestCase(test.TestCase):
     """Ensure test app and models are set up before tests"""
-    apps = ('badger.tests.badger_example',)
 
     def _pre_setup(self):
-        # Add the models to the db.
-        self._original_installed_apps = list(settings.INSTALLED_APPS)
-        for app in self.apps:
-            settings.INSTALLED_APPS.append(app)
         loading.cache.loaded = False
         call_command('syncdb', interactive=False, verbosity=0)
+        call_command('migrate', interactive=False, verbosity=0)
         call_command('update_badges', verbosity=0)
         badger.autodiscover()
 
@@ -58,8 +54,6 @@ class BadgerTestCase(test.TestCase):
         Award.objects.all().delete()
         Badge.objects.all().delete()
 
-        # Restore the settings.
-        settings.INSTALLED_APPS = self._original_installed_apps
         loading.cache.loaded = False
 
         if get_url_prefix:

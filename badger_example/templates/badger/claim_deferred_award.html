@@ -1,0 +1,71 @@
+{% extends "badger/base.html" %}
+
+{% load badger_tags %}
+{% load i18n %}
+
+{% block pageid %}claim_badge{% endblock %}
+
+{% block content %}
+
+    <section class="span4" id="detail">
+        <header class="page-header">
+            <h2>Badge: {{badge.title}}</h2>
+        </header>
+        {% include "badger/includes/badge_full.html" %}
+    </section>
+
+    <section class="span8">
+    
+        <header class="page-header">
+            <h2>{{ _("Award Claim") }}</h2>
+        </header>
+
+        <dl class="details">
+            {% if deferred_award.email %}
+                <dt>Email address:</dt>
+                    <dd><code class="email">{{ deferred_award.email }}</code></dd>
+            {% endif %}
+            <dt>Claim code:</dt>
+                <dd><code>{{ deferred_award.claim_code }}</code></dd>
+        </dl>
+
+        {% if user.is_anonymous %}
+            <div>
+                <h3>{{ _("Claim") }}</h3>
+                <p>{{ _("Sign in to claim this badge award") }}</p>
+            </div>
+        {% endif %}
+
+        {% if deferred_award|permissions_for:request.user|key:'grant_by' %}
+            <form id="grant_award" method="POST" action="">
+                <input type="hidden" name="is_grant" value="1" />
+                {{ csrf }}
+                <h3>{{ _("Grant") }}</h3>
+                <p>{{ _("You can grant this award to someone else") }}
+                {{ grant_form.as_p }}
+                <input type="submit" class="btn btn-large btn-primary submit" value="{{ _("Grant this award") }}">
+            </form>
+        {% endif %}
+
+        {% if deferred_award|permissions_for:request.user|key:'claim_by' %}
+        <form id="claim_award" method="POST" action="" class="{% if deferred_award.email and request.user.email != deferred_award.email %}email-mismatch{% endif %}">
+            {{ csrf }}
+            <h3>{{ _("Claim") }}</h3>
+            {% if deferred_award.email and request.user.email != deferred_award.email %}
+                {# This isn't enforced, since an awardee might have multiple email addresses #}
+                {% blocktrans %}
+                <p><span class="label label-warning">Note:</span>
+                    <em>This award may not be intended for you.</em>
+                    Your email address does not match this award claim.
+                </p>
+                {% endblocktrans %}
+            {% else %}
+                <p>{{ _("You can claim this award for yourself") }}</p>
+            {% endif %}
+            <input type="submit" class="btn btn-large btn-primary submit" value="{{ _("Claim this award") }}">
+        </form>
+        {% endif %}
+
+    </section>
+
+{% endblock %}

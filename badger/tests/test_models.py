@@ -49,7 +49,7 @@ from badger.models import (Badge, Award, Nomination, Progress, DeferredAward,
         NominationRejectNotAllowedException,
         SITE_ISSUER)
 
-from badger.tests.badger_example.models import GuestbookEntry
+from badger_example.models import GuestbookEntry
 
 
 BASE_URL = 'http://example.com'

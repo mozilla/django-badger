@@ -1,0 +1,43 @@
+{% load badger_tags %}
+
+{% if not award %}
+<ul class="btn-list">
+    {% if badge|permissions_for:request.user|key:'edit_by' %}
+        <li><a class="btn btn-large btn-primary edit_badge" href="{% url badger.views.edit badge.slug  %}">{{ _('Edit badge') }}</a></li>
+    {% endif %}
+    {% if badge|permissions_for:request.user|key:'delete_by' %}
+        <li><a class="btn btn-large btn-danger delete_badge" href="{% url badger.views.delete badge.slug %}">{{ _('Delete badge') }}</a></li>
+    {% endif %}
+</ul>
+{% endif %}
+
+<dl class="badge" data-slug="{{ badge.slug }}">
+
+<dl class="badge" data-slug="{{ badge.slug }}">
+    <dt>Title:</dt>
+        <dd class="title">{{ badge.title }}</dd>
+    {% if award and award.image %}
+        <dt>Image:</dt>
+            <dd class="image"><a href="{{ badge.get_absolute_url }}" class="image"><img src="{{ award.image.url }}" width="256" height="256" /></a></dd>
+    {% else %}
+        {% if badge.image %}
+        <dt>Image:</dt>
+            <dd class="image"><a href="{{ badge.get_absolute_url }}" class="image"><img src="{{ badge.image.url }}" width="256" height="256" /></a></dd>
+        {% endif %}
+    {% endif %}
+    {% if badge.description %}
+        <dt>Description:</dt>
+            <dd class="description">{{ badge.description }}</dd>
+    {% endif %}
+    <dt>Creator:</dt>
+        <dd><a href="{{ badge.creator.get_absolute_url }}">{{ badge.creator }}</a></dd>
+    <dt>Created:</dt>
+        <dd>{{ badge.created }}</dd>
+    <dt>Modified:</dt>
+        <dd>{{ badge.modified }}</dd>
+    <dt>Actions:</dt>
+    <dd><ul>
+        {% user_award_list badge request.user %}
+
+    </ul></dd>
+</dl>

@@ -17,7 +17,7 @@ from badger.models import (Badge, Award, Progress,
         BadgeAwardNotAllowedException,
         BadgeAlreadyAwardedException)
 
-from badger.tests.badger_example.models import GuestbookEntry
+from badger_example.models import GuestbookEntry
 
 
 class BadgesPyTest(BadgerTestCase):

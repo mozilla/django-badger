@@ -1,0 +1,31 @@
+{% extends "badger/base.html" %}
+
+{% block pageid %}claims_list{% endblock %}
+
+{% block extrahead %}
+{% endblock %}
+
+{% block content %}
+<section class="row-fluid">
+
+    <section class="span12">
+        <header class="page-header">
+            <h2>{{ _("Claim codes for {badge}") | f(badge=badge) }}</h2>
+        </header>
+        <ul class="deferred_awards">
+            {% for deferred_award in deferred_awards %}
+            <li class="claim_code">
+                <h3>{{ badge.title }}</h3>
+                <img src="{{ badge.image.url }}" width="200" height="200">
+                {% set self_url = request.build_absolute_uri(deferred_award.get_claim_url()) %}
+                {{ qr_code_image(self_url, alt="Scan to claim!", size="200") }}
+                <a class="code" href="{{ url('badger.claim_deferred_award', deferred_award.claim_code) }}"><code>{{  deferred_award.claim_code }}</code></a>
+                <code class="url">{{ request.build_absolute_uri('/') }}</code>
+            </li>
+            {% endfor %}
+        </ul>
+    </section>
+
+</section>
+
+{% endblock %}

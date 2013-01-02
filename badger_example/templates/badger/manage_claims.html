@@ -1,0 +1,67 @@
+{% extends "badger/base.html" %}
+
+{% block pageid %}manage_claims{% endblock %}
+
+{% block extrahead %}
+{% endblock %}
+
+{% block content %}
+<section class="row-fluid">
+
+    <section class="badge span4">
+        <header class="page-header">
+            <h2 class="badge-title">{{ _("Badge: {badge_title}") | f(badge_title=badge.title) }}</h2>
+        </header>
+        {% include "badger/includes/badge_full.html" %}
+    </section>
+
+    <section class="claims_list span8">
+        <header class="page-header">
+            <h2>{{ _("Manage claim codes") }}</h2>
+        </header>
+        <form id="create_claims" method="POST" action="">
+            {{ csrf() }}
+            <input type="hidden" name="is_generate" value="1" />
+            <select name="amount">
+                <option value="1">1 reusable claim code</option>
+                {% for x in (6, 15, 30, 60, 90, 120, 150) %}
+                    <option value="{{ x }}">{{ _('{num} single-use claim codes') | f(num=x) }}</option>
+                {% endfor %}
+            </select>
+            <input type="submit" class="btn btn-large btn-primary submit" value="{{ _("Generate") }}">
+        </form>
+        <ul class="claim_groups">
+            {% for item in claim_groups %}
+                <li>
+                    <form class="delete_claim" method="POST" action="">
+                        {{ csrf() }}
+                        <input type="hidden" name="is_delete" value="1" />
+                        <input type="hidden" name="claim_group" value="{{ item.claim_group }}" />
+                        <input type="submit" class="btn btn-danger submit" value="{{ _("Delete") }}">
+                    </form>
+                    {% if item.count > 1 %}
+                        <a class="btn" target="_blank" href="{{ url('badger.claims_list', badge.slug, item.claim_group) }}">
+                            <strong class="modified">{{ item.modified }}</strong>
+                            &#8212;
+                            <span class="count">{{ _('{count} single-use codes') | f(count=item.count) }}</span>
+                        </a>
+                        &#8212;
+                        <a class="btn btn-success" 
+                            title="{{ _("Download claim codes as printable PDF") }}"
+                            href="{{ url('badger.claims_list_pdf', slug=badge.slug, claim_group=item.claim_group) }}">{{ _("PDF") }}</a>
+                    {% else %}
+                        <a class="btn" target="_blank" href="{{ url('badger.claims_list', badge.slug, item.claim_group) }}">
+                            <strong class="modified">{{ item.modified }}</strong>
+                            &#8212;
+                            <span class="count">{{ _('1 reusable code') }}</span>
+                        </a>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </section>
+
+</section>
+
+
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "badger/base.html" %}
+
+{% load i18n %}
+{% load badger_tags %}
+
+{% block pageid %}badge_delete{% endblock %}
+
+{% block content %}
+
+<section class="span4" id="detail">
+    <header class="page-header">
+        <h2>Badge: {{ badge_title }}</h2>
+    </header>
+    {% include "badger/includes/badge_full.html" %}
+</section>
+
+<section class="span8">
+    <header class="page-header">
+        <h2>{{ _("Delete badge") }}</h2>
+    </header>
+
+    <form id="nominate_badge" method="POST" action="" enctype="multipart/form-data">
+        {{ csrf }}
+        {% if awards_count %}
+            <p>{% blocktrans with badge_url=badge.get_absolute_url awards_count=awards_count %}
+                <span class="label label-warning">Note:</span>
+                Deleting this badge will also delete 
+                <a href="{{ badge_url }}"><span class="awards_count">{{awards_count}}</span> award(s)</a>
+            {% endblocktrans %}</p>
+        {% else %}
+            <p>{% blocktrans %}
+                <span class="label label-success">Note:</span>
+                No one has been awarded this badge, yet.
+            {% endblocktrans %}</p>
+        {% endif %}
+        <p>{{ _("Are you sure?") }}</p>
+        <ul>
+            <li><input type="submit" class="btn btn-large btn-danger submit" value="{{ _("Delete badge") }}"></li>
+        </ul>
+    </form>
+</section>
+
+{% endblock %}

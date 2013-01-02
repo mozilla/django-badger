@@ -1,0 +1,24 @@
+{% load badger_tags %}
+
+<dl class="award">
+    <dt>Awarded to:</dt>
+    <dd class="awarded_to"><a href="{{ award.user.get_absolute_url }}"
+           class="username">{{ award.user }}</a></dd>
+    {% if award.description %}
+        <dt>Explanation:</dt>
+            <dd class="description">{{ award.description }}</dd>
+{% endif %}
+    <dt>Awarded by:</dt>
+        <dd><a href="{{ award.creator.get_absolute_url }}" 
+            class="username">{{ award.creator }}</a></dd>
+    <dt>Issued on:</dt>
+        <dd>{{ award.created }}</dd>
+</dl>
+{% if award|permissions_for:request.user|key:'delete_by' %}
+<dl class="actions">
+    <dt>Actions:</dt>
+    <dd><ul class="btn-list">
+        <li><a class="btn btn-large btn-danger delete_award" href="{% url badger.views.award_delete badge.slug award.id %}">{{ _('Delete award') }}</a></li>
+    </ul></dd>
+</dl>
+{% endif %}
