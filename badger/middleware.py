@@ -6,57 +6,70 @@ from django.conf import settings
 from .models import (Badge, Award)
 
 
-LAST_AWARD_CHECK_COOKIE_NAME = getattr(settings,
-    'BADGER_LAST_AWARD_CHECK_COOKIE_NAME', 'badgerLastAwardCheck')
+LAST_CHECK_COOKIE_NAME = getattr(settings,
+    'BADGER_LAST_CHECK_COOKIE_NAME', 'badgerLastAwardCheck')
 
 
-class RecentAwardsList(object):
+class RecentBadgeAwardsList(object):
+    """Very lazy accessor for recent awards."""
 
     def __init__(self, request):
         self.request = request
         self.was_used = False
         self._queryset = None
 
-    @property
-    def recent_awards(self):
-        if not self._queryset:
-            try:
-                c_name = LAST_AWARD_CHECK_COOKIE_NAME
-                last_check = float(self.request.COOKIES[c_name])
-            except ValueError, e:
-                return []
+        # Try to fetch and parse the timestamp of the last award check, fall
+        # back to None
+        try:
+            self.last_check = datetime.fromtimestamp(float(
+                self.request.COOKIES[LAST_CHECK_COOKIE_NAME]))
+        except (KeyError, ValueError), e:
+            self.last_check = None
 
+    def process_response(self, response):
+        if (self.request.user.is_authenticated() and
+                (not self.last_check or self.was_used)):
+            response.set_cookie(LAST_CHECK_COOKIE_NAME, time.time())
+        return response
+
+    def get_queryset(self, last_check=None):
+        if not last_check:
+            last_check = self.last_check
+
+        if not (last_check and self.request.user.is_authenticated()):
+            # No queryset for anonymous users or missing last check timestamp
+            return None
+
+        if not self._queryset:
             self.was_used = True
             self._queryset = (Award.objects
                 .filter(user=self.request.user,
-                        created__gte=datetime.fromtimestamp(last_check))
+                        created__gte=last_check)
                 .exclude(hidden=True))
 
         return self._queryset
 
     def __iter__(self):
-        return self.recent_awards.iterator()
+        qs = self.get_queryset()
+        if qs is None:
+            return []
+        return qs.iterator()
 
     def __len__(self):
-        return len(self.recent_awards)
+        qs = self.get_queryset()
+        if qs is None:
+            return 0
+        return len(qs)
 
 
-class RecentAwardsMiddleware(object):
+class RecentBadgeAwardsMiddleware(object):
     """Middleware that checks for recent badge awards for the current user"""
 
     def process_request(self, request):
-        if not request.user.is_authenticated():
-            # Only authenticated users get awards
-            request.recent_awards = None
-        elif LAST_AWARD_CHECK_COOKIE_NAME not in request.COOKIES:
-            # If no cookie, set one later but avoid a query now.
-            request.recent_awards = None
-        else:
-            request.recent_awards = RecentAwardsList(request)
+        request.recent_badge_awards = RecentBadgeAwardsList(request)
+        return None
 
     def process_response(self, request, response):
-        if not request.user.is_authenticated():
-            pass
-        elif request.recent_awards is None or request.recent_awards.was_used:
-            response.set_cookie(LAST_AWARD_CHECK_COOKIE_NAME, time.time())
-        return response
+        if not hasattr(request, 'recent_badge_awards'):
+            return response
+        return request.recent_badge_awards.process_response(response)
