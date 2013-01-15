@@ -13,7 +13,10 @@ def update_badges(badge_data, overwrite=False):
     return badges
 
 
-def update_badge(data, overwrite=False):
+def update_badge(data_in, overwrite=False):
+    # Clone the data, because we might delete fields
+    data = dict(**data_in)
+
     # If there are prerequisites, ensure they're real badges and remove
     # from the set of data fields.
     if 'prerequisites' not in data:

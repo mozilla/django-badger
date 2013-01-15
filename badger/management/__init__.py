@@ -8,6 +8,7 @@ from django.utils.importlib import import_module
 from django.utils.module_loading import module_has_submodule
 
 import badger
+import badger.utils
 
 
 if "notification" in settings.INSTALLED_APPS:
@@ -53,6 +54,8 @@ def update_badges(overwrite=False):
             badges_mod = import_module('%s.badges' % app)
             fixture_label = '%s_badges' % app.replace('.','_')
             call_command('loaddata', fixture_label, verbosity=1)
+            if hasattr(badges_mod, 'badges'):
+                badger.utils.update_badges(badges_mod.badges, overwrite)
             if hasattr(badges_mod, 'update_badges'):
                 badges_mod.update_badges(overwrite)
         except ImportError, e:

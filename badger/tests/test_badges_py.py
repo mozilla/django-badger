@@ -140,18 +140,19 @@ class BadgesPyTest(BadgerTestCase):
         """Upon completing collection of badges, award a meta-badge"""
         user = self._get_user()
 
+        ok_(not get_badge('master-badger').is_awarded_to(user))
+
         # Cover a few bases on award creation...
         award_badge('test-1', user)
         award_badge('test-2', user)
         a = Award(badge=get_badge('button-clicker'), user=user)
         a.save()
-        Award.objects.create(badge=get_badge('awesomeness'), user=user)
-
-        ok_(get_badge('master-badger').is_awarded_to(user))
 
         get_badge('awesomeness').award_to(user)
         eq_(1, Award.objects.filter(badge=get_badge("master-badger"),
                                     user=user).count())
+        
+        ok_(get_badge('master-badger').is_awarded_to(user))
 
     def test_progress_quiet_save(self):
         """Progress will not raise a BadgeAlreadyAwardedException unless told"""

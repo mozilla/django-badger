@@ -11,32 +11,36 @@ from badger.models import Badge, Award, Progress
 from badger.signals import badge_was_awarded
 
 
+badges = [
+
+    dict(slug="test-2",
+         title="Test #2",
+         description="Second badge"),
+
+    dict(slug="awesomeness",
+         title="Awesomeness (you have it)",
+         description="Badge with a slug not derived from title."),
+
+    dict(slug="250-words",
+         title="250 Words",
+         description="You've posted 250 words to my guestbook!"),
+
+    dict(slug="250-words-by-percent",
+         title="100% of 250 Words",
+         description="You've posted 100% of 250 words to my guestbook!"),
+
+]
+
+
 def update_badges(overwrite=False):
     badges = [
-
-        dict(slug="test-2",
-             title="Test #2",
-             description="Second badge"),
-
-        dict(slug="awesomeness",
-             title="Awesomeness (you have it)",
-             description="Badge with a slug not derived from title."),
-
-        dict(slug="250-words",
-             title="250 Words",
-             description="You've posted 250 words to my guestbook!"),
-
-        dict(slug="250-words-by-percent",
-             title="100% of 250 Words",
-             description="You've posted 100% of 250 words to my guestbook!"),
-
         dict(slug="master-badger",
              title="Master Badger",
              description="You've collected all badges",
              prerequisites=('test-1', 'test-2', 'awesomeness',
                             'button-clicker')),
-
     ]
+
     return badger.utils.update_badges(badges, overwrite)
 
 
