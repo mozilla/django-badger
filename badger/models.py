@@ -88,9 +88,9 @@ SITE_ISSUER = getattr(settings, 'BADGER_SITE_ISSUER', {
 
 # Set up a file system for badge uploads that can be kept separate from the
 # rest of /media if necessary. Lots of hackery to ensure sensible defaults.
-UPLOADS_ROOT = getattr(settings, 'BADGER_UPLOADS_ROOT',
+UPLOADS_ROOT = getattr(settings, 'BADGER_MEDIA_ROOT',
     os.path.join(getattr(settings, 'MEDIA_ROOT', 'media/'), 'uploads'))
-UPLOADS_URL = getattr(settings, 'BADGER_UPLOADS_URL',
+UPLOADS_URL = getattr(settings, 'BADGER_MEDIA_URL',
     urljoin(getattr(settings, 'MEDIA_URL', '/media/'), 'uploads/'))
 BADGE_UPLOADS_FS = FileSystemStorage(location=UPLOADS_ROOT,
                                      base_url=UPLOADS_URL)

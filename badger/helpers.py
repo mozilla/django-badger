@@ -1,5 +1,6 @@
 import hashlib
 import urllib
+import urlparse
 
 from django.conf import settings
 

@@ -1,3 +1,5 @@
+from urlparse import urljoin
+
 from django.conf import settings
 from django.contrib import admin
 
@@ -12,8 +14,8 @@ except ImportError, e:
 from .models import (Badge, Award, Nomination, Progress, DeferredAward)
 
 
-UPLOADS_URL = getattr(settings, 'BADGER_UPLOADS_URL',
-    '%suploads/' % getattr(settings, 'MEDIA_URL', '/media/'))
+UPLOADS_URL = getattr(settings, 'BADGER_MEDIA_URL',
+    urljoin(getattr(settings, 'MEDIA_URL', '/media/'), 'uploads/'))
 
 
 def show_unicode(obj):
