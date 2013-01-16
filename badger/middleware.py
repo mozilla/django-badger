@@ -44,7 +44,7 @@ class RecentBadgeAwardsList(object):
             self.was_used = True
             self._queryset = (Award.objects
                 .filter(user=self.request.user,
-                        created__gte=last_check)
+                        created__gt=last_check)
                 .exclude(hidden=True))
 
         return self._queryset
