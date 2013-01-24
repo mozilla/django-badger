@@ -27,8 +27,6 @@ if "notification" in settings.INSTALLED_APPS:
 else:
     notification = None
 
-from badger.models import slugify
-
 try:
     from funfactory.urlresolvers import reverse
 except ImportError, e:
@@ -36,10 +34,9 @@ except ImportError, e:
 
 from django.contrib.auth.models import User
 
-from . import BadgerTestCase
+from . import BadgerTestCase, patch_settings
 
 import badger
-
 from badger.models import (Badge, Award, Nomination, Progress, DeferredAward,
         BadgeAwardNotAllowedException,
         BadgeAlreadyAwardedException,
@@ -47,7 +44,7 @@ from badger.models import (Badge, Award, Nomination, Progress, DeferredAward,
         NominationApproveNotAllowedException,
         NominationAcceptNotAllowedException,
         NominationRejectNotAllowedException,
-        SITE_ISSUER)
+        SITE_ISSUER, slugify)
 
 from badger_example.models import GuestbookEntry
 
@@ -122,76 +119,31 @@ class BadgerOBITest(BadgerTestCase):
         badge.image.save('', ContentFile(img_data), True)
 
         # Get some users who can award any badge
-        user_1 = self._get_user(username="superuser_1", is_superuser=True)
-        user_2 = self._get_user(username="superuser_2", is_superuser=True)
+        user_1 = self._get_user(username="superuser_1",
+                                is_superuser=True)
+        user_2 = self._get_user(username="superuser_2",
+                                is_superuser=True)
 
         # Get some users who can receive badges
         user_awardee_1 = self._get_user(username="awardee_1")
         user_awardee_2 = self._get_user(username="awardee_1")
 
-        # Award a badge, and try to extract the badge assertion baked in
-        award_1 = badge.award_to(awardee=user_awardee_1)
-        ok_(award_1.image)
-        img = Image.open(award_1.image.file)
-
-        hosted_assertion_url = img.info['openbadges']
-        expected_url = '%s%s' % (
-            BASE_URL, reverse('badger.award_detail_json',
-                              args=(award_1.badge.slug, award_1.id)))
-        eq_(expected_url, hosted_assertion_url)
-
-        return True
-
-        # TODO: Re-enable the testing below, if/when we go back to baking JSON
-        # rather than hosted assertion URLs.
-
-        assertion = json.loads(img.info['openbadges'])
-
-        # Check the top-level award assertion data
-        eq_(award_1.user.email, assertion['recipient'])
-        eq_('%s%s' % (BASE_URL, award_1.get_absolute_url()),
-            assertion['evidence'])
-
-        # Check some of the badge details in the assertion
-        a_badge = assertion['badge']
-        eq_('0.5.0', a_badge['version'])
-        eq_(badge.title, a_badge['name'])
-        eq_(badge.description, a_badge['description'])
-        eq_('%s%s' % (BASE_URL, badge.get_absolute_url()),
-            a_badge['criteria'])
-
-        # Check the badge issuer details
-        b_issuer = a_badge['issuer']
-        eq_(badge.creator.username, b_issuer['name'])
-        eq_(badge.creator.email, b_issuer['contact'])
-        eq_('%s%s' % (BASE_URL, badge.creator.get_absolute_url()),
-            b_issuer['origin'])
-
-        # Award a badge, and check that the awarder appears as issuer
-        award_2 = badge.award_to(awardee=user_awardee_2, awarder=user_1)
-        ok_(award_2.image)
-        img = Image.open(award_2.image.file)
-        assertion = json.loads(img.info['openbadges'])
-        b_issuer = assertion['badge']['issuer']
-        eq_(user_1.username, b_issuer['name'])
-        eq_(user_1.email, b_issuer['contact'])
-        eq_(BASE_URL, b_issuer['origin'])
-
-        # Make a badge with no creator
-        badge_no_creator = self._get_badge(title="Badge no Creator",
-                                           creator=False)
-        badge_no_creator.image.save('', ContentFile(img_data), True)
-
-        # Award a badge, and check that the site issuer is used
-        award_3 = badge_no_creator.award_to(awardee=user_awardee_1)
-        ok_(award_3.image)
-        img = Image.open(award_3.image.file)
-        assertion = json.loads(img.info['openbadges'])
-        b_issuer = assertion['badge']['issuer']
-        eq_(SITE_ISSUER['name'], b_issuer['name'])
-        eq_(SITE_ISSUER['contact'], b_issuer['contact'])
-        eq_(SITE_ISSUER['origin'], b_issuer['origin'])
-
+        # Try awarding the badge once with baking enabled and once without
+        for enabled in (True, False):
+            with patch_settings(BADGER_BAKE_AWARD_IMAGES=enabled):
+                award_1 = badge.award_to(awardee=user_awardee_1)
+                if not enabled:
+                    ok_(not award_1.image)
+                else:
+                    ok_(award_1.image)
+                    img = Image.open(award_1.image.file)
+                    hosted_assertion_url = img.info['openbadges']
+                    expected_url = '%s%s' % (
+                        BASE_URL, reverse('badger.award_detail_json',
+                                          args=(award_1.badge.slug,
+                                                award_1.id)))
+                    eq_(expected_url, hosted_assertion_url)
+                award_1.delete()
 
 class BadgerProgressTest(BadgerTestCase):
 

@@ -1,5 +1,7 @@
 import logging
 
+from contextlib import contextmanager
+
 from django.conf import settings
 from django.core.management import call_command
 from django.db.models import loading
@@ -19,6 +21,30 @@ except ImportError, e:
 import badger
 
 from badger.models import (Badge, Award, Progress, DeferredAward)
+
+
+class SettingDoesNotExist:
+    pass
+
+
+@contextmanager
+def patch_settings(**kwargs):
+    """Contextmanager to temporarily change settings.
+    See: http://stackoverflow.com/a/3519955"""
+    from django.conf import settings
+    old_settings = []
+    del_settings = []
+    for key, new_value in kwargs.items():
+        old_value = getattr(settings, key, SettingDoesNotExist)
+        old_settings.append((key, old_value))
+        setattr(settings, key, new_value)
+    yield
+    for key, old_value in old_settings:
+        if old_value is SettingDoesNotExist:
+            delattr(settings, key)
+        else:
+            setattr(settings, key, old_value)
+
 
 class BadgerTestCase(test.TestCase):
     """Ensure test app and models are set up before tests"""
