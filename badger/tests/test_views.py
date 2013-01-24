@@ -307,13 +307,18 @@ class BadgerViewsTest(BadgerTestCase):
                                email="awardee@example.com")
         b1 = Badge.objects.create(creator=user1, unique=False,
                                   title="Badge for claim viewing")
-        da = DeferredAward(badge=b1, creator=user1, reusable=True)
+        da = DeferredAward(badge=b1, creator=user1)
         da.save()
 
-        url = reverse('badger.views.claim_deferred_award',
-                      args=(da.claim_code,))
+        url = da.get_claim_url()
 
-        # First claim leads to a single award detail page.
+        # Before claim, code URL leads to claim page. 
+        r = self.client.get(url, follow=False)
+        eq_(200, r.status_code)
+        doc = pq(r.content)
+        form = doc('form#claim_award')
+
+        # After claim, code URL leads to a single award detail page.
         award = da.claim(user2)
         r = self.client.get(url, follow=False)
         eq_(302, r.status_code)
@@ -321,13 +326,28 @@ class BadgerViewsTest(BadgerTestCase):
                             args=(award.badge.slug, award.pk))
         ok_(award_url in r['Location'])
 
-        # Second claim leads to a list of awards.
-        award = da.claim(user2)
-        r = self.client.get(url, follow=False)
-        eq_(302, r.status_code)
-        list_url = reverse('badger.views.awards_list',
-                            args=(award.badge.slug,))
-        ok_(list_url in r['Location'])
+    def test_reusable_deferred_award_visit(self):
+        """Issue #140: Viewing a claim page for a deferred award that has been
+        claimed, yet is flagged as reusable, should result in the claim page
+        and not a redirect to awards"""
+        user1 = self._get_user(username="creator", email="creator@example.com")
+        user2 = self._get_user(username="awardee1", email="a1@example.com")
+        user3 = self._get_user(username="awardee2", email="a2@example.com")
+
+        # Create the badge, a deferred award, and claim it once already.
+        b1 = Badge.objects.create(creator=user1, title="Badge to defer")
+        da = DeferredAward.objects.create(badge=b1, creator=user1,
+                                          reusable=True)
+        da.claim(user3)
+
+        # Visiting the claim URL should yield the claim code page.
+        url = da.get_claim_url()
+        self.client.login(username="awardee1", password="trustno1")
+        r = self.client.get(url, follow=True)
+        eq_(200, r.status_code)
+        doc = pq(r.content)
+        form = doc('form#claim_award')
+        eq_(1, form.length)
 
     def test_grant_deferred_award(self):
         """Deferred award for a badge can be granted to an email address."""

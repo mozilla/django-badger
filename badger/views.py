@@ -340,15 +340,17 @@ def claim_deferred_award(request, claim_code=None):
     awards = Award.objects.filter(claim_code=claim_code)
     awards_ct = awards.count()
 
-    # If this is a GET and there are awards matching the claim code, redirect
-    # to the awards.
-    if request.method == "GET" and awards_ct > 0:
-        return _redirect_to_claimed_awards(awards, awards_ct)
-
     # Try fetching a DeferredAward matching the claim code. If none found, then
     # make one last effort to redirect a POST to awards. Otherwise, 404
     try:
         deferred_award = DeferredAward.objects.get(claim_code=claim_code)
+
+        # If this is a GET and there are awards matching the claim code,
+        # redirect to the awards.
+        if (request.method == "GET" and awards_ct > 0 and
+                not deferred_award.reusable):
+            return _redirect_to_claimed_awards(awards, awards_ct)
+
     except DeferredAward.DoesNotExist:
         if awards_ct > 0:
             return _redirect_to_claimed_awards(awards, awards_ct)
