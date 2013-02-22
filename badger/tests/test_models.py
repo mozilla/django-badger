@@ -71,6 +71,8 @@ class BadgerBadgeTest(BadgerTestCase):
         badge = self._get_badge()
         badge.title = u'弁護士バッジ（レプリカ）'
         badge.slug = ''
+        img_data = open(BADGE_IMG_FN, 'r').read()
+        badge.image.save('', ContentFile(img_data), True)
         badge.save()
 
         ok_(badge.slug != '')
@@ -144,6 +146,7 @@ class BadgerOBITest(BadgerTestCase):
                                                 award_1.id)))
                     eq_(expected_url, hosted_assertion_url)
                 award_1.delete()
+
 
 class BadgerProgressTest(BadgerTestCase):
 

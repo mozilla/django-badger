@@ -108,7 +108,7 @@ DEFAULT_BADGE_IMAGE_URL = getattr(settings, 'BADGER_DEFAULT_BADGE_IMAGE_URL',
 
 TIME_ZONE_OFFSET = getattr(settings, "TIME_ZONE_OFFSET", timedelta(0))
 
-MK_UPLOAD_TMPL = '%(base)s/%(field_fn)s_%(slug)s_%(now)s_%(rand)04d.%(ext)s'
+MK_UPLOAD_TMPL = '%(base)s/%(h1)s/%(h2)s/%(hash)s_%(field_fn)s_%(now)s_%(rand)04d.%(ext)s'
 
 DEFAULT_HTTP_PROTOCOL = getattr(settings, "DEFAULT_HTTP_PROTOCOL", "http")
 
@@ -166,8 +166,8 @@ def slugify(txt):
     txt = txt.strip()
     # remove spaces before and after dashes
     txt = re.sub('\s*-\s*','-', txt, re.UNICODE)
-    # replace remaining spaces with underscores
-    txt = re.sub('[\s/]', '_', txt, re.UNICODE)
+    # replace remaining spaces with dashes
+    txt = re.sub('[\s/]', '-', txt, re.UNICODE)
     # replace colons between numbers with dashes
     txt = re.sub('(\d):(\d)', r'\1-\2', txt, re.UNICODE)
     # replace double quotes with single quotes
@@ -193,8 +193,12 @@ def mk_upload_to(field_fn, ext, tmpl=MK_UPLOAD_TMPL):
     """upload_to builder for file upload fields"""
     def upload_to(instance, filename):
         base, slug = instance.get_upload_meta()
+        slug_hash = (hashlib.md5(instance.slug.encode('utf-8', 'ignore'))
+                            .hexdigest())
         return tmpl % dict(now=int(time()), rand=random.randint(0, 1000),
                            slug=slug[:50], base=base, field_fn=field_fn,
+                           pk=instance.pk,
+                           hash=slug_hash, h1=slug_hash[0], h2=slug_hash[1],
                            ext=ext)
     return upload_to
 
@@ -430,9 +434,12 @@ class Badge(models.Model):
 
     def save(self, **kwargs):
         """Save the submission, updating slug and screenshot thumbnails"""
-        if not self.slug:
+        awards_count = self.award_set.count()
+        if awards_count == 0:
             self.slug = slugify(self.title)
+
         super(Badge, self).save(**kwargs)
+        
         if notification:
             if self.creator:
                 notification.send([self.creator], 'badge_edited', 
