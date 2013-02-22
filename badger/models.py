@@ -193,7 +193,7 @@ def mk_upload_to(field_fn, ext, tmpl=MK_UPLOAD_TMPL):
     """upload_to builder for file upload fields"""
     def upload_to(instance, filename):
         base, slug = instance.get_upload_meta()
-        slug_hash = (hashlib.md5(instance.slug.encode('utf-8', 'ignore'))
+        slug_hash = (hashlib.md5(slug.encode('utf-8', 'ignore'))
                             .hexdigest())
         return tmpl % dict(now=int(time()), rand=random.randint(0, 1000),
                            slug=slug[:50], base=base, field_fn=field_fn,
@@ -434,8 +434,7 @@ class Badge(models.Model):
 
     def save(self, **kwargs):
         """Save the submission, updating slug and screenshot thumbnails"""
-        awards_count = self.award_set.count()
-        if awards_count == 0:
+        if not self.slug:
             self.slug = slugify(self.title)
 
         super(Badge, self).save(**kwargs)
