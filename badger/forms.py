@@ -150,13 +150,14 @@ class BadgeEditForm(MyModelForm):
 
     class Meta:
         model = Badge
+        fields = ('title', 'image', 'description',)
         try:
+            # HACK: Add "tags" as a field only if the taggit app is available.
             import taggit
-            fields = ('title', 'image', 'description', 'tags', 'unique',
-                      'nominations_accepted',)
+            fields += ('tags',)
         except ImportError, e:
-            fields = ('title', 'image', 'description', 'unique',
-                      'nominations_accepted',)
+            pass
+        fields += ('nominations_accepted', 'nominations_autoapproved',)
 
     required_css_class = "required"
     error_css_class = "error"

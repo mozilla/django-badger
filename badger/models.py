@@ -399,6 +399,9 @@ class Badge(models.Model):
             help_text="Should this badge accept nominations from " 
                       "other users?")
 
+    nominations_autoapproved = models.BooleanField(default=False, blank=True,
+            help_text="Should all nominations be automatically approved?")
+
     if taggit:
         tags = TaggableManager(blank=True)
 
@@ -614,6 +617,10 @@ class Badge(models.Model):
                 notification.send([self.creator], 'nomination_submitted',
                                   dict(nomination=nomination,
                                        protocol=DEFAULT_HTTP_PROTOCOL))
+
+        if self.nominations_autoapproved:
+            nomination.approve_by(self.creator)
+
         return nomination
 
     def is_nominated_for(self, user):

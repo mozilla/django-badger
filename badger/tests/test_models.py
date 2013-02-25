@@ -440,6 +440,16 @@ class BadgerMultiplayerBadgeTest(BadgerTestCase):
         nomination.approve_by(nomination.badge.creator)
         ok_(nomination.is_approved)
 
+    def test_autoapprove_nomination(self):
+        """All nominations should be auto-approved for a badge flagged for
+        auto-approval"""
+        badge = self._get_badge()
+        badge.nominations_autoapproved = True
+        badge.save()
+
+        nomination = self._create_nomination()
+        ok_(nomination.is_approved)
+
     def test_accept_nomination(self):
         """A nomination can be accepted"""
         nomination = self._create_nomination()
