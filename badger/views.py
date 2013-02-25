@@ -39,6 +39,8 @@ try:
 except:
     taggit = None
 
+import badger
+from badger import settings as bsettings
 from .models import (Badge, Award, Nomination, DeferredAward,
                      Progress, BadgeAwardNotAllowedException,
                      BadgeAlreadyAwardedException,
@@ -48,18 +50,14 @@ from .forms import (BadgeAwardForm, DeferredAwardGrantForm,
                     DeferredAwardMultipleGrantForm, BadgeNewForm,
                     BadgeEditForm, BadgeSubmitNominationForm)
 
-BADGE_PAGE_SIZE = 20
-MAX_RECENT = 15
-TEMPLATE_BASE = getattr(settings, 'BADGER_TEMPLATE_BASE', 'badger')
-
 
 def home(request):
     """Badger home page"""
-    badge_list = Badge.objects.order_by('-modified').all()[:MAX_RECENT]
-    award_list = Award.objects.order_by('-modified').all()[:MAX_RECENT]
+    badge_list = Badge.objects.order_by('-modified').all()[:bsettings.MAX_RECENT]
+    award_list = Award.objects.order_by('-modified').all()[:bsettings.MAX_RECENT]
     badge_tags = Badge.objects.top_tags()
 
-    return render_to_response('%s/home.html' % TEMPLATE_BASE, dict(
+    return render_to_response('%s/home.html' % bsettings.TEMPLATE_BASE, dict(
         badge_list=badge_list, award_list=award_list, badge_tags=badge_tags
     ), context_instance=RequestContext(request))
 
@@ -81,14 +79,14 @@ def badges_list(request, tag_name=None):
     else:
         queryset = Badge.objects.order_by('-modified').all()
     return object_list(request, queryset,
-        paginate_by=BADGE_PAGE_SIZE, allow_empty=True,
+        paginate_by=bsettings.BADGE_PAGE_SIZE, allow_empty=True,
         extra_context=dict(
             tag_name=tag_name,
             query_string=query_string,
             award_list=award_list,
         ),
         template_object_name='badge',
-        template_name='%s/badges_list.html' % TEMPLATE_BASE)
+        template_name='%s/badges_list.html' % bsettings.TEMPLATE_BASE)
 
 
 @require_http_methods(['HEAD', 'GET', 'POST'])
@@ -99,7 +97,7 @@ def detail(request, slug, format="html"):
         return HttpResponseForbidden('Detail forbidden')
 
     awards = (Award.objects.filter(badge=badge)
-                           .order_by('-created'))[:MAX_RECENT]
+                           .order_by('-created'))[:bsettings.MAX_RECENT]
 
     # FIXME: This is awkward. It used to collect sections as responses to a
     # signal sent out to badger_multiplayer and hypothetical future expansions
@@ -137,7 +135,7 @@ def detail(request, slug, format="html"):
         resp['Content-Type'] = 'application/json'
         return resp
     else:
-        return render_to_response('%s/badge_detail.html' % TEMPLATE_BASE, dict(
+        return render_to_response('%s/badge_detail.html' % bsettings.TEMPLATE_BASE, dict(
             badge=badge, award_list=awards, sections=sections,
             claim_groups=claim_groups
         ), context_instance=RequestContext(request))
@@ -163,7 +161,7 @@ def create(request):
             return HttpResponseRedirect(reverse(
                     'badger.views.detail', args=(new_sub.slug,)))
 
-    return render_to_response('%s/badge_create.html' % TEMPLATE_BASE, dict(
+    return render_to_response('%s/badge_create.html' % bsettings.TEMPLATE_BASE, dict(
         form=form,
     ), context_instance=RequestContext(request))
 
@@ -187,7 +185,7 @@ def edit(request, slug):
             return HttpResponseRedirect(reverse(
                     'badger.views.detail', args=(new_sub.slug,)))
 
-    return render_to_response('%s/badge_edit.html' % TEMPLATE_BASE, dict(
+    return render_to_response('%s/badge_edit.html' % bsettings.TEMPLATE_BASE, dict(
         badge=badge, form=form,
     ), context_instance=RequestContext(request))
 
@@ -207,7 +205,7 @@ def delete(request, slug):
         badge.delete()
         return HttpResponseRedirect(reverse('badger.views.badges_list'))
 
-    return render_to_response('%s/badge_delete.html' % TEMPLATE_BASE, dict(
+    return render_to_response('%s/badge_delete.html' % bsettings.TEMPLATE_BASE, dict(
         badge=badge, awards_count=awards_count,
     ), context_instance=RequestContext(request))
 
@@ -239,7 +237,7 @@ def award_badge(request, slug):
             return HttpResponseRedirect(reverse('badger.views.detail', 
                                                 args=(badge.slug,)))
 
-    return render_to_response('%s/badge_award.html' % TEMPLATE_BASE, dict(
+    return render_to_response('%s/badge_award.html' % bsettings.TEMPLATE_BASE, dict(
         form=form, badge=badge,
     ), context_instance=RequestContext(request))
 
@@ -255,12 +253,12 @@ def awards_list(request, slug=None):
     queryset = queryset.order_by('-modified').all()
 
     return object_list(request, queryset,
-        paginate_by=BADGE_PAGE_SIZE, allow_empty=True,
+        paginate_by=bsettings.BADGE_PAGE_SIZE, allow_empty=True,
         extra_context=dict(
             badge=badge
         ),
         template_object_name='award',
-        template_name='%s/awards_list.html' % TEMPLATE_BASE)
+        template_name='%s/awards_list.html' % bsettings.TEMPLATE_BASE)
 
 
 @require_http_methods(['HEAD', 'GET'])
@@ -277,7 +275,7 @@ def award_detail(request, slug, id, format="html"):
         resp['Content-Type'] = 'application/json'
         return resp
     else:
-        return render_to_response('%s/award_detail.html' % TEMPLATE_BASE, dict(
+        return render_to_response('%s/award_detail.html' % bsettings.TEMPLATE_BASE, dict(
             badge=badge, award=award,
         ), context_instance=RequestContext(request))
 
@@ -298,7 +296,7 @@ def award_delete(request, slug, id):
         url = reverse('badger.views.detail', kwargs=dict(slug=slug))
         return HttpResponseRedirect(url)
 
-    return render_to_response('%s/award_delete.html' % TEMPLATE_BASE, dict(
+    return render_to_response('%s/award_delete.html' % bsettings.TEMPLATE_BASE, dict(
         badge=badge, award=award
     ), context_instance=RequestContext(request))
 
@@ -377,7 +375,7 @@ def claim_deferred_award(request, claim_code=None):
                               args=(deferred_award.badge.slug,))
                 return HttpResponseRedirect(url)
 
-    return render_to_response('%s/claim_deferred_award.html' % TEMPLATE_BASE, dict(
+    return render_to_response('%s/claim_deferred_award.html' % bsettings.TEMPLATE_BASE, dict(
         badge=deferred_award.badge, deferred_award=deferred_award,
         grant_form=grant_form
     ), context_instance=RequestContext(request))
@@ -397,7 +395,7 @@ def claims_list(request, slug, claim_group, format="html"):
         return render_claims_to_pdf(request, slug, claim_group,
                                     deferred_awards)
 
-    return render_to_response('%s/claims_list.html' % TEMPLATE_BASE, dict(
+    return render_to_response('%s/claims_list.html' % bsettings.TEMPLATE_BASE, dict(
         badge=badge, claim_group=claim_group,
         deferred_awards=deferred_awards
     ), context_instance=RequestContext(request))
@@ -408,7 +406,7 @@ def awards_by_user(request, username):
     """Badge awards by user"""
     user = get_object_or_404(User, username=username)
     awards = Award.objects.filter(user=user)
-    return render_to_response('%s/awards_by_user.html' % TEMPLATE_BASE, dict(
+    return render_to_response('%s/awards_by_user.html' % bsettings.TEMPLATE_BASE, dict(
         user=user, award_list=awards,
     ), context_instance=RequestContext(request))
 
@@ -418,7 +416,7 @@ def awards_by_badge(request, slug):
     """Badge awards by badge"""
     badge = get_object_or_404(Badge, slug=slug)
     awards = Award.objects.filter(badge=badge)
-    return render_to_response('%s/awards_by_badge.html' % TEMPLATE_BASE, dict(
+    return render_to_response('%s/awards_by_badge.html' % bsettings.TEMPLATE_BASE, dict(
         badge=badge, awards=awards,
     ), context_instance=RequestContext(request))
 
@@ -450,7 +448,7 @@ def staff_tools(request):
                 return HttpResponseRedirect(url)
 
 
-    return render_to_response('%s/staff_tools.html' % TEMPLATE_BASE, dict(
+    return render_to_response('%s/staff_tools.html' % bsettings.TEMPLATE_BASE, dict(
         grant_form=grant_form
     ), context_instance=RequestContext(request))
 
@@ -460,7 +458,7 @@ def badges_by_user(request, username):
     """Badges created by user"""
     user = get_object_or_404(User, username=username)
     badges = Badge.objects.filter(creator=user)
-    return render_to_response('%s/badges_by_user.html' % TEMPLATE_BASE, dict(
+    return render_to_response('%s/badges_by_user.html' % bsettings.TEMPLATE_BASE, dict(
         user=user, badge_list=badges,
     ), context_instance=RequestContext(request))
 
@@ -486,7 +484,7 @@ def nomination_detail(request, slug, id, format="html"):
                 'badger.views.nomination_detail',
                 args=(slug, id)))
 
-    return render_to_response('%s/nomination_detail.html' % TEMPLATE_BASE,
+    return render_to_response('%s/nomination_detail.html' % bsettings.TEMPLATE_BASE,
                               dict(badge=badge, nomination=nomination,),
                               context_instance=RequestContext(request))
 
@@ -527,6 +525,6 @@ def nominate_for(request, slug):
             return HttpResponseRedirect(reverse('badger.views.detail',
                                                 args=(badge.slug,)))
 
-    return render_to_response('%s/badge_nominate_for.html' % TEMPLATE_BASE,
+    return render_to_response('%s/badge_nominate_for.html' % bsettings.TEMPLATE_BASE,
                               dict(form=form, badge=badge,),
                               context_instance=RequestContext(request))

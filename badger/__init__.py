@@ -13,6 +13,15 @@ TEMPLATE_BASE = 'badger'
 # Skip baking for now (Issue #139)
 BAKE_AWARD_IMAGES = False
 
+# Master switch for wide-open badge creation by all users (multiplayer mode)
+ALLOW_ADD_BY_ANYONE = False
+
+# Page size for badge listings
+BADGE_PAGE_SIZE = 50
+
+# Max # of items shown on home page recent sections
+MAX_RECENT = 15
+
 
 class BadgerSettings(object):
     """Dirty settings interface that allows defaults from here to be overidden
