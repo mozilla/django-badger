@@ -548,23 +548,11 @@ class Badge(models.Model):
             if raise_already_awarded:
                 raise BadgeAlreadyAwardedException()
             else:
-                # If unique and already awarded, just return the existing
                 return Award.objects.filter(user=awardee, badge=self)[0]
 
-        award = Award.objects.create(user=awardee, badge=self,
-                                     creator=awarder,
-                                     description=description)
-
-        if notification:
-            if self.creator:
-                notification.send([self.creator], 'badge_awarded',
-                                  dict(award=award,
-                                       protocol=DEFAULT_HTTP_PROTOCOL))
-            notification.send([awardee], 'award_received',
-                              dict(award=award,
-                                   protocol=DEFAULT_HTTP_PROTOCOL))
-        
-        return award
+        return Award.objects.create(user=awardee, badge=self,
+                                    creator=awarder,
+                                    description=description)
 
     def check_prerequisites(self, awardee, dep_badge, award):
         """Check the prerequisites for this badge. If they're all met, award
@@ -747,6 +735,15 @@ class Award(models.Model):
         if is_new:
             # Only fire was-awarded signal on a new award.
             badge_was_awarded.send(sender=self.__class__, award=self)
+
+            if notification:
+                if self.creator:
+                    notification.send([self.badge.creator], 'badge_awarded',
+                                      dict(award=self,
+                                           protocol=DEFAULT_HTTP_PROTOCOL))
+                notification.send([self.user], 'award_received',
+                                  dict(award=self,
+                                       protocol=DEFAULT_HTTP_PROTOCOL))
 
             # Since this badge was just awarded, check the prerequisites on all
             # badges that count this as one.
