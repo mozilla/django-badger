@@ -94,8 +94,15 @@ class BadgerBadgeTest(BadgerTestCase):
                 unique=True, creator=user)
         a = Award.objects.create(badge=b, user=user)
 
-        # award_to should not trigger the exception
+        # award_to should not trigger the exception by default
         b.award_to(awardee=user)
+
+        try:
+            b.award_to(awardee=user, raise_already_awarded=True)
+            ok_(False, 'BadgeAlreadyAwardedException should have been raised')
+        except BadgeAlreadyAwardedException, e:
+            # The raise_already_awarded flag should raise the exception
+            pass
 
         try:
             a = Award.objects.create(badge=b, user=user)
