@@ -522,7 +522,7 @@ class Badge(models.Model):
         return DeferredAward.objects.get_claim_groups(badge=self)
 
     def award_to(self, awardee=None, email=None, awarder=None,
-                 description=''):
+                 description='', raise_already_awarded=False):
         """Award this badge to the awardee on the awarder's behalf"""
         # If no awarder given, assume this is on the badge creator's behalf.
         if not awarder:
@@ -544,9 +544,12 @@ class Badge(models.Model):
             # Otherwise, we'll use the most recently created user
             awardee = qs.latest('date_joined')
 
-        # If unique and already awarded, just return the existing award.
         if self.unique and self.is_awarded_to(awardee):
-            return Award.objects.filter(user=awardee, badge=self)[0]
+            if raise_already_awarded:
+                raise BadgeAlreadyAwardedException()
+            else:
+                # If unique and already awarded, just return the existing
+                return Award.objects.filter(user=awardee, badge=self)[0]
 
         award = Award.objects.create(user=awardee, badge=self,
                                      creator=awarder,
