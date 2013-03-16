@@ -24,7 +24,7 @@ try:
 except ImportError, e:
     from django.utils.translation import ugettext_lazy as _
 
-from django.views.generic.list_detail import object_list
+from django.views.generic.list import ListView
 from django.views.decorators.http import (require_GET, require_POST,
                                           require_http_methods)
 
@@ -62,31 +62,33 @@ def home(request):
     ), context_instance=RequestContext(request))
 
 
-def badges_list(request, tag_name=None):
+class BadgesListView(ListView):
     """Badges list page"""
-    award_list = None
-    query_string = request.GET.get('q', None)
-    if query_string is not None:
-        sort_order = request.GET.get('sort', 'created')
-        queryset = Badge.objects.search(query_string, sort_order)
-        # TODO: Is this the most efficient query?
-        award_list = (Award.objects.filter(badge__in=queryset))
-    elif taggit and tag_name:
-        tag = get_object_or_404(Tag, name=tag_name)
-        queryset = (Badge.objects.filter(tags__in=[tag]).distinct())
-        # TODO: Is this the most efficient query?
-        award_list = (Award.objects.filter(badge__in=queryset))
-    else:
-        queryset = Badge.objects.order_by('-modified').all()
-    return object_list(request, queryset,
-        paginate_by=bsettings.BADGE_PAGE_SIZE, allow_empty=True,
-        extra_context=dict(
-            tag_name=tag_name,
-            query_string=query_string,
-            award_list=award_list,
-        ),
-        template_object_name='badge',
-        template_name='%s/badges_list.html' % bsettings.TEMPLATE_BASE)
+    model = Badge
+    template_name = '%s/badges_list.html' % bsettings.TEMPLATE_BASE
+    template_object_name = 'badge'
+    paginate_by = bsettings.BADGE_PAGE_SIZE
+
+    def get_context_data(self, **kwargs):
+        context = super(BadgesListView, self).get_context_data(**kwargs)
+        context['award_list'] = None
+        context['tag_name'] = kwargs.get('tag_name', None)
+        context['query_string'] = kwargs.get('q', None)
+        if context['query_string'] is not None:
+            sort_order = kwargs.get('sort', 'created')
+            self.queryset = Badge.objects.search(context['query_string'], sort_order)
+            # TODO: Is this the most efficient query?
+            context['award_list'] = (Award.objects.filter(badge__in=self.queryset))
+        elif taggit and context['tag_name']:
+            tag = get_object_or_404(Tag, name=context['tag_name'])
+            self.queryset = (Badge.objects.filter(tags__in=[tag]).distinct())
+            # TODO: Is this the most efficient query?
+            context['award_list'] = (Award.objects.filter(badge__in=self.queryset))
+        else:
+            self.queryset = Badge.objects.order_by('-modified').all()
+        return context
+
+badges_list = BadgesListView.as_view()
 
 
 @require_http_methods(['HEAD', 'GET', 'POST'])
@@ -242,24 +244,26 @@ def award_badge(request, slug):
     ), context_instance=RequestContext(request))
 
 
-@require_GET
-def awards_list(request, slug=None):
-    """Lists awards"""
-    queryset = Award.objects
-    if not slug:
-        badge = None
-    else:
-        badge = get_object_or_404(Badge, slug=slug)
-        queryset = queryset.filter(badge=badge)
-    queryset = queryset.order_by('-modified').all()
+class AwardsListView(ListView):
+    model = Award
+    template_name = '%s/awards_list.html' % bsettings.TEMPLATE_BASE
+    template_object_name = 'award'
+    paginate_by = bsettings.BADGE_PAGE_SIZE
 
-    return object_list(request, queryset,
-        paginate_by=bsettings.BADGE_PAGE_SIZE, allow_empty=True,
-        extra_context=dict(
-            badge=badge
-        ),
-        template_object_name='award',
-        template_name='%s/awards_list.html' % bsettings.TEMPLATE_BASE)
+    def get_context_data(self, **kwargs):
+        context = super(AwardsListView, self).get_context_data(**kwargs)
+        queryset = Award.objects
+        if kwargs.get('slug', None) is None:
+            badge = None
+        else:
+            badge = get_object_or_404(Badge, slug=kwargs.get('slug', None))
+            queryset = queryset.filter(badge=badge)
+
+        self.queryset = queryset.order_by('-modified').all()
+        context['badge'] = badge
+        return context
+
+awards_list = AwardsListView.as_view()
 
 
 @require_http_methods(['HEAD', 'GET'])

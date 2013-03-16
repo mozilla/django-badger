@@ -1,7 +1,6 @@
 from django.conf.urls import patterns, include, url
 
 from django.conf import settings
-from django.views.generic.list_detail import object_list
 from django.views.generic.simple import direct_to_template
 
 from .feeds import (AwardsRecentFeed, AwardsByUserFeed, AwardsByBadgeFeed,
@@ -47,23 +46,23 @@ urlpatterns = patterns('badger.views',
     url(r'^users/(?P<username>[^/]+)/awards/?$', 'awards_by_user',
         name='badger.awards_by_user'),
 
-    url(r'^create$', 'create', 
+    url(r'^create$', 'create',
         name='badger.create_badge'),
-    url(r'^badge/(?P<slug>[^/]+)/nominate$', 'nominate_for', 
+    url(r'^badge/(?P<slug>[^/]+)/nominate$', 'nominate_for',
         name='badger.nominate_for'),
-    url(r'^badge/(?P<slug>[^/]+)/edit$', 'edit', 
+    url(r'^badge/(?P<slug>[^/]+)/edit$', 'edit',
         name='badger.badge_edit'),
-    url(r'^badge/(?P<slug>[^/]+)/delete$', 'delete', 
+    url(r'^badge/(?P<slug>[^/]+)/delete$', 'delete',
         name='badger.badge_delete'),
     url(r'^badge/(?P<slug>[^/]+)/nominations/(?P<id>\d+)/?$', 'nomination_detail',
         name='badger.nomination_detail'),
     url(r'^users/(?P<username>[^/]+)/badges/?$', 'badges_by_user',
         name='badger.badges_by_user'),
 
-    url(r'^feeds/(?P<format>[^/]+)/badges/?$', BadgesRecentFeed(), 
+    url(r'^feeds/(?P<format>[^/]+)/badges/?$', BadgesRecentFeed(),
         name="badger.feeds.badges_recent"),
     url(r'^feeds/(?P<format>[^/]+)/users/(?P<username>[^/]+)/badges/?$',
-        BadgesByUserFeed(), 
+        BadgesByUserFeed(),
         name="badger.feeds.badges_by_user"),
 
     url(r'^feeds/(?P<format>[^/]+)/awards/?$',

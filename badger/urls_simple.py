@@ -6,7 +6,6 @@ badges will be awarded in badges.py
 from django.conf.urls import patterns, include, url
 
 from django.conf import settings
-from django.views.generic.list_detail import object_list
 from django.views.generic.simple import direct_to_template
 
 from .feeds import (AwardsRecentFeed, AwardsByUserFeed, AwardsByBadgeFeed,
@@ -38,7 +37,7 @@ urlpatterns = patterns('badger.views',
         name='badger.awards_by_badge'),
     url(r'^users/(?P<username>[^/]+)/awards/?$', 'awards_by_user',
         name='badger.awards_by_user'),
-    url(r'^feeds/(?P<format>[^/]+)/badges/?$', BadgesRecentFeed(), 
+    url(r'^feeds/(?P<format>[^/]+)/badges/?$', BadgesRecentFeed(),
         name="badger.feeds.badges_recent"),
     url(r'^feeds/(?P<format>[^/]+)/awards/?$',
         AwardsRecentFeed(), name="badger.feeds.awards_recent"),
