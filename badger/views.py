@@ -236,7 +236,7 @@ def award_badge(request, slug):
                     else:
                         messages.info(request, _('Invitation to claim award '
                                                  'sent to %s') % email)
-            return HttpResponseRedirect(reverse('badger.views.detail', 
+            return HttpResponseRedirect(reverse('badger.views.detail',
                                                 args=(badge.slug,)))
 
     return render_to_response('%s/badge_award.html' % bsettings.TEMPLATE_BASE, dict(
@@ -394,7 +394,7 @@ def claims_list(request, slug, claim_group, format="html"):
     if not badge.allows_manage_deferred_awards_by(request.user):
         return HttpResponseForbidden()
 
-    deferred_awards = badge.get_claim_group(claim_group) 
+    deferred_awards = badge.get_claim_group(claim_group)
 
     if format == "pdf":
         from badger.printing import render_claims_to_pdf
@@ -452,7 +452,6 @@ def staff_tools(request):
                                              (da.badge, email)))
                 url = reverse('badger.views.staff_tools')
                 return HttpResponseRedirect(url)
-
 
     return render_to_response('%s/staff_tools.html' % bsettings.TEMPLATE_BASE, dict(
         grant_form=grant_form

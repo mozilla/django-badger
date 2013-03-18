@@ -70,9 +70,9 @@ def badger_allows_add_by(user):
 def qr_code_image(value, alt=None, size=150):
     # TODO: Bake our own QR codes, someday soon!
     url = conditional_escape("http://chart.apis.google.com/chart?%s" % \
-            urllib.urlencode({'chs':'%sx%s' % (size, size), 'cht':'qr', 'chl':value, 'choe':'UTF-8'}))
+            urllib.urlencode({'chs': '%sx%s' % (size, size), 'cht': 'qr', 'chl': value, 'choe': 'UTF-8'}))
     alt = conditional_escape(alt or value)
-    
+
     return Markup(u"""<img class="qrcode" src="%s" width="%s" height="%s" alt="%s" />""" %
                   (url, size, size, alt))
 
@@ -81,6 +81,7 @@ def qr_code_image(value, alt=None, size=150):
 def nominations_pending_approval(user):
     return Nomination.objects.filter(badge__creator=user,
                                      approver__isnull=True)
+
 
 @register.function
 def nominations_pending_acceptance(user):

@@ -66,9 +66,11 @@ class MultipleItemsField(forms.Field):
 
     def __init__(self, **kwargs):
         self.max_items = kwargs.get('max_items', 10)
-        if 'max_items' in kwargs: del kwargs['max_items']
+        if 'max_items' in kwargs:
+            del kwargs['max_items']
         self.separator_re = re.compile(r'[,;\s]+')
-        if 'separator_re' in kwargs: del kwargs['separator_re']
+        if 'separator_re' in kwargs:
+            del kwargs['separator_re']
         super(MultipleItemsField, self).__init__(**kwargs)
 
     def to_python(self, value):
@@ -90,7 +92,7 @@ class MultipleItemsField(forms.Field):
             raise ValidationError(
                 _('%s items entered, only %s allowed') %
                 (len(value), self.max_items))
-        
+
         # Validate each of the items
         invalid_items = []
         for item in value:
@@ -105,7 +107,7 @@ class MultipleItemsField(forms.Field):
 
 
 class MultiEmailField(MultipleItemsField):
-    """Form field which accepts multiple email addresses""" 
+    """Form field which accepts multiple email addresses"""
     def validate_item(self, item):
         validate_email(item)
 

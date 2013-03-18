@@ -12,5 +12,5 @@ urlpatterns = patterns('',
     # url(r'^badger_example/', include('badger_example.foo.urls')),
 
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^badges/', include('badger.urls')),    
+    url(r'^badges/', include('badger.urls')),
 )

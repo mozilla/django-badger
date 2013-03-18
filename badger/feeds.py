@@ -45,14 +45,14 @@ class BaseJSONFeedGenerator(SyndicationFeed):
         """Simple base item formatter.
         Omit some named keys and any keys with false-y values"""
         omit_keys = ('obj', 'unique_id', )
-        return dict((k,v) for k,v in item.items()
+        return dict((k, v) for k, v in item.items()
                     if v and k not in omit_keys)
 
     def build_feed(self):
         """Simple base feed formatter.
         Omit some named keys and any keys with false-y values"""
         omit_keys = ('obj', 'request', 'id', )
-        feed_data = dict((k,v) for k,v in self.feed.items()
+        feed_data = dict((k, v) for k, v in self.feed.items()
                          if v and k not in omit_keys)
         feed_data['items'] = [self.build_item(item) for item in self.items]
         return feed_data

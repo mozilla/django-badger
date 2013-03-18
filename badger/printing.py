@@ -42,13 +42,13 @@ def render_claims_to_pdf(request, slug, claim_group, deferred_awards):
         page_height=(11.0 * inch),
 
         top_margin=(0.5 * inch),
-        left_margin=((25.0/32.0) * inch),
+        left_margin=((25.0 / 32.0) * inch),
 
-        qr_overlap=((1.0/32.0) * inch),
-        padding=((1.0/16.0) * inch),
-        
-        horizontal_spacing=((5.0/16.0) * inch),
-        vertical_spacing=((13.0/64.0) * inch),
+        qr_overlap=((1.0 / 32.0) * inch),
+        padding=((1.0 / 16.0) * inch),
+
+        horizontal_spacing=((5.0 / 16.0) * inch),
+        vertical_spacing=((13.0 / 64.0) * inch),
 
         width=(1.5 * inch),
         height=(1.5 * inch),
@@ -57,7 +57,7 @@ def render_claims_to_pdf(request, slug, claim_group, deferred_awards):
     debug = (request.GET.get('debug', False) is not False)
 
     pagesize = (metrics['page_width'], metrics['page_height'])
-    cols = int((metrics['page_width'] - metrics['left_margin']) / 
+    cols = int((metrics['page_width'] - metrics['left_margin']) /
                (metrics['width'] + metrics['horizontal_spacing']))
     rows = int((metrics['page_height'] - metrics['top_margin']) /
                (metrics['height'] + metrics['vertical_spacing']))
@@ -65,7 +65,7 @@ def render_claims_to_pdf(request, slug, claim_group, deferred_awards):
     label_ct = len(deferred_awards)
     page_ct = math.ceil(label_ct / per_page)
 
-    pages = [deferred_awards[x:x+(per_page)]
+    pages = [deferred_awards[x:x + (per_page)]
              for x in range(0, label_ct, per_page)]
 
     response = HttpResponse(content_type='application/pdf; charset=utf-8')
@@ -81,7 +81,7 @@ def render_claims_to_pdf(request, slug, claim_group, deferred_awards):
 
     for page in pages:
         c.translate(metrics['left_margin'],
-                    metrics['page_height']-metrics['top_margin'])
+                    metrics['page_height'] - metrics['top_margin'])
 
         for row in range(0, rows, 1):
             c.translate(0.0, 0 - metrics['height'])
@@ -120,8 +120,8 @@ def render_label(request, c, metrics, da, badge_img, debug):
     """Render a single label"""
     badge = da.badge
 
-    badge_image_width = (1.0 + (1.0/64.0)) * inch
-    badge_image_height = (1.0 + (1.0/64.0)) * inch
+    badge_image_width = (1.0 + (1.0 / 64.0)) * inch
+    badge_image_height = (1.0 + (1.0 / 64.0)) * inch
 
     qr_left = badge_image_width - metrics['qr_overlap']
     qr_bottom = badge_image_height - metrics['qr_overlap']
@@ -134,7 +134,6 @@ def render_label(request, c, metrics, da, badge_img, debug):
         c.rect(0, 0, metrics['width'], metrics['height'])
         c.rect(qr_left, qr_bottom, qr_width, qr_height)
         c.rect(0, 0, badge_image_width, badge_image_height)
-
 
     fit_text(c, da.badge.title,
              0.0, badge_image_height,
@@ -150,14 +149,14 @@ def render_label(request, c, metrics, da, badge_img, debug):
     c.drawCentredString(0 - (badge_image_width / 2.0),
                         metrics['height'] - code_height,
                         da.claim_code)
-    
+
     text = """
         <font name="Helvetica">Claim at</font> <font name="Courier">%s</font>
     """ % (settings.SITE_TITLE)
     fit_text(c, text,
              0 - badge_image_height, badge_image_width,
              badge_image_width, claim_height)
-    
+
     c.restoreState()
 
     # Attempt to build a QR code image for the claim URL
@@ -183,8 +182,8 @@ def render_label(request, c, metrics, da, badge_img, debug):
             # Hmm, if we don't have PyQRNative, then try abusing this web
             # service. Should be fine for low volumes.
             qr_url = ("http://api.qrserver.com/v1/create-qr-code/?%s" %
-                urllib.urlencode({'size':'%sx%s' % (500, 500), 
-                                  'data':claim_url}))
+                urllib.urlencode({'size': '%sx%s' % (500, 500),
+                                  'data': claim_url}))
 
             qr_img = ImageReader(StringIO(urllib2.urlopen(qr_url).read()))
 
@@ -195,12 +194,12 @@ def render_label(request, c, metrics, da, badge_img, debug):
     if qr_img:
         c.drawImage(qr_img, qr_left, qr_bottom, qr_width, qr_height)
 
-    c.drawImage(badge_img, 
+    c.drawImage(badge_img,
                 0.0 * inch, 0.0 * inch,
                 badge_image_width, badge_image_height)
 
 
-def fit_text(c, text, x, y, max_w, max_h, font_name='Helvetica', 
+def fit_text(c, text, x, y, max_w, max_h, font_name='Helvetica',
              padding_w=4.5, padding_h=4.5, font_decrement=0.0625):
     """Draw text, reducing font size until it fits with a given max width and
     height."""
