@@ -250,17 +250,23 @@ class AwardsListView(ListView):
     template_object_name = 'award'
     paginate_by = bsettings.BADGE_PAGE_SIZE
 
+    def get_badge(self):
+        if not hasattr(self, 'badge'):
+            self._badge = get_object_or_404(Badge, slug=self.kwargs.get('slug', None))
+        return self._badge
+
+    def get_queryset(self):
+        qs = Award.objects.order_by('-modified')
+        if self.kwargs.get('slug', None) is not None:
+            qs = qs.filter(badge=self.get_badge())
+        return qs
+
     def get_context_data(self, **kwargs):
         context = super(AwardsListView, self).get_context_data(**kwargs)
-        queryset = Award.objects
-        if kwargs.get('slug', None) is None:
-            badge = None
+        if self.kwargs.get('slug', None) is None:
+            context['badge'] = None
         else:
-            badge = get_object_or_404(Badge, slug=kwargs.get('slug', None))
-            queryset = queryset.filter(badge=badge)
-
-        self.queryset = queryset.order_by('-modified').all()
-        context['badge'] = badge
+            context['badge'] = self.get_badge()
         return context
 
 awards_list = AwardsListView.as_view()
