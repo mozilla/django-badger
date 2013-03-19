@@ -69,23 +69,29 @@ class BadgesListView(ListView):
     template_object_name = 'badge'
     paginate_by = bsettings.BADGE_PAGE_SIZE
 
+    def get_queryset(self):
+        qs = Badge.objects.order_by('-modified')
+        query_string = self.request.GET.get('q', None)
+        tag_name = self.kwargs.get('tag_name', None)
+        if query_string is not None:
+            sort_order = self.request.GET.get('sort', 'created')
+            qs = Badge.objects.search(query_string, sort_order)
+        if taggit and tag_name:
+            tag = get_object_or_404(Tag, name=tag_name)
+            qs = (Badge.objects.filter(tags__in=[tag]).distinct())
+        return qs
+
     def get_context_data(self, **kwargs):
         context = super(BadgesListView, self).get_context_data(**kwargs)
         context['award_list'] = None
-        context['tag_name'] = kwargs.get('tag_name', None)
+        context['tag_name'] = self.kwargs.get('tag_name', None)
         context['query_string'] = kwargs.get('q', None)
         if context['query_string'] is not None:
-            sort_order = kwargs.get('sort', 'created')
-            self.queryset = Badge.objects.search(context['query_string'], sort_order)
             # TODO: Is this the most efficient query?
-            context['award_list'] = (Award.objects.filter(badge__in=self.queryset))
-        elif taggit and context['tag_name']:
-            tag = get_object_or_404(Tag, name=context['tag_name'])
-            self.queryset = (Badge.objects.filter(tags__in=[tag]).distinct())
+            context['award_list'] = (Award.objects.filter(badge__in=self.get_queryset()))
+        if taggit and context['tag_name']:
             # TODO: Is this the most efficient query?
-            context['award_list'] = (Award.objects.filter(badge__in=self.queryset))
-        else:
-            self.queryset = Badge.objects.order_by('-modified').all()
+            context['award_list'] = (Award.objects.filter(badge__in=self.get_queryset()))
         return context
 
 badges_list = BadgesListView.as_view()
