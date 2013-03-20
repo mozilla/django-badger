@@ -408,6 +408,26 @@ class BadgerDeferredAwardTest(BadgerTestCase):
             # Assert that the claim group is gone, and now there's one less.
             eq_(num_groups - 1, len(badge1.claim_groups))
 
+    def test_deferred_award_unique_duplication(self):
+        """Only one deferred award for a unique badge can be created"""
+        deferred_email = 'winner@example.com'
+        user = self._get_user()
+        b = Badge.objects.create(slug='one-and-only', title='One and Only',
+                                 unique=True, creator=user)
+        a = Award.objects.create(badge=b, user=user)
+
+        b.award_to(email=deferred_email, awarder=user)
+
+        # There should be one deferred award for the email.
+        eq_(1, DeferredAward.objects.filter(email=deferred_email).count())
+
+        # Award again. Tt should raise an exception and there still should
+        # be one deferred award.
+        self.assertRaises(
+            BadgeAlreadyAwardedException,
+            lambda: b.award_to(email=deferred_email, awarder=user))
+        eq_(1, DeferredAward.objects.filter(email=deferred_email).count())
+
 
 class BadgerMultiplayerBadgeTest(BadgerTestCase):
 
