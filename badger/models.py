@@ -1030,10 +1030,14 @@ class DeferredAward(models.Model):
     def save(self, **kwargs):
         """Save the DeferredAward, sending a claim email if it's new"""
         is_new = not self.pk
-        
+        has_existing_deferreds = False
+        if self.email:
+            has_existing_deferreds = DeferredAward.objects.filter(
+                email=self.email).exists()
+
         super(DeferredAward, self).save(**kwargs)
 
-        if is_new and self.email:
+        if is_new and self.email and not has_existing_deferreds:
             try:
                 # If this is new and there's an email, send an invite to claim.
                 context = Context(dict(
