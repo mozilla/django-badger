@@ -537,6 +537,11 @@ class Badge(models.Model):
             if not qs:
                 # If there's no user for this email address, create a
                 # DeferredAward for future claiming.
+
+                if self.unique and DeferredAward.objects.filter(
+                    badge=self, email=email).exists():
+                    raise BadgeAlreadyAwardedException()
+
                 da = DeferredAward(badge=self, email=email)
                 da.save()
                 return da
