@@ -153,6 +153,64 @@ class BadgerViewsTest(BadgerTestCase):
             eq_(1, doc.find('.award .user:contains("%s")' % u.username)
                       .length)
 
+    def test_award_detail_includes_nomination(self):
+        """Nomination should be included in award detail"""
+        creator = self._get_user(username="creator", email="creator@example.com")
+        awardee = self._get_user(username="awardee", email="awardee@example.com")
+        nominator = self._get_user(username="nominator", email="nominator@example.com")
+
+        b1 = Badge.objects.create(creator=creator, title="Badge to awarded")
+
+        ok_(not b1.is_awarded_to(awardee))
+
+        nomination = b1.nominate_for(nominator=nominator, nominee=awardee)
+        nomination.approve_by(creator)
+        nomination.accept(awardee)
+
+        ok_(b1.is_awarded_to(awardee))
+
+        award = Award.objects.get(badge=b1, user=awardee)
+
+        r = self.client.get(award.get_absolute_url(), follow=True)
+        eq_(200, r.status_code)
+
+        doc = pq(r.content)
+
+        nomination_el = doc.find('.award .nominated_by .username')
+        eq_(nomination_el.length, 1)
+        eq_(nomination_el.text(), str(nominator))
+
+        approved_el = doc.find('.award .nomination_approved_by .username')
+        eq_(approved_el.length, 1)
+        eq_(approved_el.text(), str(creator))
+
+    def test_award_detail_includes_nomination_autoapproved(self):
+        """Auto-approved nomination should be indicated in award detail"""
+        creator = self._get_user(username="creator", email="creator@example.com")
+        awardee = self._get_user(username="awardee", email="awardee@example.com")
+        nominator = self._get_user(username="nominator", email="nominator@example.com")
+
+        b2 = Badge.objects.create(creator=creator, title="Badge to awarded 2")
+        b2.nominations_autoapproved = True
+        b2.save()
+
+        ok_(not b2.is_awarded_to(awardee))
+
+        nomination = b2.nominate_for(nominator=nominator, nominee=awardee)
+        nomination.accept(awardee)
+
+        ok_(b2.is_awarded_to(awardee))
+
+        award = Award.objects.get(badge=b2, user=awardee)
+
+        r = self.client.get(award.get_absolute_url(), follow=True)
+        eq_(200, r.status_code)
+
+        doc = pq(r.content)
+
+        approved_el = doc.find('.award .nomination_approved_by .autoapproved')
+        eq_(approved_el.length, 1)
+
     def test_issue_award(self):
         """Badge creator can issue award to another user"""
         SAMPLE_DESCRIPTION = u'This is a sample description'
