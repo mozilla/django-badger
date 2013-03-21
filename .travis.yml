@@ -15,7 +15,7 @@ before_install:
 install:
     - pip install -r badger/requirements/tests.txt --use-mirrors
 
-script: python manage.py test badger
+script: python manage.py test -v2 badger
 
 notifications:
     email:
