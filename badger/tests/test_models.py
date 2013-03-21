@@ -428,6 +428,26 @@ class BadgerDeferredAwardTest(BadgerTestCase):
             lambda: b.award_to(email=deferred_email, awarder=user))
         eq_(1, DeferredAward.objects.filter(email=deferred_email).count())
 
+    def test_only_first_deferred_sends_email(self):
+        """Only the first deferred award will trigger an email."""
+        deferred_email = 'winner@example.com'
+        user = self._get_user()
+        b1 = Badge.objects.create(slug='one-and-only', title='One and Only',
+                                  unique=True, creator=user)
+        b1.award_to(email=deferred_email, awarder=user)
+
+        # There should be one deferred award and one email in the outbox.
+        eq_(1, DeferredAward.objects.filter(email=deferred_email).count())
+        eq_(1, len(mail.outbox))
+
+        # Award a second badge and there should be two deferred awards and
+        # still only one email in the outbox.
+        b2 = Badge.objects.create(slug='another-one', title='Another One',
+                                  unique=True, creator=user)
+        b2.award_to(email=deferred_email, awarder=user)
+        eq_(2, DeferredAward.objects.filter(email=deferred_email).count())
+        eq_(1, len(mail.outbox))
+
 
 class BadgerMultiplayerBadgeTest(BadgerTestCase):
 
