@@ -858,6 +858,15 @@ class Award(models.Model):
 
         return True
 
+    @property
+    def nomination(self):
+        """Find the nomination behind this award, if any."""
+        # TODO: This should really be a foreign key relation, someday.
+        try:
+            return Nomination.objects.get(award=self)
+        except:
+            return None
+
 
 class ProgressManager(models.Manager):
     pass

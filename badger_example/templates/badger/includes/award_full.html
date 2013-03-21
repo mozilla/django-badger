@@ -7,10 +7,23 @@
     {% if award.description %}
         <dt>Explanation:</dt>
             <dd class="description">{{ award.description }}</dd>
-{% endif %}
-    <dt>Awarded by:</dt>
-        <dd><a href="{{ award.creator.get_absolute_url }}" 
-            class="username">{{ award.creator }}</a></dd>
+    {% endif %}
+    {% if award.nomination %}
+        <dt>Nominated by:</dt>
+            <dd class="nominated_by"><a href="{{ award.nomination.creator.get_absolute_url }}" 
+                class="username">{{ award.nomination.creator }}</a></dd>
+        <dt>Nomination approved by:</dt>
+        {% if award.badge.nominations_autoapproved %}
+            <dd class="nomination_approved_by"><span class="autoapproved">(auto-approved)</span></dd>
+        {% elif award.nomination.approver %}
+            <dd class="nomination_approved_by"><a href="{{ award.nomination.approver.get_absolute_url }}" 
+                class="username">{{ award.nomination.approver }}</a></dd>
+        {% endif %}
+    {% else %}
+        <dt>Awarded by:</dt>
+            <dd><a href="{{ award.creator.get_absolute_url }}" 
+                class="username">{{ award.creator }}</a></dd>
+    {% endif %}
     <dt>Issued on:</dt>
         <dd>{{ award.created }}</dd>
 </dl>
