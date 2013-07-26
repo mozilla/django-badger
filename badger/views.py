@@ -426,7 +426,7 @@ def awards_by_badge(request, slug):
 def staff_tools(request):
     """HACK: This page offers miscellaneous tools useful to event staff.
     Will go away in the future, addressed by:
-    https://github.com/lmorchard/django-badger/issues/35
+    https://github.com/mozilla/django-badger/issues/35
     """
     if not (request.user.is_staff or request.user.is_superuser):
         return HttpResponseForbidden()

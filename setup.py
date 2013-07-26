@@ -13,7 +13,7 @@ setup(
     long_description=open('README.rst').read(),
     author='Leslie Michael Orchard',
     author_email='me@lmorchard.com',
-    url='http://github.com/lmorchard/django-badger',
+    url='http://github.com/mozilla/django-badger',
     license='BSD',
     packages=['badger', 'badger.templatetags',  'badger.management', 'badger.management.commands', 'badger.migrations'],
     package_data={'badger': ['fixtures/*', 'templates/badger_playdoh/*.html', 'templates/badger_playdoh/includes/*.html', 'templates/badger_vanilla/*.html', 'templates/badger_vanilla/includes/*.html']},

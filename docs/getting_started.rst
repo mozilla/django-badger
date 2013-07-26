@@ -8,9 +8,9 @@ Installation
 
 .. TODO
 
-- TBD, see `badg.us <https://github.com/lmorchard/badg.us>`_ for an example
+- TBD, see `badg.us <https://github.com/mozilla/badg.us>`_ for an example
   site setup
-- ``pip install git://github.com/lmorchard/django-badger.git#egg=django-badger``
+- ``pip install git://github.com/mozilla/django-badger.git#egg=django-badger``
 
 Configuration
 -------------

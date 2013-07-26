@@ -1,3 +1,3 @@
 ## TODO
 
-See: https://github.com/lmorchard/django-badger/issues
+See: https://github.com/mozilla/django-badger/issues
