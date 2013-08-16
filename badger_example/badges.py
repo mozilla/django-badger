@@ -64,7 +64,7 @@ def on_guestbook_post(sender, **kwargs):
            .update_percent(total_word_count, 250))
 
 
-def on_badge_award(sender, signal, award):
+def on_badge_award(sender, signal, award, **kwargs):
     pass
 
 
