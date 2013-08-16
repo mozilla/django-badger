@@ -13,7 +13,7 @@ before_install:
     - sudo ln -s /usr/lib/`uname -i`-linux-gnu/libz.so /usr/lib
 
 install:
-    - pip install -r badger/requirements/tests.txt --use-mirrors
+    - pip install -r requirements/dev.txt --use-mirrors
 
 script: python manage.py test -v2 badger
 
