@@ -30,13 +30,6 @@ setup(
     ],
     install_requires=[
         'django>=1.4',
-        'PIL',
-    ],
-    tests_require=[
-        'nose',
-        'django-nose',
-        'pyquery',
-        'feedparser',
-    ],
-    test_suite='manage.nose_collector',
+        'pillow',
+    ]
 )

@@ -1,8 +1,11 @@
 *.sw*
 *.pyc
+build/
+dist/
+*.egg-info
 uploads
 test-env
 test-venv
-_build
+docs/_build
 _static
 _templates

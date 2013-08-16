@@ -51,13 +51,11 @@ class BadgerTestCase(test.TestCase):
 
     def _pre_setup(self):
         loading.cache.loaded = False
-        call_command('syncdb', interactive=False, verbosity=0)
-        call_command('migrate', interactive=False, verbosity=0)
         call_command('update_badges', verbosity=0)
         badger.autodiscover()
 
         if get_url_prefix:
-            # If we're in funfactoryland, make sure a locale prefix is 
+            # If we're in funfactoryland, make sure a locale prefix is
             # set for urlresolvers
             locale = 'en-US'
             self.old_prefix = get_url_prefix()

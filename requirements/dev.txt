@@ -1,0 +1,17 @@
+# install django-badger for editing
+-e .
+
+# install compiled requirements
+-r compiled.txt
+
+# for building docs
+Sphinx
+
+# for tests
+nose
+django_nose
+pyquery
+South
+feedparser
+cssselect
+lxml
