@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from setuptools import setup
+from setuptools import find_packages, setup
 try:
     import multiprocessing
 except ImportError:
@@ -15,21 +15,21 @@ setup(
     author_email='me@lmorchard.com',
     url='http://github.com/mozilla/django-badger',
     license='BSD',
-    packages=['badger', 'badger.templatetags',  'badger.management', 'badger.management.commands', 'badger.migrations'],
-    package_data={'badger': ['fixtures/*', 'templates/badger_playdoh/*.html', 'templates/badger_playdoh/includes/*.html', 'templates/badger_vanilla/*.html', 'templates/badger_vanilla/includes/*.html']},
+    packages=find_packages(),
     include_package_data=True,
     classifiers=[
         'Development Status :: 4 - Beta',
-        # I don't know what exactly this means, but why not?
         'Framework :: Django',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
     install_requires=[
-        'django>=1.2',
+        'django>=1.4',
         'PIL',
     ],
     tests_require=[

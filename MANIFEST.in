@@ -1,0 +1,14 @@
+include LICENSE
+include MANIFEST.in
+include manage.py
+include README.rst
+include runtests.py
+include setup.py
+include test_settings.py
+include TODO.md
+
+recursive-include docs *.py *.rst Makefile
+
+recursive-include badger *.txt *.py *.png *.html *.json *.txt
+
+recursive-include badger_example *.html *.json *.txt
