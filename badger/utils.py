@@ -6,10 +6,18 @@ from badger.models import Badge, Award, Progress
 
 
 def update_badges(badge_data, overwrite=False):
-    """Update badges from array of dicts, with option to overwrite existing"""
+    """Creates or updates list of badges
+
+    :arg badge_data: list of dicts. keys in the dict correspond to the
+        Badge model class. Also, you can pass in ``prerequisites``.
+    :arg overwrite: whether or not to overwrite the existing badge
+
+    :returns: list of Badge instances---one per dict passed in
+
+    """
     badges = []
     for data in badge_data:
-        badges.append(update_badge(data))
+        badges.append(update_badge(data, overwrite=overwrite))
     return badges
 
 
@@ -42,7 +50,13 @@ def update_badge(data_in, overwrite=False):
 
 
 def get_badge(slug_or_badge):
-    """Find a badge by slug or by instance"""
+    """Return badge specified by slug or by instance
+
+    :arg slug_or_badge: slug or Badge instance
+
+    :returns: Badge instance
+
+    """
     if isinstance(slug_or_badge, Badge):
         b = slug_or_badge
     else:
@@ -51,12 +65,32 @@ def get_badge(slug_or_badge):
 
 
 def award_badge(slug_or_badge, awardee, awarder=None):
-    """Award a badge to an awardee, with optional awarder"""
+    """Award a badge to an awardee, with optional awarder
+
+    :arg slug_or_badge: slug or Badge instance to award
+    :arg awardee: User this Badge is awarded to
+    :arg awarder: User who awarded this Badge
+
+    :returns: Award instance
+
+    :raise BadgeAwardNotAllowedexception: ?
+
+    :raise BadgeAlreadyAwardedException: if the badge is unique and
+        has already been awarded to this user
+
+    """
     b = get_badge(slug_or_badge)
-    return b.award_to(awardee, awarder)
+    return b.award_to(awardee=awardee, awarder=awarder)
 
 
 def get_progress(slug_or_badge, user):
-    """Get a progress record for a badge and awardee"""
+    """Get a progress record for a badge and awardee
+
+    :arg slug_or_badge: slug or Badge instance
+    :arg user: User to check progress for
+
+    :returns: Progress instance
+
+    """
     b = get_badge(slug_or_badge)
     return b.progress_for(user)

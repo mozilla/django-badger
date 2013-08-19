@@ -81,6 +81,7 @@ from .signals import (badge_will_be_awarded, badge_was_awarded,
                       nomination_will_be_rejected, nomination_was_rejected,
                       user_will_be_nominated, user_was_nominated)
 
+
 OBI_VERSION = "0.5.0"
 
 IMG_MAX_SIZE = getattr(settings, "BADGER_IMG_MAX_SIZE", (256, 256))
@@ -113,6 +114,20 @@ MK_UPLOAD_TMPL = '%(base)s/%(h1)s/%(h2)s/%(hash)s_%(field_fn)s_%(now)s_%(rand)04
 DEFAULT_HTTP_PROTOCOL = getattr(settings, "DEFAULT_HTTP_PROTOCOL", "http")
 
 CLAIM_CODE_LENGTH = getattr(settings, "CLAIM_CODE_LENGTH", 6)
+
+
+def document_django_model(cls):
+    fields = cls._meta.fields
+    doc = cls.__doc__
+
+    if not doc.endswith('\n\n'):
+        doc = doc + '\n\n'
+
+    for f in fields:
+        doc = doc + '    :arg {0}:\n'.format(f.name)
+
+    cls.__doc__ = doc
+    return cls
 
 
 def scale_image(img_upload, img_max_size):
@@ -372,6 +387,7 @@ class BadgeManager(models.Manager, SearchManagerMixin):
         return tags_with_counts
 
 
+@document_django_model
 class Badge(models.Model):
     """Representation of a badge"""
     objects = BadgeManager()
@@ -485,7 +501,7 @@ class Badge(models.Model):
             return True
         if user == self.creator:
             return True
-        
+
         # TODO: List of delegates for whom awarding is allowed
 
         return False
@@ -659,11 +675,11 @@ class Badge(models.Model):
 
 
 class AwardManager(models.Manager):
-
     def get_query_set(self):
         return super(AwardManager, self).get_query_set().exclude(hidden=True)
 
 
+@document_django_model
 class Award(models.Model):
     """Representation of a badge awarded to a user"""
 
@@ -981,6 +997,7 @@ class DeferredAwardGrantNotAllowedException(BadgerException):
     """Attempt to grant a DeferredAward not allowed"""
 
 
+@document_django_model
 class DeferredAward(models.Model):
     """Deferred award, can be converted into into a real award."""
     objects = DeferredAwardManager()
@@ -1116,6 +1133,7 @@ class NominationManager(models.Manager):
     pass
 
 
+@document_django_model
 class Nomination(models.Model):
     """Representation of a user nominated by another user for a badge"""
     objects = NominationManager()

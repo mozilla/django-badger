@@ -63,7 +63,27 @@ class RecentBadgeAwardsList(object):
 
 
 class RecentBadgeAwardsMiddleware(object):
-    """Middleware that checks for recent badge awards for the current user"""
+    """Middleware that adds ``recent_badge_awards`` to request
+
+    This property is lazy-loading, so if you don't use it, then it
+    shouldn't have much effect on runtime.
+
+    To use, add this to your ``MIDDLEWARE_CLASSES`` in ``settings.py``::
+
+        MIDDLEWARE_CLASSES = (
+            ...
+            'badger.middleware.RecentBadgeAwardsMiddleware',
+            ...
+        )
+
+
+    Then in your view code::
+
+        def awesome_view(request):
+            for award in request.recent_badge_awards:
+                do_something_awesome(award)
+
+    """
 
     def process_request(self, request):
         request.recent_badge_awards = RecentBadgeAwardsList(request)

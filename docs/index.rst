@@ -30,6 +30,8 @@ Contents:
    usage
    contributing
    faqs
+   api
+
 
 Indices and tables
 ==================
