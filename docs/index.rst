@@ -28,10 +28,10 @@ Contents:
    overview
    getting_started
    usage
-   contributing
-   faqs
    views
    api
+   faqs
+   contributing
 
 
 Indices and tables
