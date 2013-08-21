@@ -244,6 +244,7 @@ def award_badge(request, slug):
 
 @require_GET
 def awards_list(request, slug=None):
+    """Lists awards"""
     queryset = Award.objects
     if not slug:
         badge = None
@@ -384,6 +385,7 @@ def claim_deferred_award(request, claim_code=None):
 @require_http_methods(['GET', 'POST'])
 @login_required
 def claims_list(request, slug, claim_group, format="html"):
+    """Lists claims"""
     badge = get_object_or_404(Badge, slug=slug)
     if not badge.allows_manage_deferred_awards_by(request.user):
         return HttpResponseForbidden()

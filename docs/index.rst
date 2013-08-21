@@ -13,9 +13,9 @@ community.
 
 - `Build status on travis-ci <http://travis-ci.org/mozilla/django-badger>`_ (|build-status|)
 - `Latest documentation on Read The Docs <https://django-badger.readthedocs.org/en/latest/>`_
-  (`source <https://github.com/mozilla/django-badger/tree/master/docs>`_)
+  (`source for docs <https://github.com/mozilla/django-badger/tree/master/docs>`_)
 - `Task board on Huboard <http://huboard.com/mozilla/django-badger/board>`_
-  (`source <https://github.com/mozilla/django-badger/issues>`_)
+  (`source for issues <https://github.com/mozilla/django-badger/issues>`_)
 
 .. |build-status| image:: https://secure.travis-ci.org/mozilla/django-badger.png?branch=master
            :target: http://travis-ci.org/mozilla/django-badger
@@ -30,6 +30,7 @@ Contents:
    usage
    contributing
    faqs
+   views
    api
 
 

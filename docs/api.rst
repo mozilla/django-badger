@@ -1,3 +1,5 @@
+.. _chapter-api:
+
 API
 ===
 
@@ -14,7 +16,7 @@ Models
              delete_claim_group, claim_groups, award_to,
              check_prerequisites, is_awarded_to, progress_for,
              allows_nominate_for, nominate_for, is_nominated_for,
-             as_obi_serialization,
+             as_obi_serialization
 
 .. autoclass:: badger.models.DeferredAward
    :members: get_claim_url, claim, grant_to
