@@ -20,7 +20,7 @@ Setup
 6. Set up string extraction so that django-badger strings are
    translated.
 
-See  `badg.us <https://github.com/mozilla/badg.us>`_ for an example
+See `badg.us <https://github.com/lmorchard/badg.us>`_ for an example
 site setup.
 
 
@@ -47,7 +47,7 @@ MAX_RECENT
     sections. Default is 15.
 
 
-See  `badg.us <https://github.com/lmorchard/badg.us>`_ for an example
+See `badg.us <https://github.com/lmorchard/badg.us>`_ for an example
 site setup
 
 See ``badger_example/badges.py`` in the source code for another
