@@ -77,6 +77,10 @@ class BadgeAdmin(admin.ModelAdmin):
             "widget": forms.widgets.SelectMultiple(attrs={"size": 25})
         }
     }
+    # This prevents Badge from loading all the users on the site
+    # which could be a very large number, take forever and result
+    # in a huge page.
+    raw_id_fields = ("creator",)
 
 
 def badge_link(self):
