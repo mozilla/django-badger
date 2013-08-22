@@ -25,6 +25,13 @@ To run the tests, do this::
     $ python manager.py test
 
 
+You can also run the tests with `tox <http://tox.readthedocs.org/en/latest/>`_
+which will run the tests in Python 2.6 and 2.7 for Django 1.4 and 1.5. to do
+that, do this::
+
+    $ tox
+
+
 Contact us
 ----------
 

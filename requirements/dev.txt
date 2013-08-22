@@ -9,6 +9,7 @@ Sphinx
 
 # for tests
 nose
+tox
 django_nose
 South
 feedparser
