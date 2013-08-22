@@ -812,8 +812,8 @@ class Award(models.Model):
             "salt": hash_salt,
             "evidence": urljoin(base_url, self.get_absolute_url()),
             # TODO: implement award expiration
-            # "expires": self.expires.strftime('%s'),
-            "issued_on": self.created.strftime('%s'),
+            # "expires": self.expires.isoformat(),
+            "issued_on": self.created.isoformat(),
             "badge": badge_data
         }
         return assertion
