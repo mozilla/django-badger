@@ -10,8 +10,8 @@ Sphinx
 # for tests
 nose
 django_nose
-pyquery
 South
 feedparser
-cssselect
-lxml
+pyquery==1.2.4
+cssselect==0.7.1
+lxml==3.1beta1
