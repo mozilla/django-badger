@@ -35,16 +35,39 @@ BADGER_TEMPLATE_BASE
     For example, if the value is "foo", then the django-badger home
     view renders the template "foo/home.html".
 
-ALLOW_ADD_BY_ANYONE
+BADGER_SITE_ISSUER
+    Dict. Specifies the issuer of the badges. Example::
+
+        'BADGER_SITE_ISSUER': {
+            'origin': SITE_URL,
+            'name': 'Name of my site',
+            'org': 'Name of my org',
+            'contact': 'contact@example.com',
+        }
+
+    Defaults to::
+
+        'BADGER_SITE_ISSUER': {
+            'origin': 'http://mozilla.org',
+            'name': 'Badger',
+            'org': 'Mozilla',
+            'contact': 'lorchard@mozilla.com'
+        }
+
+BADGER_ALLOW_ADD_BY_ANYONE
     Boolean. Master switch for wide-open badge creation by all
     users. This is also known as "multiplayer mode".
 
-BADGE_PAGE_SIZE
+BADGER_BADGE_PAGE_SIZE
     Integer. Page size for badge listings. Default is 50.
 
-MAX_RECENT
+BADGER_MAX_RECENT
     Integer. Number of items shown on home page recent
     sections. Default is 15.
+
+BADGER_IMG_MAX_SIZE
+    Tuple of (Integer, Integer). Specifies the maximum height and
+    width for badge images. Defaults to (256, 256).
 
 
 See `badg.us <https://github.com/lmorchard/badg.us>`_ for an example
