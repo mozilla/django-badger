@@ -3,7 +3,7 @@ This is a simplified URLs list that omits any of the multiplayer features,
 assuming that all badges will be managed from the admin interface, and most
 badges will be awarded in badges.py
 """
-from django.conf.urls.defaults import *
+from django.conf.urls import patterns, include, url
 
 from django.conf import settings
 from django.views.generic.list_detail import object_list
