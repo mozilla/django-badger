@@ -116,7 +116,8 @@ DEFAULT_HTTP_PROTOCOL = getattr(settings, "DEFAULT_HTTP_PROTOCOL", "http")
 CLAIM_CODE_LENGTH = getattr(settings, "CLAIM_CODE_LENGTH", 6)
 
 
-def document_django_model(cls):
+def _document_django_model(cls):
+    """Adds meta fields to the docstring for better autodoccing"""
     fields = cls._meta.fields
     doc = cls.__doc__
 
@@ -387,7 +388,7 @@ class BadgeManager(models.Manager, SearchManagerMixin):
         return tags_with_counts
 
 
-@document_django_model
+@_document_django_model
 class Badge(models.Model):
     """Representation of a badge"""
     objects = BadgeManager()
@@ -679,7 +680,7 @@ class AwardManager(models.Manager):
         return super(AwardManager, self).get_query_set().exclude(hidden=True)
 
 
-@document_django_model
+@_document_django_model
 class Award(models.Model):
     """Representation of a badge awarded to a user"""
 
@@ -997,7 +998,7 @@ class DeferredAwardGrantNotAllowedException(BadgerException):
     """Attempt to grant a DeferredAward not allowed"""
 
 
-@document_django_model
+@_document_django_model
 class DeferredAward(models.Model):
     """Deferred award, can be converted into into a real award."""
     objects = DeferredAwardManager()
@@ -1133,7 +1134,7 @@ class NominationManager(models.Manager):
     pass
 
 
-@document_django_model
+@_document_django_model
 class Nomination(models.Model):
     """Representation of a user nominated by another user for a badge"""
     objects = NominationManager()
