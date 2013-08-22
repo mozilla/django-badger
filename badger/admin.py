@@ -97,10 +97,11 @@ class AwardAdmin(admin.ModelAdmin):
     fields = ('badge', 'description', 'claim_code', 'user', 'creator', )
     search_fields = ("badge__title", "badge__slug", "badge__description",
                      "description")
+    raw_id_fields = ('user', 'creator',)
 
 
 class ProgressAdmin(admin.ModelAdmin):
-    pass
+    raw_id_fields = ('user',)
 
 
 def claim_code_link(self):
@@ -119,6 +120,7 @@ class DeferredAwardAdmin(admin.ModelAdmin):
               'description',)
     readonly_fields = ('created', 'modified')
     search_fields = ("badge__title", "badge__slug", "badge__description",)
+    raw_id_fields = ('creator',)
 
 
 def award_link(self):
@@ -134,6 +136,7 @@ class NominationAdmin(admin.ModelAdmin):
                     'approver', 'creator', 'created', 'modified',)
     list_filter = ('accepted',)
     search_fields = ('badge__title', 'badge__slug', 'badge__description',)
+    raw_id_fields = ('nominee', 'creator', 'approver', 'rejected_by',)
 
 
 for x in ((Badge, BadgeAdmin),
