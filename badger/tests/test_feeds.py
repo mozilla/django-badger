@@ -17,7 +17,7 @@ from django.contrib.auth.models import User
 
 try:
     from commons.urlresolvers import reverse
-except ImportError, e:
+except ImportError:
     from django.core.urlresolvers import reverse
 
 from . import BadgerTestCase
