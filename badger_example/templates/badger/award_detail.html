@@ -1,12 +1,12 @@
 {% extends "badger/base.html" %}
-
+{% load url from future %}
 
 {% block pageid %}award_detail{% endblock %}
 
 {% block extrahead %}
     <link rel="alternate" type="application/json"
         title="{{award}} (JSON)')"
-        href="{% url badger.award_detail_json badge.slug award.pk %}" />
+        href="{% url 'badger.award_detail_json' badge.slug award.pk %}" />
 {% endblock %}
 
 {% block content %}

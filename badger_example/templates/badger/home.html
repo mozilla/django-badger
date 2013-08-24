@@ -1,14 +1,15 @@
 {% extends "badger/base.html" %}
+{% load url from future %}
 
 {% block pageid %}home{% endblock %}
 
 {% block extrahead %}
     <link rel="alternate" type="application/atom+xml"
         title="{% trans 'Recently awarded badges' %}"
-        href="{% url badger.feeds.awards_recent 'atom' %}" />
+        href="{% url 'badger.feeds.awards_recent' 'atom' %}" />
     <link rel="alternate" type="application/atom+xml"
         title="{% trans'Recently created badges' %}"
-        href="{% url badger_multiplayer.feeds.badges_recent 'atom' %}" />
+        href="{% url 'badger_multiplayer.feeds.badges_recent' 'atom' %}" />
 {% endblock %}
 
 {% block content %}
@@ -17,7 +18,7 @@
 <section id="things_to_do">
     <h1>Things to Do</h1>
     <nav><ul>
-        <li><a class="action" href="{% url badger_multiplayer.views.create %}">Create a badge</a></li>
+        <li><a class="action" href="{% url 'badger_multiplayer.views.create' %}">Create a badge</a></li>
     </ul></nav>
 </section>
 {% endif %}
@@ -26,8 +27,8 @@
     <h1>Recent badges</h1>
     <nav><ul>
         <li>
-            <a href="{% url badger.views.badges_list %}">More...</a>
-            <a href="{% url badger_multiplayer.feeds.badges_recent 'atom' %}"><img src="{{MEDIA_URL}}/img/feed-icon-14x14.png" /></a>
+            <a href="{% url 'badger.views.badges_list' %}">More...</a>
+            <a href="{% url 'badger_multiplayer.feeds.badges_recent' 'atom' %}"><img src="{{MEDIA_URL}}/img/feed-icon-14x14.png" /></a>
         </li>
     </ul></nav>
     {% include "badger/includes/badges_list.html" %}
@@ -37,8 +38,8 @@
     <h1>Recent awards</h1>
     <nav><ul>
         <li>
-            <a href="{% url badger.views.awards_list %}">More...</a>
-            <a href="{% url badger.feeds.awards_recent 'atom' %}"><img src="{{MEDIA_URL}}/img/feed-icon-14x14.png" /></a>
+            <a href="{% url 'badger.views.awards_list' %}">More...</a>
+            <a href="{% url 'badger.feeds.awards_recent' 'atom' %}"><img src="{{MEDIA_URL}}/img/feed-icon-14x14.png" /></a>
         </li>
     </ul></nav>
     {% include "badger/includes/awards_list.html" %}

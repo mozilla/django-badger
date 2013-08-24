@@ -1074,6 +1074,9 @@ class DeferredAward(models.Model):
                 ))
                 tmpl_name = 'badger/deferred_award_%s.txt'
                 subject = render_to_string(tmpl_name % 'subject', {}, context)
+                # Email subjects can't contain newlines, so we strip it. It makes
+                # the template less fragile.
+                subject = subject.strip()
                 body = render_to_string(tmpl_name % 'body', {}, context)
                 send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                           [self.email], fail_silently=False)

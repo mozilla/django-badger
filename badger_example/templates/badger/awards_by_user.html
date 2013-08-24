@@ -1,11 +1,12 @@
 {% extends "badger/base.html" %}
+{% load url from future %}
 
 {% block pageid %}badge_awards_by_user{% endblock %}
 
 {% block extrahead %}
     <link rel="alternate" type="application/atom+xml"
         title="{{ _('Recent awards') }}"
-        href="{% url badger.feeds.awards_by_user 'atom' user.username %}" />
+        href="{% url 'badger.feeds.awards_by_user' 'atom' user.username %}" />
 {% endblock %}
 
 {% block content %}

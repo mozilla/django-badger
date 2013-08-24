@@ -1,12 +1,13 @@
+{% load url from future %}
 {% load badger_tags %}
 
 {% if not award %}
 <ul class="btn-list">
     {% if badge|permissions_for:request.user|key:'edit_by' %}
-        <li><a class="btn btn-large btn-primary edit_badge" href="{% url badger.views.edit badge.slug  %}">{{ _('Edit badge') }}</a></li>
+        <li><a class="btn btn-large btn-primary edit_badge" href="{% url 'badger.views.edit' badge.slug %}">{{ _('Edit badge') }}</a></li>
     {% endif %}
     {% if badge|permissions_for:request.user|key:'delete_by' %}
-        <li><a class="btn btn-large btn-danger delete_badge" href="{% url badger.views.delete badge.slug %}">{{ _('Delete badge') }}</a></li>
+        <li><a class="btn btn-large btn-danger delete_badge" href="{% url 'badger.views.delete' badge.slug %}">{{ _('Delete badge') }}</a></li>
     {% endif %}
 </ul>
 {% endif %}
