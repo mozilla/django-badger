@@ -22,7 +22,7 @@ try:
     from funfactory.urlresolvers import (get_url_prefix, Prefixer, reverse,
                                          set_url_prefix)
     from tower import activate
-except ImportError, e:
+except ImportError:
     from django.core.urlresolvers import reverse
     get_url_prefix = None
 
