@@ -209,7 +209,8 @@ def delete(request, slug):
     awards_count = badge.award_set.count()
 
     if request.method == "POST":
-        messages.info(request, _('Badge "%s" deleted.') % badge.title)
+        messages.info(request, _('Badge "{badgetitle}" deleted.').format(
+            badgetitle=badge.title))
         badge.delete()
         return HttpResponseRedirect(reverse('badger.views.badges_list'))
 
@@ -238,10 +239,11 @@ def award_badge(request, slug):
                                         description=description)
                 if result:
                     if not hasattr(result, 'claim_code'):
-                        messages.info(request, _('Award issued to %s') % email)
+                        messages.info(request, _('Award issued to {email}').format(
+                            email=email))
                     else:
                         messages.info(request, _('Invitation to claim award '
-                                                 'sent to %s') % email)
+                                                 'sent to {email}').format(email=email))
             return HttpResponseRedirect(reverse('badger.views.detail',
                                                 args=(badge.slug,)))
 
@@ -307,8 +309,8 @@ def award_delete(request, slug, id):
         return HttpResponseForbidden('Award delete forbidden')
 
     if request.method == "POST":
-        messages.info(request, _('Award for badge "%s" deleted.') %
-                               badge.title)
+        messages.info(request, _('Award for badge "{badgetitle}" deleted.').format(
+            badgetitle=badge.title))
         award.delete()
         url = reverse('badger.views.detail', kwargs=dict(slug=slug))
         return HttpResponseRedirect(url)
@@ -387,7 +389,8 @@ def claim_deferred_award(request, claim_code=None):
             if grant_form.is_valid():
                 email = request.POST.get('email', None)
                 deferred_award.grant_to(email=email, granter=request.user)
-                messages.info(request, _('Award claim granted to %s') % email)
+                messages.info(request, _('Award claim granted to {email}').format(
+                    email=email))
                 url = reverse('badger.views.detail',
                               args=(deferred_award.badge.slug,))
                 return HttpResponseRedirect(url)
@@ -460,8 +463,8 @@ def staff_tools(request):
                 for claim_code in codes:
                     da = DeferredAward.objects.get(claim_code=claim_code)
                     da.grant_to(email, request.user)
-                    messages.info(request, _('Badge "%s" granted to %s' %
-                                             (da.badge, email)))
+                    messages.info(request, _('Badge "{badgetitle}" granted to {email}').format(
+                        badgetitle=da.badge, email=email))
                 url = reverse('badger.views.staff_tools')
                 return HttpResponseRedirect(url)
 
@@ -531,13 +534,13 @@ def nominate_for(request, slug):
                     try:
                         award = badge.nominate_for(nominee, request.user)
                         messages.info(request,
-                            _('Nomination submitted for %s') % email)
+                            _('Nomination submitted for {email}').format(email=email))
                     except BadgeAlreadyAwardedException, e:
                         messages.info(request,
-                            _('Badge already awarded to %s') % email)
+                            _('Badge already awarded to {email}').format(email=email))
                     except Exception, e:
                         messages.info(request,
-                            _('Nomination failed for %s') % email)
+                            _('Nomination failed for {email}').format(email=email))
 
             return HttpResponseRedirect(reverse('badger.views.detail',
                                                 args=(badge.slug,)))

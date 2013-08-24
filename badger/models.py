@@ -266,21 +266,25 @@ class SearchManagerMixin(object):
     def _normalize_query(self, query_string,
                         findterms=re.compile(r'"([^"]+)"|(\S+)').findall,
                         normspace=re.compile(r'\s{2,}').sub):
-        ''' Splits the query string in invidual keywords, getting rid of unecessary spaces
-            and grouping quoted words together.
-            Example:
+        """
+        Splits the query string in invidual keywords, getting rid of unecessary spaces
+        and grouping quoted words together.
+        Example::
 
-            >>> normalize_query('  some random  words "with   quotes  " and   spaces')
+            foo._normalize_query('  some random  words "with   quotes  " and   spaces')
             ['some', 'random', 'words', 'with quotes', 'and', 'spaces']
 
-        '''
+        """
         return [normspace(' ', (t[0] or t[1]).strip()) for t in findterms(query_string)]
 
     # See: http://www.julienphalip.com/blog/2008/08/16/adding-search-django-site-snap/
     def _get_query(self, query_string, search_fields):
-        ''' Returns a query, that is a combination of Q objects. That combination
-            aims to search keywords within a model by testing the given search fields.
-        '''
+        """
+        Returns a query, that is a combination of Q objects. That
+        combination aims to search keywords within a model by testing
+        the given search fields.
+
+        """
         query = None  # Query to search for every search term
         terms = self._normalize_query(query_string)
         for term in terms:
@@ -299,7 +303,8 @@ class SearchManagerMixin(object):
 
     def search(self, query_string, sort='title'):
         """Quick and dirty keyword search on submissions"""
-        # TODO: Someday, replace this with something like Sphinx or another real search engine
+        # TODO: Someday, replace this with something like Sphinx or another real
+        # search engine
         strip_qs = query_string.strip()
         if not strip_qs:
             return self.all_sorted(sort).order_by('-modified')
@@ -393,30 +398,30 @@ class Badge(models.Model):
     objects = BadgeManager()
 
     title = models.CharField(max_length=255, blank=False, unique=True,
-            help_text="Short, descriptive title")
+        help_text=_('Short, descriptive title'))
     slug = models.SlugField(blank=False, unique=True,
-            help_text="Very short name, for use in URLs and links")
+        help_text=_('Very short name, for use in URLs and links'))
     description = models.TextField(blank=True,
-            help_text="Longer description of the badge and its criteria")
+        help_text=_('Longer description of the badge and its criteria'))
     image = models.ImageField(blank=True, null=True,
             storage=BADGE_UPLOADS_FS, upload_to=mk_upload_to('image', 'png'),
-            help_text="Upload an image to represent the badge")
+            help_text=_('Upload an image to represent the badge'))
     prerequisites = models.ManyToManyField('self', symmetrical=False,
             blank=True, null=True,
-            help_text="When all of the selected badges have been awarded, this "
-                      "badge will be automatically awarded.")
+            help_text=_('When all of the selected badges have been awarded, this '
+                        'badge will be automatically awarded.'))
     # TODO: Rename? Eventually we'll want a globally-unique badge. That is, one
     # unique award for one person for the whole site.
     unique = models.BooleanField(default=True,
-            help_text="Should awards of this badge be limited to "
-                      "one-per-person?")
+            help_text=_('Should awards of this badge be limited to '
+                       'one-per-person?'))
 
     nominations_accepted = models.BooleanField(default=True, blank=True,
-            help_text="Should this badge accept nominations from "
-                      "other users?")
+            help_text=_('Should this badge accept nominations from '
+                        'other users?'))
 
     nominations_autoapproved = models.BooleanField(default=False, blank=True,
-            help_text="Should all nominations be automatically approved?")
+            help_text=_('Should all nominations be automatically approved?'))
 
     if taggit:
         tags = TaggableManager(blank=True)
@@ -429,8 +434,8 @@ class Badge(models.Model):
         unique_together = ('title', 'slug')
         ordering = ['-modified', '-created']
         permissions = (
-            ("manage_deferredawards",
-             "Can manage deferred awards for this badge"),
+            ('manage_deferredawards',
+             _('Can manage deferred awards for this badge')),
         )
 
     get_permissions_for = get_permissions_for
@@ -687,14 +692,14 @@ class Award(models.Model):
     objects = AwardManager()
 
     description = models.TextField(blank=True,
-            help_text="Explanation and evidence for the badge award")
+            help_text=_('Explanation and evidence for the badge award'))
     badge = models.ForeignKey(Badge)
     image = models.ImageField(blank=True, null=True,
                               storage=BADGE_UPLOADS_FS,
                               upload_to=mk_upload_to('image', 'png'))
     claim_code = models.CharField(max_length=32, blank=True,
             default='', unique=False, db_index=True,
-            help_text="Code used to claim this award")
+            help_text=_('Code used to claim this award'))
     user = models.ForeignKey(User, related_name="award_user")
     creator = models.ForeignKey(User, related_name="award_creator",
                                 blank=True, null=True)
@@ -1018,7 +1023,7 @@ class DeferredAward(models.Model):
         ordering = ['-modified', '-created']
         permissions = (
             ("grant_deferredaward",
-             "Can grant deferred award to an email address"),
+             _('Can grant deferred award to an email address')),
         )
 
     get_permissions_for = get_permissions_for
@@ -1260,7 +1265,9 @@ class Nomination(models.Model):
 
     def accept(self, user):
         """Accept this nomination for the nominee.
-        Also awards, if already approved."""
+
+        Also awards, if already approved.
+        """
         if not self.allows_accept(user):
             raise NominationAcceptNotAllowedException()
         self.accepted = True

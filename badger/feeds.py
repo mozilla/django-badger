@@ -153,7 +153,8 @@ class AwardsFeed(BaseFeed):
     atom_feed_generator = AwardActivityStreamAtomFeedGenerator
 
     def item_title(self, obj):
-        return _('%s awarded to %s') % (obj.badge.title, obj.user)
+        return _('{badgetitle} awarded to {username}').format(
+            badgetitle=obj.badge.title, username=obj.user.username)
 
     def item_author_link(self, obj):
         if not obj.creator:
@@ -184,7 +185,8 @@ class AwardsByUserFeed(AwardsFeed):
     def get_object(self, request, format, username):
         super(AwardsByUserFeed, self).get_object(request, format)
         user = get_object_or_404(User, username=username)
-        self.title = _("Badges recently awarded to %s") % user.username
+        self.title = _('Badges recently awarded to {username}').format(
+            username=user.username)
         self.link = request.build_absolute_uri(
             reverse('badger.views.awards_by_user', args=(user.username,)))
         return user
@@ -202,7 +204,8 @@ class AwardsByBadgeFeed(AwardsFeed):
     def get_object(self, request, format, slug):
         super(AwardsByBadgeFeed, self).get_object(request, format)
         badge = get_object_or_404(Badge, slug=slug)
-        self.title = _('Recent awards of "%s"') % badge.title
+        self.title = _('Recent awards of "{badgetitle}"').format(
+            badgetitle=badge.title)
         self.link = request.build_absolute_uri(
             reverse('badger.views.awards_by_badge', args=(badge.slug,)))
         return badge
@@ -246,7 +249,8 @@ class BadgesByUserFeed(BadgesFeed):
     def get_object(self, request, format, username):
         super(BadgesByUserFeed, self).get_object(request, format)
         user = get_object_or_404(User, username=username)
-        self.title = _("Badges recently created by %s") % user.username
+        self.title = _('Badges recently created by {username}').format(
+            username=user.username)
         self.link = request.build_absolute_uri(
             reverse('badger.views.badges_by_user', args=(user.username,)))
         return user

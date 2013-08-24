@@ -25,7 +25,8 @@ MAX_RECENT = 15
 
 class BadgerSettings(object):
     """Dirty settings interface that allows defaults from here to be overidden
-    by app settings"""
+    by app settings
+    """
     def __getattr__(self, name):
         override_name = 'BADGER_%s' % name
         if hasattr(django_settings, override_name):

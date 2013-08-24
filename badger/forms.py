@@ -32,10 +32,12 @@ class MyModelForm(forms.ModelForm):
     error_css_class = "error"
 
     def as_ul(self):
-        "Returns this form rendered as HTML <li>s -- excluding the <ul></ul>."
+        """Returns this form rendered as HTML <li>s -- excluding the <ul></ul>.
+        """
+        # TODO: l10n: This doesn't work for rtl languages
         return self._html_output(
-            normal_row=(u'<li%(html_class_attr)s>%(label)s %(field)s' +
-                '%(help_text)s%(errors)s</li>'),
+            normal_row=(u'<li%(html_class_attr)s>%(label)s %(field)s'
+                        '%(help_text)s%(errors)s</li>'),
             error_row=u'<li>%s</li>',
             row_ender='</li>',
             help_text_html=u' <p class="help">%s</p>',
@@ -48,10 +50,12 @@ class MyForm(forms.Form):
     error_css_class = "error"
 
     def as_ul(self):
-        "Returns this form rendered as HTML <li>s -- excluding the <ul></ul>."
+        """Returns this form rendered as HTML <li>s -- excluding the <ul></ul>.
+        """
+        # TODO: l10n: This doesn't work for rtl languages
         return self._html_output(
-            normal_row=(u'<li%(html_class_attr)s>%(label)s %(field)s' +
-                '%(help_text)s%(errors)s</li>'),
+            normal_row=(u'<li%(html_class_attr)s>%(label)s %(field)s'
+                        '%(help_text)s%(errors)s</li>'),
             error_row=u'<li>%s</li>',
             row_ender='</li>',
             help_text_html=u' <p class="help">%s</p>',
@@ -74,7 +78,7 @@ class MultipleItemsField(forms.Field):
         super(MultipleItemsField, self).__init__(**kwargs)
 
     def to_python(self, value):
-        "Normalize data to a list of strings."
+        """Normalize data to a list of strings."""
         if not value:
             return []
         items = self.separator_re.split(value)
@@ -84,14 +88,14 @@ class MultipleItemsField(forms.Field):
         return True
 
     def validate(self, value):
-        "Check if value consists only of valid items."
+        """Check if value consists only of valid items."""
         super(MultipleItemsField, self).validate(value)
 
         # Enforce max number of items
         if len(value) > self.max_items:
             raise ValidationError(
-                _('%s items entered, only %s allowed') %
-                (len(value), self.max_items))
+                _('{num} items entered, only {maxnum} allowed').format(
+                    num=len(value), maxnum=self.max_items))
 
         # Validate each of the items
         invalid_items = []
@@ -102,8 +106,10 @@ class MultipleItemsField(forms.Field):
                 invalid_items.append(item)
 
         if len(invalid_items) > 0:
-            raise ValidationError(_('These items were invalid: %s') %
-                                  (u', '.join(invalid_items),))
+            # TODO: l10n: Not all languages separate with commas
+            raise ValidationError(
+                _('These items were invalid: {itemlist}').format(
+                    itemlist=u', '.join(invalid_items)))
 
 
 class MultiEmailField(MultipleItemsField):
@@ -116,12 +122,12 @@ class BadgeAwardForm(MyForm):
     """Form to create either a real or deferred badge award"""
     # TODO: Needs a captcha?
     emails = MultiEmailField(max_items=10,
-            help_text="Enter up to 10 email addresses for badge award "
-                      "recipients")
+            help_text=_('Enter up to 10 email addresses for badge award '
+                        'recipients'))
     description = CharField(
             label='Explanation',
             widget=Textarea, required=False,
-            help_text="Explain why this badge should be awarded")
+            help_text=_('Explain why this badge should be awarded'))
 
 
 class DeferredAwardGrantForm(MyForm):
@@ -138,14 +144,15 @@ class MultipleClaimCodesField(MultipleItemsField):
             DeferredAward.objects.get(claim_code=item)
             return True
         except DeferredAward.DoesNotExist:
-            raise ValidationError(_("No such claim code, %s" % item))
+            raise ValidationError(_('No such claim code, {claimcode}').format(
+                claimcode=item))
 
 
 class DeferredAwardMultipleGrantForm(MyForm):
     email = forms.EmailField(
-            help_text="Email address to which claims should be granted")
+            help_text=_('Email address to which claims should be granted'))
     claim_codes = MultipleClaimCodesField(
-            help_text="Comma- or space-separated list of badge claim codes")
+            help_text=_('Comma- or space-separated list of badge claim codes'))
 
 
 class BadgeEditForm(MyModelForm):
@@ -168,12 +175,14 @@ class BadgeEditForm(MyModelForm):
     def __init__(self, *args, **kwargs):
         super(BadgeEditForm, self).__init__(*args, **kwargs)
 
+        # TODO: l10n: Pretty sure this doesn't work for rtl languages.
         # HACK: inject new templates into the image field, monkeypatched
         # without creating a subclass
         self.fields['image'].widget.template_with_clear = u'''
             <p class="clear">%(clear)s
                 <label for="%(clear_checkbox_id)s">%(clear_checkbox_label)s</label></p>
         '''
+        # TODO: l10n: Pretty sure this doesn't work for rtl languages.
         self.fields['image'].widget.template_with_initial = u'''
             <div class="clearablefileinput">
                 <p>%(initial_text)s: %(initial)s</p>
@@ -195,5 +204,5 @@ class BadgeNewForm(BadgeEditForm):
 class BadgeSubmitNominationForm(MyForm):
     """Form to submit badge nominations"""
     emails = MultiEmailField(max_items=10,
-            help_text="Enter up to 10 email addresses for badge award "
-                      "nominees")
+            help_text=_('Enter up to 10 email addresses for badge award '
+                        'nominees'))
