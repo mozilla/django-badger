@@ -187,7 +187,7 @@ def render_label(request, c, metrics, da, badge_img, debug):
 
             qr_img = ImageReader(StringIO(urllib2.urlopen(qr_url).read()))
 
-        except Exception, e:
+        except Exception:
             # Ignore issues in drawing the QR code - maybe show an error?
             pass
 

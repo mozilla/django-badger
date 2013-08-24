@@ -58,7 +58,7 @@ def update_badges(overwrite=False):
                 badger.utils.update_badges(badges_mod.badges, overwrite)
             if hasattr(badges_mod, 'update_badges'):
                 badges_mod.update_badges(overwrite)
-        except ImportError, e:
+        except ImportError:
             if module_has_submodule(mod, 'badges'):
                 raise
 

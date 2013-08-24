@@ -29,7 +29,7 @@ else:
 
 try:
     from funfactory.urlresolvers import reverse
-except ImportError, e:
+except ImportError:
     from django.core.urlresolvers import reverse
 
 from django.contrib.auth.models import User
@@ -100,14 +100,14 @@ class BadgerBadgeTest(BadgerTestCase):
         try:
             b.award_to(awardee=user, raise_already_awarded=True)
             ok_(False, 'BadgeAlreadyAwardedException should have been raised')
-        except BadgeAlreadyAwardedException, e:
+        except BadgeAlreadyAwardedException:
             # The raise_already_awarded flag should raise the exception
             pass
 
         try:
             a = Award.objects.create(badge=b, user=user)
             ok_(False, 'BadgeAlreadyAwardedException should have been raised')
-        except BadgeAlreadyAwardedException, e:
+        except BadgeAlreadyAwardedException:
             # But, directly creating another award should trigger the exception
             pass
 
@@ -169,7 +169,7 @@ class BadgerProgressTest(BadgerTestCase):
         try:
             p = Progress.objects.create(badge=b, user=user)
             ok_(False, 'BadgeAlreadyAwardedException should have been raised')
-        except BadgeAlreadyAwardedException, e:
+        except BadgeAlreadyAwardedException:
             pass
 
         # None, because award deletes progress.
@@ -552,7 +552,7 @@ class BadgerMultiplayerBadgeTest(BadgerTestCase):
         try:
             nomination = nomination.approve_by(other_user)
             ok_(False, "Nomination should not have succeeded")
-        except NominationApproveNotAllowedException, e:
+        except NominationApproveNotAllowedException:
             ok_(True)
 
     def test_disallowed_nomination_accept(self):
@@ -565,7 +565,7 @@ class BadgerMultiplayerBadgeTest(BadgerTestCase):
         try:
             nomination = nomination.accept(other_user)
             ok_(False, "Nomination should not have succeeded")
-        except NominationAcceptNotAllowedException, e:
+        except NominationAcceptNotAllowedException:
             ok_(True)
 
     def _get_user(self, username="tester", email="tester@example.com",
@@ -590,7 +590,7 @@ class BadgerMultiplayerBadgeTest(BadgerTestCase):
         try:
             n = Nomination.objects.create(badge=b, nominee=user)
             ok_(False, 'BadgeAlreadyAwardedException should have been raised')
-        except BadgeAlreadyAwardedException, e:
+        except BadgeAlreadyAwardedException:
             pass
 
         # Nominations stick around after award.

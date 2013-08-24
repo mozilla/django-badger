@@ -38,18 +38,18 @@ except ImportError: # Django 1.5 no longer bundles simplejson
 try:
     from django.dispatch import receiver
     from django.contrib.auth.signals import user_logged_in
-except ImportError, e:
+except ImportError:
     receiver = False
     user_logged_in = False
 
 try:
     from tower import ugettext_lazy as _
-except ImportError, e:
+except ImportError:
     from django.utils.translation import ugettext_lazy as _
 
 try:
     from funfactory.urlresolvers import reverse
-except ImportError, e:
+except ImportError:
     from django.core.urlresolvers import reverse
 
 try:
@@ -66,7 +66,7 @@ try:
     import taggit
     from taggit.managers import TaggableManager
     from taggit.models import Tag, TaggedItem
-except:
+except ImportError:
     taggit = None
 
 if "notification" in settings.INSTALLED_APPS:
@@ -255,7 +255,7 @@ class JSONField(models.TextField):
 try:
     from south.modelsinspector import add_introspection_rules
     add_introspection_rules([], ["^badger.models.JSONField"])
-except ImportError, e:
+except ImportError:
     pass
 
 
@@ -842,7 +842,7 @@ class Award(models.Model):
         try:
             # Try processing the image copy, bail if the image is bad.
             img = Image.open(img_copy_fh)
-        except IOError, e:
+        except IOError:
             return False
 
         # Here's where the baking gets done. JSON representation of the OBI
@@ -852,7 +852,7 @@ class Award(models.Model):
         # see: https://github.com/mozilla/openbadges/blob/development/controllers/baker.js
         try:
             from PIL import PngImagePlugin
-        except ImportError, e:
+        except ImportError:
             import PngImagePlugin
         meta = PngImagePlugin.PngInfo()
 
@@ -885,7 +885,7 @@ class Award(models.Model):
         # TODO: This should really be a foreign key relation, someday.
         try:
             return Nomination.objects.get(award=self)
-        except:
+        except Nomination.DoesNotExist:
             return None
 
 
@@ -932,7 +932,7 @@ class Progress(models.Model):
     def _quiet_save(self, raise_exception=False):
         try:
             self.save()
-        except BadgeAlreadyAwardedException, e:
+        except BadgeAlreadyAwardedException as e:
             if raise_exception:
                 raise e
 
@@ -1085,7 +1085,7 @@ class DeferredAward(models.Model):
                 body = render_to_string(tmpl_name % 'body', {}, context)
                 send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                           [self.email], fail_silently=False)
-            except TemplateDoesNotExist, e:
+            except TemplateDoesNotExist:
                 pass
 
     def claim(self, awardee):
@@ -1094,8 +1094,7 @@ class DeferredAward(models.Model):
             award = self.badge.award_to(awardee=awardee, awarder=self.creator)
             award.claim_code = self.claim_code
             award.save()
-        except (BadgeAlreadyAwardedException,
-                BadgeAwardNotAllowedException), e:
+        except (BadgeAlreadyAwardedException, BadgeAwardNotAllowedException):
             # Just swallow up and ignore any issues in awarding.
             award = None
         if not self.reusable:

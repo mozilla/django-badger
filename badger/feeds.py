@@ -14,12 +14,12 @@ from django.conf import settings
 
 try:
     from tower import ugettext_lazy as _
-except ImportError, e:
+except ImportError:
     from django.utils.translation import ugettext_lazy as _
 
 try:
     from commons.urlresolvers import reverse
-except ImportError, e:
+except ImportError:
     from django.core.urlresolvers import reverse
 
 from . import validate_jsonp

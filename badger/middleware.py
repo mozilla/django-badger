@@ -23,7 +23,7 @@ class RecentBadgeAwardsList(object):
         try:
             self.last_check = datetime.fromtimestamp(float(
                 self.request.COOKIES[LAST_CHECK_COOKIE_NAME]))
-        except (KeyError, ValueError), e:
+        except (KeyError, ValueError):
             self.last_check = None
 
     def process_response(self, response):

@@ -8,7 +8,7 @@ from django.db import models
 
 try:
     from funfactory.urlresolvers import reverse
-except ImportError, e:
+except ImportError:
     from django.core.urlresolvers import reverse
 
 from .models import (Badge, Award, Nomination, Progress, DeferredAward)

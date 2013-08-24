@@ -16,12 +16,12 @@ try:
     from funfactory.urlresolvers import (get_url_prefix, Prefixer, reverse,
                                          set_url_prefix)
     from tower import activate
-except ImportError, e:
+except ImportError:
     from django.core.urlresolvers import reverse
 
 try:
     from tower import ugettext_lazy as _
-except ImportError, e:
+except ImportError:
     from django.utils.translation import ugettext_lazy as _
 
 from django.views.generic.list import ListView
@@ -36,7 +36,7 @@ from django.contrib.auth.models import User
 try:
     import taggit
     from taggit.models import Tag, TaggedItem
-except:
+except ImportError:
     taggit = None
 
 import badger
@@ -535,10 +535,10 @@ def nominate_for(request, slug):
                         award = badge.nominate_for(nominee, request.user)
                         messages.info(request,
                             _('Nomination submitted for {email}').format(email=email))
-                    except BadgeAlreadyAwardedException, e:
+                    except BadgeAlreadyAwardedException:
                         messages.info(request,
                             _('Badge already awarded to {email}').format(email=email))
-                    except Exception, e:
+                    except Exception:
                         messages.info(request,
                             _('Nomination failed for {email}').format(email=email))
 

@@ -14,7 +14,7 @@ try:
                                          set_url_prefix)
     from tower import activate
     from django.test.client import RequestFactory
-except ImportError, e:
+except ImportError:
     from django.core.urlresolvers import reverse
     get_url_prefix = None
 

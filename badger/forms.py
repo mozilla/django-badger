@@ -12,14 +12,14 @@ from django.core.validators import validate_email
 
 try:
     from tower import ugettext_lazy as _
-except ImportError, e:
+except ImportError:
     from django.utils.translation import ugettext_lazy as _
 
 from badger.models import Award, Badge, Nomination
 
 try:
     from taggit.managers import TaggableManager
-except:
+except ImportError:
     TaggableManager = None
 
 
@@ -102,7 +102,7 @@ class MultipleItemsField(forms.Field):
         for item in value:
             try:
                 self.validate_item(item)
-            except ValidationError, e:
+            except ValidationError:
                 invalid_items.append(item)
 
         if len(invalid_items) > 0:
@@ -164,7 +164,7 @@ class BadgeEditForm(MyModelForm):
             # HACK: Add "tags" as a field only if the taggit app is available.
             import taggit
             fields += ('tags',)
-        except ImportError, e:
+        except ImportError:
             pass
         fields += ('unique', 'nominations_accepted',
                    'nominations_autoapproved',)

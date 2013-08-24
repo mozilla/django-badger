@@ -172,7 +172,7 @@ class BadgesPyTest(BadgerTestCase):
             b.progress_for(user).update_percent(50)
             b.progress_for(user).update_percent(75)
             b.progress_for(user).update_percent(100)
-        except BadgeAlreadyAwardedException, e:
+        except BadgeAlreadyAwardedException:
             ok_(False, "Exception should not have been raised")
 
         try:
@@ -180,7 +180,7 @@ class BadgesPyTest(BadgerTestCase):
             b.progress_for(user).update_percent(75, raise_exception=True)
             b.progress_for(user).update_percent(100, raise_exception=True)
             ok_(False, "Exception should have been raised")
-        except BadgeAlreadyAwardedException, e:
+        except BadgeAlreadyAwardedException:
             pass
 
     def _get_user(self, username="tester", email="tester@example.com",
