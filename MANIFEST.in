@@ -1,7 +1,11 @@
 include LICENSE
+include CHANGELOG
+include CONTRIBUTORS
 include MANIFEST.in
-include manage.py
 include README.rst
+include .travis.yml
+include tox.ini
+include manage.py
 include runtests.py
 include setup.py
 include test_settings.py
@@ -9,6 +13,8 @@ include TODO.md
 
 recursive-include docs *.py *.rst Makefile
 
-recursive-include badger *.txt *.py *.png *.html *.json *.txt
+recursive-include badger *.py *.png *.html *.json
 
 recursive-include badger_example *.html *.json *.txt
+
+recursive-include requirements *.txt

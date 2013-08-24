@@ -26,12 +26,14 @@ Contents:
    :maxdepth: 2
 
    overview
+   changelog
    getting_started
    usage
    views
    api
    faqs
    contributing
+   contributors
 
 
 Indices and tables
