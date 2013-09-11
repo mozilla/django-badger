@@ -158,7 +158,10 @@ def scale_image(img_upload, img_max_size):
         x_offset + int(crop_width), y_offset + int(crop_height)))
     img = img.resize((dst_width, dst_height), Image.ANTIALIAS)
 
-    if img.mode != "RGB":
+    # If the mode isn't RGB or RGBA we convert it. If it's not one
+    # of those modes, then we don't know what the alpha channel should
+    # be so we convert it to "RGB".
+    if img.mode not in ("RGB", "RGBA"):
         img = img.convert("RGB")
     new_img = StringIO()
     img.save(new_img, "PNG")
