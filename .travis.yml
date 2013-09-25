@@ -23,3 +23,8 @@ script: python manage.py test -v2 badger
 notifications:
     email:
         - me@lmorchard.com
+    irc:
+        channels:
+            - "irc.mozilla.org#badger"
+        on_success: always
+        on_failure: always
