@@ -5,8 +5,8 @@ python:
     - "2.7"
 
 env:
-    - DB=mysql DJANGO_VERSION=1.4.8
-    - DB=mysql DJANGO_VERSION=1.5.4
+    - DB=mysql DJANGO_VERSION=1.4
+    - DB=mysql DJANGO_VERSION=1.5
 
 before_install:
     - sudo apt-get update -qq
@@ -15,7 +15,7 @@ before_install:
     - sudo ln -s /usr/lib/`uname -i`-linux-gnu/libz.so /usr/lib
 
 install:
-    - pip install django==${DJANGO_VERSION}
+    - pip install --use-mirrors "Django>=${DJANGO_VERSION},<${DJANGO_VERSION}.99"
     - pip install -r requirements/dev.txt --use-mirrors
 
 script: python manage.py test -v2 badger
