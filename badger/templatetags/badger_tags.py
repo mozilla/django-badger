@@ -73,6 +73,6 @@ def award_image(award):
 @register.simple_tag
 def user_award_list(badge, user):
     if badge.allows_award_to(user):
-        return '<li><a class="award_badge" href="%s">%s</a></li>' % (reverse('badger.views.award_badge', args=[badge.slug, ]), _('Issue award'))
+        return '<li><a class="award_badge" href="%s">%s</a></li>' % (reverse('badger.views.award_badge', args=[badge.slug, ]), _(u'Issue award'))
     else:
         return ''

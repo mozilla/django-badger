@@ -7,7 +7,6 @@ from django import forms
 from django.db import models
 from django.contrib.auth.models import User, AnonymousUser
 from django.forms import FileField, CharField, Textarea, ValidationError
-from django.utils.translation import ugettext as _
 from django.core.validators import validate_email
 
 try:
@@ -94,7 +93,7 @@ class MultipleItemsField(forms.Field):
         # Enforce max number of items
         if len(value) > self.max_items:
             raise ValidationError(
-                _('{num} items entered, only {maxnum} allowed').format(
+                _(u'{num} items entered, only {maxnum} allowed').format(
                     num=len(value), maxnum=self.max_items))
 
         # Validate each of the items
@@ -108,7 +107,7 @@ class MultipleItemsField(forms.Field):
         if len(invalid_items) > 0:
             # TODO: l10n: Not all languages separate with commas
             raise ValidationError(
-                _('These items were invalid: {itemlist}').format(
+                _(u'These items were invalid: {itemlist}').format(
                     itemlist=u', '.join(invalid_items)))
 
 
@@ -122,12 +121,12 @@ class BadgeAwardForm(MyForm):
     """Form to create either a real or deferred badge award"""
     # TODO: Needs a captcha?
     emails = MultiEmailField(max_items=10,
-            help_text=_('Enter up to 10 email addresses for badge award '
-                        'recipients'))
+            help_text=_(u'Enter up to 10 email addresses for badge award '
+                            'recipients'))
     description = CharField(
             label='Explanation',
             widget=Textarea, required=False,
-            help_text=_('Explain why this badge should be awarded'))
+            help_text=_(u'Explain why this badge should be awarded'))
 
 
 class DeferredAwardGrantForm(MyForm):
@@ -144,15 +143,15 @@ class MultipleClaimCodesField(MultipleItemsField):
             DeferredAward.objects.get(claim_code=item)
             return True
         except DeferredAward.DoesNotExist:
-            raise ValidationError(_('No such claim code, {claimcode}').format(
+            raise ValidationError(_(u'No such claim code, {claimcode}').format(
                 claimcode=item))
 
 
 class DeferredAwardMultipleGrantForm(MyForm):
     email = forms.EmailField(
-            help_text=_('Email address to which claims should be granted'))
+            help_text=_(u'Email address to which claims should be granted'))
     claim_codes = MultipleClaimCodesField(
-            help_text=_('Comma- or space-separated list of badge claim codes'))
+            help_text=_(u'Comma- or space-separated list of badge claim codes'))
 
 
 class BadgeEditForm(MyModelForm):
@@ -204,5 +203,5 @@ class BadgeNewForm(BadgeEditForm):
 class BadgeSubmitNominationForm(MyForm):
     """Form to submit badge nominations"""
     emails = MultiEmailField(max_items=10,
-            help_text=_('Enter up to 10 email addresses for badge award '
-                        'nominees'))
+            help_text=_(
+                u'Enter up to 10 email addresses for badge award nominees'))
