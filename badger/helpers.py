@@ -13,11 +13,6 @@ try:
 except ImportError:
     from django.core.urlresolvers import reverse
 
-try:
-    from tower import ugettext_lazy as _
-except ImportError:
-    from django.utils.translation import ugettext_lazy as _
-
 import jingo
 import jinja2
 from jinja2 import evalcontextfilter, Markup, escape

@@ -146,14 +146,14 @@ class AwardActivityStreamAtomFeedGenerator(Atom1Feed):
 
 class AwardsFeed(BaseFeed):
     """Base class for all feeds listing awards"""
-    title = _('Recently awarded badges')
+    title = _(u'Recently awarded badges')
     subtitle = None
 
     json_feed_generator = AwardActivityStreamJSONFeedGenerator
     atom_feed_generator = AwardActivityStreamAtomFeedGenerator
 
     def item_title(self, obj):
-        return _('{badgetitle} awarded to {username}').format(
+        return _(u'{badgetitle} awarded to {username}').format(
             badgetitle=obj.badge.title, username=obj.user.username)
 
     def item_author_link(self, obj):
@@ -185,7 +185,7 @@ class AwardsByUserFeed(AwardsFeed):
     def get_object(self, request, format, username):
         super(AwardsByUserFeed, self).get_object(request, format)
         user = get_object_or_404(User, username=username)
-        self.title = _('Badges recently awarded to {username}').format(
+        self.title = _(u'Badges recently awarded to {username}').format(
             username=user.username)
         self.link = request.build_absolute_uri(
             reverse('badger.views.awards_by_user', args=(user.username,)))
@@ -204,7 +204,7 @@ class AwardsByBadgeFeed(AwardsFeed):
     def get_object(self, request, format, slug):
         super(AwardsByBadgeFeed, self).get_object(request, format)
         badge = get_object_or_404(Badge, slug=slug)
-        self.title = _('Recent awards of "{badgetitle}"').format(
+        self.title = _(u'Recent awards of "{badgetitle}"').format(
             badgetitle=badge.title)
         self.link = request.build_absolute_uri(
             reverse('badger.views.awards_by_badge', args=(badge.slug,)))
@@ -222,7 +222,7 @@ class BadgesJSONFeedGenerator(BaseJSONFeedGenerator):
 
 class BadgesFeed(BaseFeed):
     """Base class for all feeds listing badges"""
-    title = _('Recently created badges')
+    title = _(u'Recently created badges')
 
     json_feed_generator = BadgesJSONFeedGenerator
 
@@ -249,7 +249,7 @@ class BadgesByUserFeed(BadgesFeed):
     def get_object(self, request, format, username):
         super(BadgesByUserFeed, self).get_object(request, format)
         user = get_object_or_404(User, username=username)
-        self.title = _('Badges recently created by {username}').format(
+        self.title = _(u'Badges recently created by {username}').format(
             username=user.username)
         self.link = request.build_absolute_uri(
             reverse('badger.views.badges_by_user', args=(user.username,)))

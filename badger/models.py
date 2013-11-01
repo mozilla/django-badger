@@ -438,7 +438,7 @@ class Badge(models.Model):
         ordering = ['-modified', '-created']
         permissions = (
             ('manage_deferredawards',
-             _('Can manage deferred awards for this badge')),
+             _(u'Can manage deferred awards for this badge')),
         )
 
     get_permissions_for = get_permissions_for
@@ -456,7 +456,7 @@ class Badge(models.Model):
         if self.image:
             scaled_file = scale_image(self.image.file, IMG_MAX_SIZE)
             if not scaled_file:
-                raise ValidationError(_('Cannot process image'))
+                raise ValidationError(_(u'Cannot process image'))
             self.image.file = scaled_file
 
     def save(self, **kwargs):
@@ -1026,7 +1026,7 @@ class DeferredAward(models.Model):
         ordering = ['-modified', '-created']
         permissions = (
             ("grant_deferredaward",
-             _('Can grant deferred award to an email address')),
+             _(u'Can grant deferred award to an email address')),
         )
 
     get_permissions_for = get_permissions_for
