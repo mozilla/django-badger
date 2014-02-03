@@ -39,7 +39,9 @@ def update_badge(data_in, overwrite=False):
 
     # If overwriting, and not just created, then save with current fields.
     if overwrite and not created:
-        badge.save(**data)
+        for k, v in data.items():
+            setattr(badge, k, v)
+        badge.save()
 
     # Set prerequisites if overwriting, or badge is newly created.
     if (overwrite or created) and prerequisites:
