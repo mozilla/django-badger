@@ -124,7 +124,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.admin',
 
-    'django_nose',  # has to come after south for good test-fu
+    'django_nose',
     'badger_example',
     'badger',
 ]
