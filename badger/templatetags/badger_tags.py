@@ -1,11 +1,10 @@
 # django
+import django
 from django import template
 from django.conf import settings
 from django.shortcuts import  get_object_or_404
 from badger.models import Award, Badge
 
-
-from django.contrib.auth.models import SiteProfileNotAvailable
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 
@@ -13,6 +12,13 @@ import hashlib
 import urllib
 
 from django.utils.translation import ugettext_lazy as _
+
+if django.VERSION < (1, 7, 0):
+    from django.contrib.auth.models import SiteProfileNotAvailable
+
+if django.VERSION >= (1, 7, 0):
+    class SiteProfileNotAvailable(Exception):
+        pass
 
 register = template.Library()
 

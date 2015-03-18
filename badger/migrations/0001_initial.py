@@ -1,161 +1,137 @@
-# encoding: utf-8
-import datetime
-from south.db import db
-from south.v2 import SchemaMigration
-from django.db import models
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 
-class Migration(SchemaMigration):
-
-    def forwards(self, orm):
-        
-        # Adding model 'Badge'
-        db.create_table('badger_badge', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('title', self.gf('django.db.models.fields.CharField')(unique=True, max_length=255)),
-            ('slug', self.gf('django.db.models.fields.SlugField')(unique=True, max_length=50, db_index=True)),
-            ('description', self.gf('django.db.models.fields.TextField')(blank=True)),
-            ('image', self.gf('django.db.models.fields.files.ImageField')(max_length=100, null=True, blank=True)),
-            ('unique', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('creator', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'], null=True, blank=True)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
-        ))
-        db.send_create_signal('badger', ['Badge'])
-
-        # Adding unique constraint on 'Badge', fields ['title', 'slug']
-        db.create_unique('badger_badge', ['title', 'slug'])
-
-        # Adding M2M table for field prerequisites on 'Badge'
-        db.create_table('badger_badge_prerequisites', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('from_badge', models.ForeignKey(orm['badger.badge'], null=False)),
-            ('to_badge', models.ForeignKey(orm['badger.badge'], null=False))
-        ))
-        db.create_unique('badger_badge_prerequisites', ['from_badge_id', 'to_badge_id'])
-
-        # Adding model 'Award'
-        db.create_table('badger_award', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('badge', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['badger.Badge'])),
-            ('image', self.gf('django.db.models.fields.files.ImageField')(max_length=100, null=True, blank=True)),
-            ('user', self.gf('django.db.models.fields.related.ForeignKey')(related_name='award_user', to=orm['auth.User'])),
-            ('creator', self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='award_creator', null=True, to=orm['auth.User'])),
-            ('hidden', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
-        ))
-        db.send_create_signal('badger', ['Award'])
-
-        # Adding model 'Progress'
-        db.create_table('badger_progress', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('badge', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['badger.Badge'])),
-            ('user', self.gf('django.db.models.fields.related.ForeignKey')(related_name='progress_user', to=orm['auth.User'])),
-            ('percent', self.gf('django.db.models.fields.FloatField')(default=0)),
-            ('counter', self.gf('django.db.models.fields.FloatField')(default=0, null=True, blank=True)),
-            ('notes', self.gf('badger.models.JSONField')(null=True, blank=True)),
-            ('created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
-        ))
-        db.send_create_signal('badger', ['Progress'])
-
-        # Adding unique constraint on 'Progress', fields ['badge', 'user']
-        db.create_unique('badger_progress', ['badge_id', 'user_id'])
+from django.db import models, migrations
+import badger.models
+from django.conf import settings
+import django.core.files.storage
 
 
-    def backwards(self, orm):
-        
-        # Removing unique constraint on 'Progress', fields ['badge', 'user']
-        db.delete_unique('badger_progress', ['badge_id', 'user_id'])
+class Migration(migrations.Migration):
 
-        # Removing unique constraint on 'Badge', fields ['title', 'slug']
-        db.delete_unique('badger_badge', ['title', 'slug'])
+    dependencies = [
+        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+    ]
 
-        # Deleting model 'Badge'
-        db.delete_table('badger_badge')
-
-        # Removing M2M table for field prerequisites on 'Badge'
-        db.delete_table('badger_badge_prerequisites')
-
-        # Deleting model 'Award'
-        db.delete_table('badger_award')
-
-        # Deleting model 'Progress'
-        db.delete_table('badger_progress')
-
-
-    models = {
-        'auth.group': {
-            'Meta': {'object_name': 'Group'},
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '80'}),
-            'permissions': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.Permission']", 'symmetrical': 'False', 'blank': 'True'})
-        },
-        'auth.permission': {
-            'Meta': {'ordering': "('content_type__app_label', 'content_type__model', 'codename')", 'unique_together': "(('content_type', 'codename'),)", 'object_name': 'Permission'},
-            'codename': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'content_type': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['contenttypes.ContentType']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '50'})
-        },
-        'auth.user': {
-            'Meta': {'object_name': 'User'},
-            'date_joined': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'email': ('django.db.models.fields.EmailField', [], {'max_length': '75', 'blank': 'True'}),
-            'first_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
-            'groups': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.Group']", 'symmetrical': 'False', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'is_active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
-            'is_staff': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'is_superuser': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'last_login': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'last_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
-            'password': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'user_permissions': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.Permission']", 'symmetrical': 'False', 'blank': 'True'}),
-            'username': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '30'})
-        },
-        'badger.award': {
-            'Meta': {'object_name': 'Award'},
-            'badge': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['badger.Badge']"}),
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'creator': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'award_creator'", 'null': 'True', 'to': "orm['auth.User']"}),
-            'hidden': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'image': ('django.db.models.fields.files.ImageField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'award_user'", 'to': "orm['auth.User']"})
-        },
-        'badger.badge': {
-            'Meta': {'unique_together': "(('title', 'slug'),)", 'object_name': 'Badge'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'creator': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']", 'null': 'True', 'blank': 'True'}),
-            'description': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'image': ('django.db.models.fields.files.ImageField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
-            'prerequisites': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': "orm['badger.Badge']", 'null': 'True', 'blank': 'True'}),
-            'slug': ('django.db.models.fields.SlugField', [], {'unique': 'True', 'max_length': '50', 'db_index': 'True'}),
-            'title': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'}),
-            'unique': ('django.db.models.fields.BooleanField', [], {'default': 'False'})
-        },
-        'badger.progress': {
-            'Meta': {'unique_together': "(('badge', 'user'),)", 'object_name': 'Progress'},
-            'badge': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['badger.Badge']"}),
-            'counter': ('django.db.models.fields.FloatField', [], {'default': '0', 'null': 'True', 'blank': 'True'}),
-            'created': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
-            'notes': ('badger.models.JSONField', [], {'null': 'True', 'blank': 'True'}),
-            'percent': ('django.db.models.fields.FloatField', [], {'default': '0'}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'progress_user'", 'to': "orm['auth.User']"})
-        },
-        'contenttypes.contenttype': {
-            'Meta': {'ordering': "('name',)", 'unique_together': "(('app_label', 'model'),)", 'object_name': 'ContentType', 'db_table': "'django_content_type'"},
-            'app_label': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
-        }
-    }
-
-    complete_apps = ['badger']
+    operations = [
+        migrations.CreateModel(
+            name='Award',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('description', models.TextField(help_text=b'Explanation and evidence for the badge award', blank=True)),
+                ('image', models.ImageField(storage=django.core.files.storage.FileSystemStorage(base_url=b'uploads/', location=b'uploads'), null=True, upload_to=badger.models.UploadTo(b'image', b'png'), blank=True)),
+                ('claim_code', models.CharField(default=b'', help_text=b'Code used to claim this award', max_length=32, db_index=True, blank=True)),
+                ('hidden', models.BooleanField(default=False)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True)),
+            ],
+            options={
+                'ordering': ['-modified', '-created'],
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Badge',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('title', models.CharField(help_text=b'Short, descriptive title', unique=True, max_length=255)),
+                ('slug', models.SlugField(help_text=b'Very short name, for use in URLs and links', unique=True)),
+                ('description', models.TextField(help_text=b'Longer description of the badge and its criteria', blank=True)),
+                ('image', models.ImageField(help_text=b'Upload an image to represent the badge', storage=django.core.files.storage.FileSystemStorage(base_url=b'uploads/', location=b'uploads'), null=True, upload_to=badger.models.UploadTo(b'image', b'png'), blank=True)),
+                ('unique', models.BooleanField(default=True, help_text=b'Should awards of this badge be limited to one-per-person?')),
+                ('nominations_accepted', models.BooleanField(default=True, help_text=b'Should this badge accept nominations from other users?')),
+                ('nominations_autoapproved', models.BooleanField(default=False, help_text=b'Should all nominations be automatically approved?')),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True)),
+                ('creator', models.ForeignKey(blank=True, to=settings.AUTH_USER_MODEL, null=True)),
+                ('prerequisites', models.ManyToManyField(help_text=b'When all of the selected badges have been awarded, this badge will be automatically awarded.', to='badger.Badge', null=True, blank=True)),
+            ],
+            options={
+                'ordering': ['-modified', '-created'],
+                'permissions': (('manage_deferredawards', 'Can manage deferred awards for this badge'),),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='DeferredAward',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('description', models.TextField(blank=True)),
+                ('reusable', models.BooleanField(default=False)),
+                ('email', models.EmailField(db_index=True, max_length=75, null=True, blank=True)),
+                ('claim_code', models.CharField(default=badger.models.make_random_code, unique=True, max_length=32, db_index=True)),
+                ('claim_group', models.CharField(db_index=True, max_length=32, null=True, blank=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True)),
+                ('badge', models.ForeignKey(to='badger.Badge')),
+                ('creator', models.ForeignKey(blank=True, to=settings.AUTH_USER_MODEL, null=True)),
+            ],
+            options={
+                'ordering': ['-modified', '-created'],
+                'permissions': (('grant_deferredaward', 'Can grant deferred award to an email address'),),
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Nomination',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('accepted', models.BooleanField(default=False)),
+                ('rejected_reason', models.TextField(blank=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True)),
+                ('approver', models.ForeignKey(related_name='nomination_approver', blank=True, to=settings.AUTH_USER_MODEL, null=True)),
+                ('award', models.ForeignKey(blank=True, to='badger.Award', null=True)),
+                ('badge', models.ForeignKey(to='badger.Badge')),
+                ('creator', models.ForeignKey(related_name='nomination_creator', blank=True, to=settings.AUTH_USER_MODEL, null=True)),
+                ('nominee', models.ForeignKey(related_name='nomination_nominee', to=settings.AUTH_USER_MODEL)),
+                ('rejected_by', models.ForeignKey(related_name='nomination_rejected_by', blank=True, to=settings.AUTH_USER_MODEL, null=True)),
+            ],
+            options={
+            },
+            bases=(models.Model,),
+        ),
+        migrations.CreateModel(
+            name='Progress',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('percent', models.FloatField(default=0)),
+                ('counter', models.FloatField(default=0, null=True, blank=True)),
+                ('notes', badger.models.JSONField(null=True, blank=True)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('modified', models.DateTimeField(auto_now=True)),
+                ('badge', models.ForeignKey(to='badger.Badge')),
+                ('user', models.ForeignKey(related_name='progress_user', to=settings.AUTH_USER_MODEL)),
+            ],
+            options={
+                'verbose_name_plural': 'Progresses',
+            },
+            bases=(models.Model,),
+        ),
+        migrations.AlterUniqueTogether(
+            name='progress',
+            unique_together=set([('badge', 'user')]),
+        ),
+        migrations.AlterUniqueTogether(
+            name='badge',
+            unique_together=set([('title', 'slug')]),
+        ),
+        migrations.AddField(
+            model_name='award',
+            name='badge',
+            field=models.ForeignKey(to='badger.Badge'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='award',
+            name='creator',
+            field=models.ForeignKey(related_name='award_creator', blank=True, to=settings.AUTH_USER_MODEL, null=True),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='award',
+            name='user',
+            field=models.ForeignKey(related_name='award_user', to=settings.AUTH_USER_MODEL),
+            preserve_default=True,
+        ),
+    ]
