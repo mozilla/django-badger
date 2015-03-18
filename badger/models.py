@@ -1,18 +1,17 @@
-import logging
-import re
-import random
 import hashlib
-
-from datetime import datetime, timedelta, tzinfo
-from time import time, gmtime, strftime
-
+import json
+import logging
 import os.path
+import random
+import re
+from datetime import datetime, timedelta, tzinfo
 from os.path import dirname
-
+from time import time, gmtime, strftime
 from urlparse import urljoin
 
+import django
 from django.conf import settings
-
+from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from django.db.models import signals, Q, Count, Max
 from django.db.models.fields.files import FieldFile, ImageFieldFile
@@ -23,16 +22,8 @@ from django.core.files.base import ContentFile
 from django.contrib.auth.models import User, AnonymousUser
 from django.contrib.sites.models import Site
 from django.contrib.contenttypes.models import ContentType
-
 from django.template import Context, TemplateDoesNotExist
 from django.template.loader import render_to_string
-
-from django.core.serializers.json import DjangoJSONEncoder
-
-try:
-    import django.utils.simplejson as json
-except ImportError: # Django 1.5 no longer bundles simplejson
-    import json
 
 # HACK: Django 1.2 is missing receiver and user_logged_in
 try:
@@ -208,18 +199,45 @@ def get_permissions_for(self, user):
     return perms
 
 
-def mk_upload_to(field_fn, ext, tmpl=MK_UPLOAD_TMPL):
-    """upload_to builder for file upload fields"""
-    def upload_to(instance, filename):
-        base, slug = instance.get_upload_meta()
-        slug_hash = (hashlib.md5(slug.encode('utf-8', 'ignore'))
-                            .hexdigest())
-        return tmpl % dict(now=int(time()), rand=random.randint(0, 1000),
-                           slug=slug[:50], base=base, field_fn=field_fn,
-                           pk=instance.pk,
-                           hash=slug_hash, h1=slug_hash[0], h2=slug_hash[1],
-                           ext=ext)
-    return upload_to
+if django.VERSION < (1, 7, 0):
+    def mk_upload_to(field_fn, ext, tmpl=MK_UPLOAD_TMPL):
+        """upload_to builder for file upload fields"""
+        def upload_to(instance, filename):
+            base, slug = instance.get_upload_meta()
+            slug_hash = (hashlib.md5(slug.encode('utf-8', 'ignore'))
+                                .hexdigest())
+            return tmpl % dict(now=int(time()), rand=random.randint(0, 1000),
+                               slug=slug[:50], base=base, field_fn=field_fn,
+                               pk=instance.pk,
+                               hash=slug_hash, h1=slug_hash[0], h2=slug_hash[1],
+                               ext=ext)
+        return upload_to
+
+    UploadTo = mk_upload_to
+
+if django.VERSION >= (1, 7, 0):
+    # We need to do this in django 1.7 because migrations serialize the fields.
+    # See https://code.djangoproject.com/ticket/22999
+
+    from django.utils.deconstruct import deconstructible
+
+    @deconstructible
+    class UploadTo(object):
+        """upload_to builder for file upload fields"""
+        def __init__(self, field_fn, ext, tmpl=MK_UPLOAD_TMPL):
+            self.field_fn = field_fn
+            self.ext = ext
+            self.tmpl = tmpl
+
+        def __call__(self, instance, filename):
+            base, slug = instance.get_upload_meta()
+            slug_hash = (hashlib.md5(slug.encode('utf-8', 'ignore'))
+                                .hexdigest())
+            return self.tmpl % dict(now=int(time()), rand=random.randint(0, 1000),
+                               slug=slug[:50], base=base, field_fn=self.field_fn,
+                               pk=instance.pk,
+                               hash=slug_hash, h1=slug_hash[0], h2=slug_hash[1],
+                               ext=self.ext)
 
 
 class JSONField(models.TextField):
@@ -407,7 +425,7 @@ class Badge(models.Model):
     description = models.TextField(blank=True,
         help_text='Longer description of the badge and its criteria')
     image = models.ImageField(blank=True, null=True,
-            storage=BADGE_UPLOADS_FS, upload_to=mk_upload_to('image', 'png'),
+            storage=BADGE_UPLOADS_FS, upload_to=UploadTo('image', 'png'),
             help_text='Upload an image to represent the badge')
     prerequisites = models.ManyToManyField('self', symmetrical=False,
             blank=True, null=True,
@@ -699,7 +717,7 @@ class Award(models.Model):
     badge = models.ForeignKey(Badge)
     image = models.ImageField(blank=True, null=True,
                               storage=BADGE_UPLOADS_FS,
-                              upload_to=mk_upload_to('image', 'png'))
+                              upload_to=UploadTo('image', 'png'))
     claim_code = models.CharField(max_length=32, blank=True,
             default='', unique=False, db_index=True,
             help_text='Code used to claim this award')

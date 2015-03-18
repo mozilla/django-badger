@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-from os.path import dirname
+import json
 import logging
 import time
+from os.path import dirname
 
 try:
     from PIL import Image
@@ -14,7 +15,6 @@ from django.core.management import call_command
 from django.db.models import loading
 from django.core.files.base import ContentFile
 from django.http import HttpRequest
-from django.utils import simplejson as json
 from django.test.client import Client
 
 from django.core import mail

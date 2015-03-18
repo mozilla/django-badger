@@ -1,4 +1,6 @@
 # Django settings for badger_example project.
+import django
+
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -122,11 +124,13 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.admin',
 
-    'south',
-    'django_nose',  # has to come after south for good test-fu
+    'django_nose',
     'badger_example',
     'badger',
 ]
+
+if django.VERSION[:2] < (1, 7):
+    INSTALLED_APPS = INSTALLED_APPS + ['south']
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
 
@@ -152,3 +156,7 @@ LOGGING = {
 }
 
 BADGER_TEMPLATE_BASE = 'badger'
+
+ABSOLUTE_URL_OVERRIDES = {
+    'auth.user': lambda u: u'/users/{0}'.format(u.username)
+}
