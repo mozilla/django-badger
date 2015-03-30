@@ -38,7 +38,7 @@ BADGER_TEMPLATE_BASE
 BADGER_SITE_ISSUER
     Dict. Specifies the issuer of the badges. Example::
 
-        'BADGER_SITE_ISSUER': {
+        BADGER_SITE_ISSUER = {
             'origin': SITE_URL,
             'name': 'Name of my site',
             'org': 'Name of my org',
@@ -47,7 +47,7 @@ BADGER_SITE_ISSUER
 
     Defaults to::
 
-        'BADGER_SITE_ISSUER': {
+        BADGER_SITE_ISSUER = {
             'origin': 'http://mozilla.org',
             'name': 'Badger',
             'org': 'Mozilla',
