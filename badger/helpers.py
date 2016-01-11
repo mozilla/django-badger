@@ -16,7 +16,7 @@ except ImportError:
 import jingo
 import jinja2
 from jinja2 import evalcontextfilter, Markup, escape
-from jingo import register, env
+from jingo import register
 
 from .models import (Badge, Award, Nomination, Progress,
                      BadgeAwardNotAllowedException)
