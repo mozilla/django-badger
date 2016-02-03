@@ -7,6 +7,14 @@ python:
 env:
     - DB=mysql DJANGO_VERSION=1.4
     - DB=mysql DJANGO_VERSION=1.5
+    - DB=mysql DJANGO_VERSION=1.6
+    - DB=mysql DJANGO_VERSION=1.7
+    - DB=mysql DJANGO_VERSION=1.8
+
+matrix:
+    exclude:
+        - python: "2.7"
+          env: DB=mysql DJANGO_VERSION=1.8
 
 before_install:
     - sudo apt-get update -qq
