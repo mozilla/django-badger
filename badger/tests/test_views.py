@@ -65,7 +65,7 @@ class BadgerViewsTest(BadgerTestCase):
         data = json.loads(r.content)
         eq_(badge.title, data['name'])
         eq_(badge.description, data['description'])
-        eq_('http://testserver%s' % badge.get_absolute_url(), 
+        eq_('http://testserver%s' % badge.get_absolute_url(),
             data['criteria'])
 
     @attr('json')
@@ -99,11 +99,11 @@ class BadgerViewsTest(BadgerTestCase):
                                                .hexdigest())
 
         eq_(recipient_hash, data['recipient'])
-        eq_('http://testserver%s' % award.get_absolute_url(), 
+        eq_('http://testserver%s' % award.get_absolute_url(),
             data['evidence'])
         eq_(award.badge.title, data['badge']['name'])
         eq_(award.badge.description, data['badge']['description'])
-        eq_('http://testserver%s' % award.badge.get_absolute_url(), 
+        eq_('http://testserver%s' % award.badge.get_absolute_url(),
             data['badge']['criteria'])
 
     def test_awards_by_user(self):
@@ -210,7 +210,7 @@ class BadgerViewsTest(BadgerTestCase):
     def test_issue_award(self):
         """Badge creator can issue award to another user"""
         SAMPLE_DESCRIPTION = u'This is a sample description'
-        
+
         user1 = self._get_user(username="creator", email="creator@example.com")
         user2 = self._get_user(username="awardee", email="awardee@example.com")
 
@@ -246,7 +246,7 @@ class BadgerViewsTest(BadgerTestCase):
 
         award = Award.objects.filter(user=user2, badge=b1)[0]
         eq_(SAMPLE_DESCRIPTION, award.description)
-        
+
         r = self.client.get(award.get_absolute_url(), follow=True)
         eq_(200, r.status_code)
 
@@ -326,7 +326,7 @@ class BadgerViewsTest(BadgerTestCase):
         deferred_email = "awardee@example.com"
         user1 = self._get_user(username="creator", email="creator@example.com")
         b1 = Badge.objects.create(creator=user1, title="Badge to defer")
-        
+
         da = DeferredAward(badge=b1, creator=user1)
         da.save()
         url = da.get_claim_url()
@@ -366,7 +366,7 @@ class BadgerViewsTest(BadgerTestCase):
 
         url = da.get_claim_url()
 
-        # Before claim, code URL leads to claim page. 
+        # Before claim, code URL leads to claim page.
         r = self.client.get(url, follow=False)
         eq_(200, r.status_code)
         doc = pq(r.content)
@@ -408,7 +408,7 @@ class BadgerViewsTest(BadgerTestCase):
         deferred_email = "awardee@example.com"
         user1 = self._get_user(username="creator", email="creator@example.com")
         b1 = Badge.objects.create(creator=user1, title="Badge to defer")
-        
+
         da = DeferredAward(badge=b1, creator=user1, email='foobar@example.com')
         da.save()
         url = da.get_claim_url()
