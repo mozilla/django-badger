@@ -7,7 +7,7 @@ from django.utils.module_loading import module_has_submodule
 from badger.models import Badge, Award, Progress
 
 
-# Default settings follow, overridden with BADGER_ prefix in settings.py       
+# Default settings follow, overridden with BADGER_ prefix in settings.py
 TEMPLATE_BASE = 'badger'
 
 # Skip baking for now (Issue #139)
